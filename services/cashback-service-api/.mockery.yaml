@@ -1,0 +1,4 @@
+with-expecter: true
+case: snake
+disable-version-string: true
+

@@ -1,0 +1,138 @@
+syntax = "proto3";
+
+package token;
+
+option go_package = "github.com/cashback-platform/proto/token";
+
+// TokenService provides blockchain token operations
+service TokenService {
+  // MintToken mints tokens to a specified wallet address
+  rpc MintToken(MintTokenRequest) returns (MintTokenResponse);
+
+  // GetBalance retrieves the token balance for a wallet address
+  rpc GetBalance(GetBalanceRequest) returns (GetBalanceResponse);
+
+  // GetTransaction retrieves the status of a blockchain transaction
+  rpc GetTransaction(GetTransactionRequest) returns (GetTransactionResponse);
+}
+
+// MintTokenRequest represents a request to mint tokens
+message MintTokenRequest {
+  // Unique identifier for idempotency
+  string idempotency_key = 1;
+
+  // Wallet address to receive the tokens (0x prefixed hex)
+  string wallet_address = 2;
+
+  // Amount of tokens to mint (wei representation as string)
+  string token_amount = 3;
+
+  // Optional metadata for the mint operation
+  MintMetadata metadata = 4;
+}
+
+// MintMetadata contains optional metadata for mint operations
+message MintMetadata {
+  // Reference to the cashback ID
+  string cashback_id = 1;
+
+  // Reference to the user ID
+  string user_id = 2;
+
+  // Additional key-value metadata
+  map<string, string> extra = 3;
+}
+
+// MintTokenResponse represents the result of a mint operation
+message MintTokenResponse {
+  // Whether the mint was successful
+  bool success = 1;
+
+  // Transaction hash (if submitted to blockchain)
+  string transaction_hash = 2;
+
+  // Block number where transaction was included (if confirmed)
+  int64 block_number = 3;
+
+  // Status of the mint operation
+  MintStatus status = 4;
+
+  // Error details (if failed)
+  MintError error = 5;
+}
+
+// MintStatus represents the status of a mint operation
+enum MintStatus {
+  MINT_STATUS_UNSPECIFIED = 0;
+  MINT_STATUS_PENDING = 1;
+  MINT_STATUS_SUBMITTED = 2;
+  MINT_STATUS_CONFIRMED = 3;
+  MINT_STATUS_FAILED = 4;
+}
+
+// MintError contains error details for failed mint operations
+message MintError {
+  // Error code for programmatic handling
+  string code = 1;
+
+  // Human-readable error message
+  string message = 2;
+
+  // Whether the error is retryable
+  bool retryable = 3;
+}
+
+// GetBalanceRequest represents a request to get token balance
+message GetBalanceRequest {
+  // Wallet address to check balance (0x prefixed hex)
+  string wallet_address = 1;
+}
+
+// GetBalanceResponse represents the token balance
+message GetBalanceResponse {
+  // Wallet address
+  string wallet_address = 1;
+
+  // Token balance (wei representation as string)
+  string balance = 2;
+
+  // Block number at which balance was read
+  int64 block_number = 3;
+}
+
+// GetTransactionRequest represents a request to get transaction status
+message GetTransactionRequest {
+  // Transaction hash to look up
+  string transaction_hash = 1;
+}
+
+// GetTransactionResponse represents transaction details
+message GetTransactionResponse {
+  // Transaction hash
+  string transaction_hash = 1;
+
+  // Transaction status
+  TransactionStatus status = 2;
+
+  // Block number (if included in a block)
+  int64 block_number = 3;
+
+  // Number of confirmations
+  int64 confirmations = 4;
+
+  // Gas used
+  int64 gas_used = 5;
+
+  // Whether the transaction succeeded
+  bool success = 6;
+}
+
+// TransactionStatus represents the status of a blockchain transaction
+enum TransactionStatus {
+  TRANSACTION_STATUS_UNSPECIFIED = 0;
+  TRANSACTION_STATUS_PENDING = 1;
+  TRANSACTION_STATUS_CONFIRMED = 2;
+  TRANSACTION_STATUS_FAILED = 3;
+  TRANSACTION_STATUS_NOT_FOUND = 4;
+}
+
