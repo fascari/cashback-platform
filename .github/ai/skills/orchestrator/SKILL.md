@@ -23,6 +23,26 @@ echo ~/ai-plans/$(basename $(git rev-parse --show-toplevel))
 Use the resolved absolute path for all `read_file` and `create_file` calls.
 Throughout this skill, `~/ai-plans/{repo-name}/{slug}/` means that resolved path.
 
+## Symlink Setup (run once per repo)
+
+A `.ai-plans` symlink inside the repository must point to the plans directory.
+Check and create it if absent — this makes plans discoverable from the IDE:
+
+```bash
+REPO_ROOT=$(git rev-parse --show-toplevel)
+REPO_NAME=$(basename "$REPO_ROOT")
+PLANS_DIR="$HOME/ai-plans/$REPO_NAME"
+
+mkdir -p "$PLANS_DIR"
+
+if [ ! -L "$REPO_ROOT/.ai-plans" ]; then
+  ln -sf "$PLANS_DIR" "$REPO_ROOT/.ai-plans"
+  echo "Symlink created: $REPO_ROOT/.ai-plans → $PLANS_DIR"
+fi
+```
+
+Run this step before creating `brief.md` on any new plan. Skip if the symlink already exists.
+
 ## Plan Discovery
 
 When the user does not provide an explicit slug, discover the active plan:

@@ -1,0 +1,47 @@
+@startuml high-level-system-flow
+!theme mars
+title High-Level System Flow\nHow a purchase becomes an on-chain token
+
+skinparam componentStyle rectangle
+skinparam defaultTextAlignment center
+skinparam padding 4
+
+actor "Client\n(REST)" as CLIENT #6366f1
+
+package "Off-chain" {
+    component "**cashback-service-api**\npurchase registration\ncashback calculation\noff-chain persistence" as API #38bdf8
+    database "cashback_service_db\n(PostgreSQL)" as DB1 #475569
+    component "**outbox_events**\n(Outbox Pattern)" as OUTBOX #f97316
+}
+
+queue "**NATS JetStream**\n(event broker)" as NATS #a78bfa
+
+package "Async Processing" {
+    component "**mint-consumer**\nevent processing\nidempotency\ngRPC orchestration" as MINT #38bdf8
+    database "mint_consumer_db\n(PostgreSQL)" as DB2 #475569
+}
+
+package "Blockchain Layer" {
+    component "**blockchain-adapter**\nnonce management\ntx signing\nRPC calls" as ADAPTER #38bdf8
+    database "blockchain_adapter_db\n(PostgreSQL)" as DB3 #475569
+}
+
+cloud "**Infura / Alchemy**\n(RPC provider)" as INFURA #0284c7
+node "**Sepolia Testnet**\n(Ethereum)" as CHAIN #10b981
+component "**CashbackToken.sol**\n(ERC-20 smart contract)" as CONTRACT #34d399
+
+CLIENT --> API : POST /purchases\nPOST /cashback/purchase/{id}
+API --> DB1
+API --> OUTBOX : writes event
+OUTBOX --> NATS : poller 100ms
+
+NATS --> MINT : cashback.approved
+MINT --> DB2
+MINT --> ADAPTER : gRPC MintToken
+ADAPTER --> DB3
+ADAPTER --> INFURA : eth_sendRawTransaction
+INFURA --> CHAIN
+CHAIN --> CONTRACT : executes
+
+@enduml
+

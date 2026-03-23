@@ -1,0 +1,65 @@
+[tools]
+go = "1.26"
+node = "22"
+
+[env]
+GOFLAGS = "-mod=mod"
+
+[tasks.deps]
+description = "Tidy all modules"
+run = [
+  "cd services/cashback-service-api && go mod tidy",
+  "cd services/mint-consumer && go mod tidy",
+  "cd services/blockchain-adapter && go mod tidy",
+]
+
+[tasks.build]
+description = "Build blockchain-adapter"
+run = "cd services/blockchain-adapter && go build -o ../../bin/blockchain-adapter ./cmd/main.go"
+
+[tasks.run]
+description = "Run blockchain-adapter"
+run = "cd services/blockchain-adapter && go run ./cmd/main.go"
+
+[tasks.test]
+description = "Test blockchain-adapter"
+run = "cd services/blockchain-adapter && go test -v -race -coverprofile=coverage.out ./..."
+
+[tasks.lint]
+description = "Lint blockchain-adapter"
+run = "cd services/blockchain-adapter && golangci-lint run"
+
+[tasks.fmt]
+description = "Format blockchain-adapter"
+run = "cd services/blockchain-adapter && gofmt -s -w ."
+
+[tasks.proto]
+description = "Generate Go code from proto/token.proto"
+run = """
+protoc \
+  --go_out=. --go_opt=paths=source_relative \
+  --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+  proto/token.proto
+"""
+
+[tasks."contracts:compile"]
+description = "Compile Solidity contracts"
+run = "cd contracts && npm install && npx hardhat compile"
+
+[tasks."contracts:bindings"]
+description = "Generate Go bindings from CashbackToken ABI"
+run = """
+abigen \
+  --abi contracts/artifacts/contracts/CashbackToken.sol/CashbackToken.json \
+  --bin contracts/artifacts/contracts/CashbackToken.sol/CashbackToken.bin \
+  --pkg contracts \
+  --out services/blockchain-adapter/internal/contracts/cashbacktoken.go
+"""
+
+[tasks."contracts:deploy-local"]
+description = "Deploy to local Hardhat network"
+run = "cd contracts && npx hardhat run scripts/deploy.ts --network localhost"
+
+[tasks."contracts:deploy-sepolia"]
+description = "Deploy to Sepolia testnet"
+run = "cd contracts && npx hardhat run scripts/deploy.ts --network sepolia"

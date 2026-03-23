@@ -1,0 +1,45 @@
+@startuml repository-structure
+!theme mars
+title Project Repository Structure\nWhere each concept lives in the codebase
+
+skinparam componentStyle rectangle
+skinparam defaultTextAlignment center
+skinparam padding 4
+
+package "cashback-platform/" as ROOT {
+    artifact "**proto/token.proto**\ngRPC contract definition" as PROTO #a78bfa
+    artifact "**db/schema.sql**\nall 3 DB schemas" as SCHEMA #475569
+
+    package "contracts/" as CONTRACTS_DIR #78350f {
+        artifact "CashbackToken.sol" as SOLFILE
+        artifact "hardhat.config.ts" as HCONFIG
+        artifact "scripts/deploy.ts" as DEPLOY
+    }
+
+    package "services/cashback-service-api/" as API_SVC #1e3a5f {
+        component "usecase/calculatecashback\npublishes cashback.approved" as API_UC #38bdf8
+        component "infra/messaging/outbox\nOutbox Pattern implementation" as API_OUT #f97316
+    }
+
+    package "services/mint-consumer/" as MINT_SVC #1e3a5f {
+        component "usecase/mint.go\nProcessCashbackApproved" as MINT_UC #38bdf8
+        component "repository/processedevent\nidempotency guard" as MINT_REPO #38bdf8
+    }
+
+    package "services/blockchain-adapter/" as BA_SVC #1e3a5f {
+        component "internal/contracts/\ncashbacktoken.go (generated)" as BA_CONTRACTS #34d399
+        component "internal/infra/ethereum/\nwallet.go + client.go" as BA_ETH #38bdf8
+        component "repository/nonce\nSELECT FOR UPDATE" as BA_NONCE #475569
+        component "**usecase/token.go**\norchestrates mint" as BA_UC #6366f1
+    }
+}
+
+PROTO --> MINT_UC : proto gen
+PROTO --> BA_UC : proto gen
+SOLFILE --> BA_CONTRACTS : contracts compile
+BA_ETH --> BA_UC
+BA_NONCE --> BA_UC
+BA_CONTRACTS --> BA_UC
+
+@enduml
+

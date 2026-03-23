@@ -113,10 +113,8 @@ make lint   # Lint code
 
 ## Documentation
 
-- [Architecture](docs/architecture.md) - Detailed architecture documentation
-- [Events](docs/events.md) - Event flow and descriptions
-- [Refactoring Guide](REFACTORING.md) - Recent changes and guidelines
-- [Project Spec](docs/specs/web3_cashback_project_spec.md) - Original specification
+- [Architecture](docs/architecture.md) - System architecture, events, database schema, design decisions
+- [Diagrams](docs/diagrams/) - PlantUML visual diagrams (rendered via IntelliJ PlantUML plugin)
 
 ## Design Decisions
 

@@ -1,6 +1,6 @@
 module github.com/cashback-platform/services/blockchain-adapter
 
-go 1.25
+go 1.26
 
 require (
 	github.com/google/uuid v1.5.0

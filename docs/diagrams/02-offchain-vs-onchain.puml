@@ -1,0 +1,42 @@
+@startuml offchain-vs-onchain
+!theme mars
+title Off-chain vs On-chain Responsibilities
+
+skinparam componentStyle rectangle
+skinparam defaultTextAlignment center
+skinparam padding 4
+
+package "Off-chain (PostgreSQL)" as OFFCHAIN #1e3a5f {
+    component "Purchase handling" as OC1
+    component "Cashback calculation\n& business rules" as OC2
+    component "Event orchestration\n(Outbox Pattern)" as OC3 #f97316
+    component "Retry & failure handling" as OC4
+    component "Off-chain ledger\n(cashback_ledger)" as OC5
+}
+
+package "Boundary" as BOUNDARY #4a1d96 {
+    component "cashback.approved\n(NATS event)" as B1
+    component "MintToken\n(gRPC call)" as B2
+}
+
+package "On-chain (Ethereum)" as ONCHAIN #065f46 {
+    component "Token minting" as ON1
+    component "Token ownership\n(wallet balances)" as ON2
+    component "Immutable audit trail\n(tx history)" as ON3
+}
+
+OFFCHAIN -right-> BOUNDARY
+BOUNDARY -right-> ONCHAIN
+
+note bottom of OFFCHAIN
+  Off-chain systems **decide**
+  what should happen.
+end note
+
+note bottom of ONCHAIN
+  On-chain systems **guarantee**
+  the final and auditable state.
+end note
+
+@enduml
+

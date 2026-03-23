@@ -1,0 +1,31 @@
+[tools]
+go = "1.26"
+node = "22"
+
+[tasks.build]
+run = "go build -o ../../bin/blockchain-adapter ./cmd/main.go"
+
+[tasks.run]
+run = "go run ./cmd/main.go"
+
+[tasks.test]
+run = "go test -v -race -coverprofile=coverage.out ./..."
+
+[tasks.lint]
+run = "golangci-lint run"
+
+[tasks.fmt]
+run = "gofmt -s -w ."
+
+[tasks."contracts:bindings"]
+description = "Generate Go bindings from CashbackToken ABI"
+run = """
+abigen \
+  --abi ../../contracts/artifacts/contracts/CashbackToken.sol/CashbackToken.json \
+  --bin ../../contracts/artifacts/contracts/CashbackToken.sol/CashbackToken.bin \
+  --pkg contracts \
+  --out internal/contracts/cashbacktoken.go
+"""
+
+[tasks.deps]
+run = "go mod tidy"
