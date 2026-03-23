@@ -123,7 +123,7 @@ cashback-platform/
 │   ├── architecture.md          # This file
 │   ├── events.md                # Domain events, NATS config, Outbox Pattern
 │   ├── decisions.md             # Technology stack, design decisions, trade-offs
-│   └── diagrams/                # PlantUML diagrams (.puml)
+│   └── diagrams/                # Mermaid diagrams, one .md per diagram
 ├── proto/
 │   └── token.proto              # Shared gRPC contract
 ├── services/
@@ -163,17 +163,15 @@ cashback-platform/
 
 ## 6. Diagrams
 
-PlantUML diagrams in [`docs/diagrams/`](./diagrams/). Open `.puml` files with the PlantUML plugin.
-
-| File | Description |
+| # | Diagram |
 |---|---|
-| [01-high-level-system-flow.puml](diagrams/01-high-level-system-flow.puml) | How a purchase becomes an on-chain token |
-| [02-offchain-vs-onchain.puml](diagrams/02-offchain-vs-onchain.puml) | Off-chain vs On-chain responsibilities |
-| [03-domain-events-flow.puml](diagrams/03-domain-events-flow.puml) | Sequence diagram of the full event flow |
-| [04-blockchain-toolchain.puml](diagrams/04-blockchain-toolchain.puml) | Solidity to Go bindings pipeline |
-| [05-transaction-lifecycle.puml](diagrams/05-transaction-lifecycle.puml) | State machine: pending to confirmed/failed |
-| [06-wallet-key-hierarchy.puml](diagrams/06-wallet-key-hierarchy.puml) | Mnemonic to address derivation |
-| [07-repository-structure.puml](diagrams/07-repository-structure.puml) | Where each concept lives in the codebase |
+| 1 | [High-Level System Flow](diagrams/01-high-level-system-flow.md) |
+| 2 | [Off-chain vs On-chain Responsibilities](diagrams/02-offchain-vs-onchain.md) |
+| 3 | [Domain Events Flow](diagrams/03-domain-events-flow.md) |
+| 4 | [Blockchain Toolchain](diagrams/04-blockchain-toolchain.md) |
+| 5 | [Transaction Lifecycle](diagrams/05-transaction-lifecycle.md) |
+| 6 | [Wallet and Key Hierarchy](diagrams/06-wallet-key-hierarchy.md) |
+| 7 | [Repository Structure](diagrams/07-repository-structure.md) |
 
 ---
 

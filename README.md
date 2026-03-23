@@ -23,4 +23,4 @@ Go 1.26 · Uber Fx · Chi · GORM · PostgreSQL · NATS JetStream · gRPC · go-
 - [architecture.md](docs/architecture.md): Components, database schema, communication patterns
 - [events.md](docs/events.md): Domain events, NATS JetStream configuration, Outbox Pattern
 - [decisions.md](docs/decisions.md): Technology stack, design decisions, trade-offs, fault tolerance
-- [diagrams/](docs/diagrams/): PlantUML diagrams
+- [diagrams/](docs/diagrams/): Mermaid diagrams, one file per diagram
