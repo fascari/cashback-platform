@@ -1,9 +1,6 @@
 [tools]
 go = "1.26"
 
-[tasks.build]
-run = "go build -o ../../bin/mint-consumer ./cmd/main.go"
-
 [tasks.run]
 run = "go run ./cmd/main.go"
 
@@ -12,6 +9,3 @@ run = "go test -v -race ./..."
 
 [tasks.lint]
 run = "golangci-lint run"
-
-[tasks.deps]
-run = "go mod tidy"
