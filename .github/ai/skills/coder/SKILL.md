@@ -44,6 +44,10 @@ Read ALL rules via `read_file` before writing any code:
 - `.github/ai/rules/language/go/rule-4-testing.md`
 - `.github/ai/rules/language/go/rule-5-error-handling.md`
 
+If `~/ai-plans/{repo-name}/{slug}/system-design-analysis.md` exists, read it now.
+Every approved proposal in that file is a hard requirement — not optional guidance.
+If a proposal was deferred, document why in a code comment.
+
 ## Implementation Protocol
 
 ### Per Phase
@@ -172,6 +176,11 @@ Delegated to the Tester. Full patterns, workflow and checklist: `.github/ai/skil
 - [ ] No magic strings (typed constants)
 - [ ] Comments only for non-obvious WHY
 - [ ] Tests written and passing — see `.github/ai/skills/tester/SKILL.md`
+- [ ] **Atomicity**: operations that must succeed or fail together are wrapped in a transaction; on-chain calls are never inside a DB transaction
+- [ ] **Idempotency**: every consumer handler and on-chain call has a guard (idempotency_key / processed_events check); safe to retry without side effects
+- [ ] **Consistency**: domain invariants validated before any write; off-chain and on-chain state divergence is intentional and documented
+- [ ] **Concurrency**: race conditions identified and addressed (`SELECT FOR UPDATE` / optimistic lock / UNIQUE constraint / semaphore); no unguarded shared mutable state
+- [ ] **System design proposals**: all approved items from `system-design-analysis.md` are implemented; deferred items are documented with a TODO comment
 
 ## Git Commit Rules
 

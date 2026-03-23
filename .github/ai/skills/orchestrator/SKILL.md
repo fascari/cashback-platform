@@ -103,9 +103,11 @@ flowchart TD
   UserRequest --> Orchestrator
   Orchestrator --> Researcher
   Researcher -->|"writes research.md"| Planner
-  Planner -->|"writes implementation-plan.md"| Checkpoint1{"Approve plan?"}
+  Planner -->|"writes implementation-plan.md"| SDA["System Design Advisor"]
+  SDA -->|"writes system-design-analysis.md"| Checkpoint1{"Approve plan\n+ design analysis?"}
   Checkpoint1 -->|Yes| Coder
-  Checkpoint1 -->|No| Planner
+  Checkpoint1 -->|No - plan change| Planner
+  Checkpoint1 -->|No - design change| SDA
   Coder -->|"updates progress.md"| Tester
   Tester -->|"updates progress.md"| Reviewer
   Reviewer -->|"writes reviews/"| Sanitizer["Text Sanitizer"]
@@ -147,11 +149,39 @@ Synthesize findings before presenting verdict to user.
 
 | Task Type | Skills Invoked |
 |---|---|
-| New endpoint/feature | Researcher -> Planner -> Coder -> Tester -> Reviewer -> Text Sanitizer |
-| Bug fix | Researcher -> Coder -> Tester -> Reviewer -> Text Sanitizer |
+| New endpoint/feature | Researcher -> Planner -> **System Design Advisor** -> Coder -> Tester -> Reviewer -> Text Sanitizer |
+| Bug fix | Researcher -> **System Design Advisor** (if data integrity involved) -> Coder -> Tester -> Reviewer -> Text Sanitizer |
 | Research only | Researcher -> Text Sanitizer |
 | Code review | Reviewer -> Text Sanitizer |
 | Commit only | Git Committer |
+
+## Skill: System Design Advisor
+
+Invoked after Planner, before Coder, for all Standard and Complex tasks.
+
+Skill file: `.github/ai/skills/system-design-advisor/SKILL.md`
+
+**Entry conditions**: `implementation-plan.md` exists and the task is Standard or Complex.
+
+**Mandatory for**:
+- Any operation touching financial data (cashback, mint, ledger writes)
+- Any on-chain operation (blockchain-adapter phases)
+- Any cross-service operation (NATS events, gRPC calls)
+- Any new repository or use case
+
+**Analyses performed** (7 lenses):
+1. Atomicity — transactions and dual-write risks
+2. Idempotency — safe retry guarantees
+3. Consistency — data store divergence
+4. Concurrency — race conditions, deadlocks, locking strategy
+5. Resilience, Fault Tolerance, and Scalability
+6. Architectural Patterns — EDA, CQRS, SAGA applicability
+7. CAP Theorem and Database Selection — right storage engine for the access pattern
+
+**Output**: `~/ai-plans/{repo-name}/{slug}/system-design-analysis.md`
+
+**Checkpoint**: Present proposals to the user and wait for approval before invoking Coder.
+The Coder must not start until `system-design-analysis.md` exists and proposals are resolved.
 
 ## Skill: Text Sanitizer
 
