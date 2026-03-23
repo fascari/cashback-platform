@@ -1,6 +1,6 @@
 ---
 description: Review the implemented plan against code rules
-model: claude-sonnet-4-5
+model: claude-sonnet-4-6
 ---
 
 Read and follow `.github/ai/skills/reviewer/SKILL.md` exactly, then review the implementation.

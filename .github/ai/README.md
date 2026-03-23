@@ -10,8 +10,10 @@ This directory contains AI prompts, skills, rules, and plans for developing the 
 │   ├── create_plan.prompt.md
 │   ├── implement_plan.prompt.md
 │   ├── research_codebase.prompt.md
+│   ├── system_design.prompt.md
 │   ├── commit.prompt.md
 │   ├── review_plan.prompt.md
+│   ├── text_sanitizer.prompt.md
 │   └── compress.prompt.md
 ├── ai/                         ← All AI artifacts (you are here)
 │   ├── rules/
@@ -29,6 +31,7 @@ This directory contains AI prompts, skills, rules, and plans for developing the 
 │   │   ├── coder/SKILL.md
 │   │   ├── tester/SKILL.md
 │   │   ├── reviewer/SKILL.md
+│   │   ├── system-design-advisor/SKILL.md
 │   │   ├── git-committer/SKILL.md
 │   │   ├── context-compressor/SKILL.md
 │   │   └── text-sanitizer/SKILL.md
@@ -57,14 +60,14 @@ Read and follow .github/ai/skills/orchestrator/SKILL.md, then implement the new 
 Read and follow .github/ai/skills/researcher/SKILL.md, then document how the cashback domain works.
 ```
 
+**Run system design analysis on the active plan:**
+```
+Read and follow .github/ai/skills/system-design-advisor/SKILL.md, then analyse the active plan.
+```
+
 **Commit staged changes:**
 ```
 Read and follow .github/ai/skills/git-committer/SKILL.md, then commit my changes.
-```
-
-**Open a Pull Request:**
-```
-Read and follow .github/ai/skills/pr-creator/SKILL.md, then open a PR for my current branch.
 ```
 
 **Code review:**
@@ -81,7 +84,6 @@ Read and follow .github/ai/skills/coder/SKILL.md, then implement phase 2 of ~/ai
 ```
 Read and follow .github/ai/skills/tester/SKILL.md, then write tests for the phase just implemented.
 ```
-
 
 **Compress session to avoid context loss:**
 ```
@@ -105,9 +107,11 @@ flowchart TD
   UserRequest --> Orchestrator
   Orchestrator --> Researcher
   Researcher -->|"writes research.md"| Planner
-  Planner -->|"writes implementation-plan.md"| Checkpoint1{"Approve plan?"}
+  Planner -->|"writes implementation-plan.md"| SDA["System Design Advisor"]
+  SDA -->|"writes system-design-analysis.md"| Checkpoint1{"Approve plan\n+ design analysis?"}
   Checkpoint1 -->|Yes| Coder
-  Checkpoint1 -->|No| Planner
+  Checkpoint1 -->|No - plan change| Planner
+  Checkpoint1 -->|No - design change| SDA
   Coder -->|"updates progress.md"| Tester
   Tester -->|"updates progress.md"| Reviewer
   Reviewer -->|"writes reviews/"| Checkpoint2{"Approve changes?"}
@@ -117,116 +121,36 @@ flowchart TD
 
 ## Skills Reference
 
-| Skill | Role | Rules Read | Invoke with |
-|---|---|---|---|
-| [orchestrator](./skills/orchestrator/SKILL.md) | Entry point — delegates, never codes | rule-1, rule-2 | `skills/orchestrator/SKILL.md` |
-| [researcher](./skills/researcher/SKILL.md) | Locates + analyzes codebase (read-only) | rule-1, rule-2 | `skills/researcher/SKILL.md` |
-| [planner](./skills/planner/SKILL.md) | Translates research into phased plan | rule-1, rule-2 | `skills/planner/SKILL.md` |
-| [coder](./skills/coder/SKILL.md) | Implements Go code (with approval) | all 5 rules | `skills/coder/SKILL.md` |
-| [tester](./skills/tester/SKILL.md) | Writes + runs tests | rule-4, rule-5 | `skills/tester/SKILL.md` |
-| [reviewer](./skills/reviewer/SKILL.md) | Code review: BLOCKER/SUGGESTION findings | all 5 rules | `skills/reviewer/SKILL.md` |
-| [git-committer](./skills/git-committer/SKILL.md) | Organizes + executes commits (with approval) | — | `skills/git-committer/SKILL.md` |
-| [context-compressor](./skills/context-compressor/SKILL.md) | Compresses session into `session-summary.md` for context-safe re-attach | — | `/compress` or `skills/context-compressor/SKILL.md` |
+| Skill | Role | Invoke with |
+|---|---|---|
+| [orchestrator](./skills/orchestrator/SKILL.md) | Entry point — delegates, never codes | `skills/orchestrator/SKILL.md` |
+| [researcher](./skills/researcher/SKILL.md) | Locates and analyzes codebase (read-only) | `skills/researcher/SKILL.md` |
+| [planner](./skills/planner/SKILL.md) | Translates research into phased plan | `skills/planner/SKILL.md` |
+| [system-design-advisor](./skills/system-design-advisor/SKILL.md) | Analyses atomicity, idempotency, consistency, concurrency, resilience, EDA/CQRS/SAGA, CAP theorem, database selection | `skills/system-design-advisor/SKILL.md` |
+| [coder](./skills/coder/SKILL.md) | Implements Go code (with approval) | `skills/coder/SKILL.md` |
+| [tester](./skills/tester/SKILL.md) | Writes and runs tests | `skills/tester/SKILL.md` |
+| [reviewer](./skills/reviewer/SKILL.md) | Code review: BLOCKER/SUGGESTION findings | `skills/reviewer/SKILL.md` |
+| [git-committer](./skills/git-committer/SKILL.md) | Organizes and executes commits (with approval) | `skills/git-committer/SKILL.md` |
+| [context-compressor](./skills/context-compressor/SKILL.md) | Compresses session into `session-summary.md` | `/compress` or `skills/context-compressor/SKILL.md` |
+| [text-sanitizer](./skills/text-sanitizer/SKILL.md) | Post-processing pass on any user-facing text | `skills/text-sanitizer/SKILL.md` |
 
-## Plan Lifecycle
+## System Design Advisor — 7 Lenses
 
-Plans live in `~/ai-plans/{repo-name}/{slug}/` — **completely outside the repository**.
+The System Design Advisor runs automatically after Planner for all Standard and Complex tasks.
+It can also be invoked directly via `/system_design`.
 
-```bash
-# Path for this repo
-~/ai-plans/cashback-platform/{slug}/
-```
-
-### Plans are local-only
-
-Plans are stored in the user's home directory. This means:
-
-- **Immune to all git operations** — branch switch, stash, rebase, `git clean -fdx` — nothing touches them
-- **Survive repo deletion** — plans outlive the local clone
-- **No gitignore needed** — completely outside git's scope
-- **Zero setup** — plans directory is created automatically on first use by any skill
-- **Portable via compression** — run `/compress` to generate `session-summary.md`; share that file to resume on another machine
-
-```
-~/ai-plans/
-└── cashback-platform/      ← one folder per repo
-    └── {slug}/                        ← one folder per plan
-        ├── brief.md
-        ├── research.md
-        ├── implementation-plan.md
-        ├── progress.md
-        ├── session-summary.md
-        └── reviews/
-```
-
-The `.github/ai/plans/` directory no longer exists in the repo — plans are fully external.
-
-### Context Compression
-
-GitHub Copilot does not expose the token counter to the agent, so compression is triggered
-**manually or by the agent at phase checkpoints**.
-
-**When to compress:**
-- The context window indicator (visible in the chat UI) is above ~70%
-- A long session covered research + planning + multiple coding phases
-- You're about to start a new chat and want to preserve state
-
-**How to trigger:**
-```
-/compress
-```
-
-The compressor writes `~/ai-plans/{repo-name}/{slug}/session-summary.md` with a ready-to-paste
-re-attach prompt. Start the next session by pasting that prompt — the agent will load the
-summary and resume exactly where you left off.
-
-**Proactive offers:** the Orchestrator and Coder will offer to compress after 3+ phases
-complete. The offer is non-blocking — ignore it and progress continues.
-
-### Managing Status
-
-`progress.md` is the single source of truth — no separate `.status` or `.priority` files, no helper scripts.
-
-The Orchestrator reads `progress.md` at the start of every task and routes based on the `## Status` line:
-
-| Status | What happens |
-|--------|-------------|
-| File absent | Start from scratch |
-| `IN_PROGRESS` | Resume from last completed phase |
-| `REVIEW` | Hand off to Reviewer |
-| `DONE` | Report complete, ask before reopening |
-
-**Format**:
-
-```markdown
-## Status
-IN_PROGRESS
-
-## Phase 1 — Domain Model ✅
-- [x] Created domain entity
-- [x] Tests passing
-
-## Phase 2 — Use Case ⏳
-- [ ] UseCase struct
-- [ ] Unit tests
-```
-
-Valid statuses: `IN_PROGRESS` → `REVIEW` → `DONE`
-
-## Rules System
-
-Every skill reads rules explicitly via `read_file` at the start of execution:
-
-| Rule | Content |
+| Lens | What it checks |
 |---|---|
-| [rule-1-clean-architecture](./rules/codebase/rule-1-clean-architecture.md) | Layer constraints, domain/usecase/repo/handler rules |
-| [rule-2-transaction-pattern](./rules/codebase/rule-2-transaction-pattern.md) | Transaction pattern, interface-only `TransactionManager` |
-| [rule-3-go-style](./rules/language/go/rule-3-go-style.md) | Grouped decls, no else, `any`, `errors.Is()`, naming |
-| [rule-4-testing](./rules/language/go/rule-4-testing.md) | Table-driven, mockery `EXPECT()`, `//go:build integration` |
-| [rule-5-error-handling](./rules/language/go/rule-5-error-handling.md) | Never log+return, domain error types, wrapping |
+| 1. Atomicity | Transactions, dual-write risks, external calls inside DB transactions |
+| 2. Idempotency | Deduplication guards, safe retry guarantees |
+| 3. Consistency | Data store divergence, strong vs eventual consistency |
+| 4. Concurrency | Race conditions, deadlocks, locking strategy (SELECT FOR UPDATE, optimistic lock, distributed lock + fencing token) |
+| 5. Resilience | Retry bounds, dead-letter queues, circuit breakers, scalability bottlenecks |
+| 6. Architectural Patterns | EDA, CQRS, SAGA — when the current design creates a problem each pattern would solve |
+| 7. CAP Theorem and Database Selection | CP vs AP trade-off, relational vs document vs key-value vs columnar vs time-series vs graph vs search |
+
+Output: `~/ai-plans/{repo-name}/{slug}/system-design-analysis.md` — developer approval required before Coder starts.
 
 ---
 
 **See also:** [Project README](../../README.md) | [copilot-instructions.md](../copilot-instructions.md)
-
-

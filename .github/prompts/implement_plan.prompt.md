@@ -1,6 +1,6 @@
 ---
 description: Implement a plan from ~/ai-plans/{repo-name}/ phase by phase with verification
-model: claude-sonnet-4-5
+model: claude-sonnet-4-6
 ---
 
 Read and follow `.github/ai/skills/coder/SKILL.md` exactly, then implement the plan.
