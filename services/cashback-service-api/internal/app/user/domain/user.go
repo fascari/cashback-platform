@@ -1,10 +1,21 @@
-// Package domain contains the core business entities and rules for users.
 package domain
 
-import "time"
+import (
+	"time"
 
-// User represents a user in the system.
-// Each user has a unique external ID, email, and blockchain wallet address.
+	"github.com/cashback-platform/services/cashback-service-api/pkg/apperror"
+)
+
+const (
+	ErrCodeUserNotFound      = "error_user_not_found"
+	ErrCodeUserAlreadyExists = "error_user_already_exists"
+)
+
+var (
+	ErrUserNotFound      = apperror.New(ErrCodeUserNotFound, "user not found")
+	ErrUserAlreadyExists = apperror.New(ErrCodeUserAlreadyExists, "user already exists")
+)
+
 type User struct {
 	ID            int64
 	ExternalID    string

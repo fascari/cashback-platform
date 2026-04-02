@@ -7,16 +7,18 @@ import (
 )
 
 type purchaseModel struct {
-	ID         int64   `gorm:"primaryKey;autoIncrement"`
-	UserID     int64   `gorm:"not null;index"`
-	Amount     float64 `gorm:"not null"`
-	MerchantID string  `gorm:"not null"`
-	Status     string  `gorm:"not null;default:'pending'"`
+	ID         int64         `gorm:"primaryKey;autoIncrement"`
+	UserID     int64         `gorm:"not null;index"`
+	Amount     float64       `gorm:"not null"`
+	MerchantID string        `gorm:"not null"`
+	Status     domain.Status `gorm:"not null;default:'pending'"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }
 
-func (purchaseModel) TableName() string { return "purchases" }
+func (purchaseModel) TableName() string {
+	return "purchases"
+}
 
 func (m purchaseModel) toDomain() domain.Purchase {
 	return domain.Purchase{
@@ -30,14 +32,14 @@ func (m purchaseModel) toDomain() domain.Purchase {
 	}
 }
 
-func fromDomain(purchase domain.Purchase) purchaseModel {
+func fromDomain(p domain.Purchase) purchaseModel {
 	return purchaseModel{
-		ID:         purchase.ID,
-		UserID:     purchase.UserID,
-		Amount:     purchase.Amount,
-		MerchantID: purchase.MerchantID,
-		Status:     purchase.Status,
-		CreatedAt:  purchase.CreatedAt,
-		UpdatedAt:  purchase.UpdatedAt,
+		ID:         p.ID,
+		UserID:     p.UserID,
+		Amount:     p.Amount,
+		MerchantID: p.MerchantID,
+		Status:     p.Status,
+		CreatedAt:  p.CreatedAt,
+		UpdatedAt:  p.UpdatedAt,
 	}
 }

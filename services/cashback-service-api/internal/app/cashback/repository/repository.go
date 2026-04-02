@@ -1,4 +1,3 @@
-// Package repository implements data persistence for cashback entities.
 package repository
 
 import (

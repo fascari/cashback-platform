@@ -15,7 +15,9 @@ type userModel struct {
 	UpdatedAt     time.Time
 }
 
-func (userModel) TableName() string { return "users" }
+func (userModel) TableName() string {
+	return "users"
+}
 
 func (m userModel) toDomain() domain.User {
 	return domain.User{
@@ -28,13 +30,13 @@ func (m userModel) toDomain() domain.User {
 	}
 }
 
-func fromDomain(user domain.User) userModel {
+func fromDomain(u domain.User) userModel {
 	return userModel{
-		ID:            user.ID,
-		ExternalID:    user.ExternalID,
-		Email:         user.Email,
-		WalletAddress: user.WalletAddress,
-		CreatedAt:     user.CreatedAt,
-		UpdatedAt:     user.UpdatedAt,
+		ID:            u.ID,
+		ExternalID:    u.ExternalID,
+		Email:         u.Email,
+		WalletAddress: u.WalletAddress,
+		CreatedAt:     u.CreatedAt,
+		UpdatedAt:     u.UpdatedAt,
 	}
 }

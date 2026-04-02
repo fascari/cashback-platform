@@ -14,7 +14,7 @@ func (r Repository) FindByID(ctx context.Context, id int64) (domain.Purchase, er
 	err := r.db.WithContext(ctx).First(&purchase, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.Purchase{}, errors.New("purchase not found")
+			return domain.Purchase{}, domain.ErrPurchaseNotFound
 		}
 		return domain.Purchase{}, err
 	}

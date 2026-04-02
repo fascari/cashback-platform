@@ -1,44 +1,50 @@
-// Package domain contains the core business entities and rules for cashback.
 package domain
 
 import (
-	"errors"
 	"time"
+
+	"github.com/cashback-platform/services/cashback-service-api/pkg/apperror"
 )
 
-// Cashback status values represent the lifecycle of a cashback transaction.
 const (
-	StatusPending  = "pending"
-	StatusApproved = "approved"
-	StatusMinted   = "minted"
-	StatusFailed   = "failed"
+	ErrCodeInvalidUserID         = "error_invalid_cashback_user_id"
+	ErrCodeInvalidPurchaseID     = "error_invalid_cashback_purchase_id"
+	ErrCodeInvalidAmount         = "error_invalid_cashback_amount"
+	ErrCodeInvalidPercentage     = "error_invalid_cashback_percentage"
+	ErrCodeCashbackNotFound      = "error_cashback_not_found"
+	ErrCodeCashbackAlreadyExists = "error_cashback_already_exists"
+
+	StatusPending  Status = "pending"
+	StatusApproved Status = "approved"
+	StatusMinted   Status = "minted"
+	StatusFailed   Status = "failed"
 )
 
-// Sentinel errors for cashback domain validation.
 var (
-	ErrInvalidUserID     = errors.New("invalid user ID")
-	ErrInvalidPurchaseID = errors.New("invalid purchase ID")
-	ErrInvalidAmount     = errors.New("invalid cashback amount")
-	ErrInvalidPercentage = errors.New("invalid cashback percentage")
-	ErrCashbackNotFound  = errors.New("cashback not found")
+	ErrInvalidUserID         = apperror.New(ErrCodeInvalidUserID, "invalid user ID")
+	ErrInvalidPurchaseID     = apperror.New(ErrCodeInvalidPurchaseID, "invalid purchase ID")
+	ErrInvalidAmount         = apperror.New(ErrCodeInvalidAmount, "invalid cashback amount")
+	ErrInvalidPercentage     = apperror.New(ErrCodeInvalidPercentage, "invalid cashback percentage")
+	ErrCashbackNotFound      = apperror.New(ErrCodeCashbackNotFound, "cashback not found")
+	ErrCashbackAlreadyExists = apperror.New(ErrCodeCashbackAlreadyExists, "cashback already exists for this purchase")
 )
 
-// Cashback represents a cashback transaction in the system.
-// It tracks the cashback amount, status, and relationships to users and purchases.
-type Cashback struct {
-	ID              int64
-	UserID          int64
-	PurchaseID      int64
-	Amount          float64
-	CashbackPercent float64
-	Status          string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-}
+type (
+	Status string
 
-// NewCashback creates a new cashback instance with validation.
-// It calculates the cashback amount based on the purchase amount and percentage.
-// Returns an error if any validation fails. The ID is set by the database on insert.
+	Cashback struct {
+		ID              int64
+		UserID          int64
+		PurchaseID      int64
+		Amount          float64
+		CashbackPercent float64
+		Status          Status
+		CreatedAt       time.Time
+		UpdatedAt       time.Time
+	}
+)
+
+// NewCashback creates a validated Cashback. Amount is derived from purchaseAmount × cashbackPercent/100.
 func NewCashback(userID, purchaseID int64, purchaseAmount, cashbackPercent float64) (Cashback, error) {
 	if userID == 0 {
 		return Cashback{}, ErrInvalidUserID
@@ -54,12 +60,10 @@ func NewCashback(userID, purchaseID int64, purchaseAmount, cashbackPercent float
 	}
 
 	now := time.Now().UTC()
-	cashbackAmount := purchaseAmount * (cashbackPercent / 100)
-
 	return Cashback{
 		UserID:          userID,
 		PurchaseID:      purchaseID,
-		Amount:          cashbackAmount,
+		Amount:          purchaseAmount * (cashbackPercent / 100),
 		CashbackPercent: cashbackPercent,
 		Status:          StatusPending,
 		CreatedAt:       now,
@@ -67,23 +71,14 @@ func NewCashback(userID, purchaseID int64, purchaseAmount, cashbackPercent float
 	}, nil
 }
 
-// Approve transitions the cashback to approved status.
-// This indicates the cashback is ready to be minted as tokens.
-func (c *Cashback) Approve() {
+func (c Cashback) Approve() Cashback {
 	c.Status = StatusApproved
 	c.UpdatedAt = time.Now().UTC()
+	return c
 }
 
-// MarkAsMinted transitions the cashback to minted status.
-// This indicates tokens have been successfully minted on the blockchain.
-func (c *Cashback) MarkAsMinted() {
-	c.Status = StatusMinted
-	c.UpdatedAt = time.Now().UTC()
-}
-
-// MarkAsFailed transitions the cashback to failed status.
-// This indicates the minting process failed and may require manual intervention.
-func (c *Cashback) MarkAsFailed() {
+func (c Cashback) MarkAsFailed() Cashback {
 	c.Status = StatusFailed
 	c.UpdatedAt = time.Now().UTC()
+	return c
 }

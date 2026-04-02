@@ -1,39 +1,48 @@
-// Package domain contains the core business entities and rules for purchases.
 package domain
 
 import (
-	"errors"
 	"time"
+
+	"github.com/cashback-platform/services/cashback-service-api/pkg/apperror"
 )
 
-// Sentinel errors for purchase domain validation.
+const (
+	ErrCodeInvalidAmount    = "error_invalid_purchase_amount"
+	ErrCodeInvalidUserID    = "error_invalid_purchase_user_id"
+	ErrCodeInvalidMerchant  = "error_invalid_purchase_merchant"
+	ErrCodePurchaseNotFound = "error_purchase_not_found"
+
+	StatusPending Status = "pending"
+)
+
 var (
-	ErrInvalidAmount   = errors.New("invalid purchase amount")
-	ErrInvalidUserID   = errors.New("invalid user ID")
-	ErrInvalidMerchant = errors.New("invalid merchant ID")
+	ErrInvalidAmount    = apperror.New(ErrCodeInvalidAmount, "invalid purchase amount")
+	ErrInvalidUserID    = apperror.New(ErrCodeInvalidUserID, "invalid user ID")
+	ErrInvalidMerchant  = apperror.New(ErrCodeInvalidMerchant, "invalid merchant ID")
+	ErrPurchaseNotFound = apperror.New(ErrCodePurchaseNotFound, "purchase not found")
 )
 
-// Purchase represents a purchase transaction in the system.
-// It tracks the purchase amount, merchant, and user relationship.
-type Purchase struct {
-	ID         int64
-	UserID     int64
-	Amount     float64
-	MerchantID string
-	Status     string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-}
+type (
+	Status string
 
-// NewPurchase creates a new purchase instance.
-// Status is initialized as "pending" by default. The ID is set by the database on insert.
+	Purchase struct {
+		ID         int64
+		UserID     int64
+		Amount     float64
+		MerchantID string
+		Status     Status
+		CreatedAt  time.Time
+		UpdatedAt  time.Time
+	}
+)
+
 func NewPurchase(userID int64, amount float64, merchant string) Purchase {
 	now := time.Now().UTC()
 	return Purchase{
 		UserID:     userID,
 		Amount:     amount,
 		MerchantID: merchant,
-		Status:     "pending",
+		Status:     StatusPending,
 		CreatedAt:  now,
 		UpdatedAt:  now,
 	}
