@@ -1,4 +1,5 @@
 with-expecter: true
 case: snake
 disable-version-string: true
+issue-845-fix: true
 

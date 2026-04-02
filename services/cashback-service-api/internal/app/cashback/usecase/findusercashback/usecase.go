@@ -1,5 +1,7 @@
 package findusercashback
 
+//go:generate mockery --all
+
 import (
 	"context"
 

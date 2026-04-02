@@ -1,9 +1,15 @@
 package createpurchase
 
-import "errors"
+import "github.com/cashback-platform/services/cashback-service-api/pkg/apperror"
+
+const (
+	ErrCodeInvalidAmount   = "error_createpurchase_invalid_amount"
+	ErrCodeInvalidUserID   = "error_createpurchase_invalid_user_id"
+	ErrCodeInvalidMerchant = "error_createpurchase_invalid_merchant"
+)
 
 var (
-	ErrInvalidAmount   = errors.New("invalid purchase amount")
-	ErrInvalidUserID   = errors.New("invalid user ID")
-	ErrInvalidMerchant = errors.New("invalid merchant ID")
+	ErrInvalidAmount   = apperror.New(ErrCodeInvalidAmount, "invalid purchase amount")
+	ErrInvalidUserID   = apperror.New(ErrCodeInvalidUserID, "invalid user ID")
+	ErrInvalidMerchant = apperror.New(ErrCodeInvalidMerchant, "invalid merchant ID")
 )

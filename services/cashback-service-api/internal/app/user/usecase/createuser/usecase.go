@@ -1,10 +1,13 @@
 package createuser
 
+//go:generate mockery --all
+
 import (
 	"context"
 	"time"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
+	"github.com/cashback-platform/services/cashback-service-api/pkg/apperror"
 )
 
 type (
@@ -20,18 +23,24 @@ type (
 )
 
 func New(repository Repository) UseCase {
-	return UseCase{
-		repository: repository,
-	}
+	return UseCase{repository: repository}
 }
 
 func (u UseCase) Execute(ctx context.Context, externalID, email, walletAddress string) (domain.User, error) {
-	if existingUser, _ := u.repository.FindByEmail(ctx, email); existingUser.ID != 0 {
-		return domain.User{}, ErrUserAlreadyExists
+	_, err := u.repository.FindByEmail(ctx, email)
+	if err == nil {
+		return domain.User{}, domain.ErrUserAlreadyExists
+	}
+	if !apperror.As(err, domain.ErrCodeUserNotFound) {
+		return domain.User{}, err
 	}
 
-	if existingUser, _ := u.repository.FindByExternalID(ctx, externalID); existingUser.ID != 0 {
-		return domain.User{}, ErrUserAlreadyExists
+	_, err = u.repository.FindByExternalID(ctx, externalID)
+	if err == nil {
+		return domain.User{}, domain.ErrUserAlreadyExists
+	}
+	if !apperror.As(err, domain.ErrCodeUserNotFound) {
+		return domain.User{}, err
 	}
 
 	user := domain.User{

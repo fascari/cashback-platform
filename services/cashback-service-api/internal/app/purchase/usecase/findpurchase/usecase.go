@@ -1,5 +1,7 @@
 package findpurchase
 
+//go:generate mockery --all
+
 import (
 	"context"
 

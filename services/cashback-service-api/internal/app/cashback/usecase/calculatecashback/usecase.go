@@ -1,52 +1,55 @@
 package calculatecashback
 
+//go:generate mockery --all
+
 import (
 	"context"
-	"errors"
-	"log"
 	"strconv"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
-	purchasedomain "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/domain"
-	userdomain "github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
+	"github.com/cashback-platform/services/cashback-service-api/pkg/apperror"
 )
 
 const (
-	DefaultCashbackPercent    = 5.0 // 5% default cashback
+	DefaultCashbackPercent    = 5.0
 	EventTypeCashbackApproved = "cashback.approved"
 )
 
 type (
-	// Repository interface for cashback operations
 	Repository interface {
 		Create(ctx context.Context, cashback domain.Cashback) (domain.Cashback, error)
 		FindByPurchaseID(ctx context.Context, purchaseID int64) (domain.Cashback, error)
 	}
 
-	// PurchaseRepository interface for purchase operations
+	Purchase struct {
+		ID     int64
+		UserID int64
+		Amount float64
+	}
+
+	User struct {
+		WalletAddress string
+	}
+
 	PurchaseRepository interface {
-		FindByID(ctx context.Context, id int64) (purchasedomain.Purchase, error)
+		FindByID(ctx context.Context, id int64) (Purchase, error)
 	}
 
-	// UserRepository interface for user operations
 	UserRepository interface {
-		FindByID(ctx context.Context, id int64) (userdomain.User, error)
+		FindByID(ctx context.Context, id int64) (User, error)
 	}
 
-	// OutboxPublisher publishes events to the outbox
-	OutboxPublisher interface {
-		Publish(ctx context.Context, eventType string, payload any) error
+	EventPublisher interface {
+		Publish(ctx context.Context, eventType string, aggregateID int64, payload any) error
 	}
 
-	// UseCase handles cashback calculation
 	UseCase struct {
 		repository         Repository
 		purchaseRepository PurchaseRepository
 		userRepository     UserRepository
-		outboxPublisher    OutboxPublisher
+		eventPublisher     EventPublisher
 	}
 
-	// CashbackApprovedEvent represents the event published when cashback is approved
 	CashbackApprovedEvent struct {
 		CashbackID      string  `json:"cashback_id"`
 		UserID          string  `json:"user_id"`
@@ -61,24 +64,22 @@ func New(
 	repository Repository,
 	purchaseRepository PurchaseRepository,
 	userRepository UserRepository,
-	outboxPublisher OutboxPublisher,
+	eventPublisher EventPublisher,
 ) UseCase {
 	return UseCase{
 		repository:         repository,
 		purchaseRepository: purchaseRepository,
 		userRepository:     userRepository,
-		outboxPublisher:    outboxPublisher,
+		eventPublisher:     eventPublisher,
 	}
 }
 
-// Execute calculates and creates cashback for a purchase
 func (u UseCase) Execute(ctx context.Context, purchaseID int64) (domain.Cashback, error) {
 	existingCashback, err := u.repository.FindByPurchaseID(ctx, purchaseID)
 	if err == nil {
-		log.Printf("Cashback already exists for purchase %d", purchaseID)
-		return existingCashback, ErrCashbackAlreadyExists
+		return existingCashback, domain.ErrCashbackAlreadyExists
 	}
-	if !errors.Is(err, domain.ErrCashbackNotFound) {
+	if !apperror.As(err, domain.ErrCodeCashbackNotFound) {
 		return domain.Cashback{}, err
 	}
 
@@ -102,7 +103,7 @@ func (u UseCase) Execute(ctx context.Context, purchaseID int64) (domain.Cashback
 		return domain.Cashback{}, err
 	}
 
-	cashback.Approve()
+	cashback = cashback.Approve()
 
 	cashback, err = u.repository.Create(ctx, cashback)
 	if err != nil {
@@ -118,13 +119,9 @@ func (u UseCase) Execute(ctx context.Context, purchaseID int64) (domain.Cashback
 		CashbackPercent: cashback.CashbackPercent,
 	}
 
-	if err := u.outboxPublisher.Publish(ctx, EventTypeCashbackApproved, event); err != nil {
-		log.Printf("Failed to publish cashback.approved event: %v", err)
+	if err := u.eventPublisher.Publish(ctx, EventTypeCashbackApproved, cashback.ID, event); err != nil {
 		return cashback, ErrFailedToPublishEvent
 	}
-
-	log.Printf("Cashback approved: %d for user %d, amount: %.2f",
-		cashback.ID, cashback.UserID, cashback.Amount)
 
 	return cashback, nil
 }

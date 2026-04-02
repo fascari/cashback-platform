@@ -1,5 +1,7 @@
 package finduser
 
+//go:generate mockery --all
+
 import (
 	"context"
 
