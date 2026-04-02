@@ -27,8 +27,11 @@ flowchart TB
         subgraph BA_SVC["blockchain-adapter"]
             BA_CONTRACTS["internal/contracts\ncashbacktoken.go generated"]
             BA_ETH["internal/infra/ethereum\nwallet.go and client.go"]
-            BA_NONCE["repository/nonce\nSELECT FOR UPDATE"]
+            BA_NONCE["repository/nonce\nRedis lock + fencing token"]
             BA_UC["usecase/token.go\norchestrates mint"]
+            BA_CHAIN["internal/chain\nChainClient interface\nChainRegistry"]
+            BA_SOL["internal/infra/solana\nSolanaClient\nSPL Token + ATA"]
+            BA_DEPOSIT["internal/infra/deposit\nEthDepositMonitor\nSolanaDepositMonitor"]
         end
     end
 
@@ -38,6 +41,10 @@ flowchart TB
     BA_ETH --> BA_UC
     BA_NONCE --> BA_UC
     BA_CONTRACTS --> BA_UC
+    BA_CHAIN --> BA_UC
+    BA_ETH --> BA_CHAIN
+    BA_SOL --> BA_CHAIN
+    BA_DEPOSIT --> BA_CHAIN
 
     style PROTO        fill:#4a1d96,color:#ddd6fe,stroke:#a78bfa
     style SCHEMA       fill:#1e293b,color:#94a3b8,stroke:#475569
@@ -52,5 +59,8 @@ flowchart TB
     style BA_ETH       fill:#1e3a5f,color:#bae6fd,stroke:#38bdf8
     style BA_NONCE     fill:#1e293b,color:#94a3b8,stroke:#475569
     style BA_UC        fill:#312e81,color:#c7d2fe,stroke:#6366f1
+    style BA_CHAIN     fill:#4a1d96,color:#ddd6fe,stroke:#a78bfa
+    style BA_SOL       fill:#1e3a5f,color:#bae6fd,stroke:#38bdf8
+    style BA_DEPOSIT   fill:#312e81,color:#c7d2fe,stroke:#6366f1
 ```
 

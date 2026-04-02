@@ -123,7 +123,7 @@ Published by the blockchain-adapter deposit monitor when a confirmed inbound tra
 |---|---|---|---|---|---|
 | `mint-consumer` | CASHBACK_EVENTS | `cashback.approved` | Explicit | 5 | 30s |
 | `cashback-service-token-updates` | TOKEN_EVENTS | `token.minted` | Explicit | 5 | 30s |
-| `cashback-service-deposits` | DEPOSIT_EVENTS | `deposit.detected` | Explicit | 5 | 30s |
+| `cashback-service-api-deposits` | DEPOSIT_EVENTS | `deposit.detected` | Explicit | 5 | 30s |
 
 ---
 
