@@ -3,12 +3,12 @@ package calculatecashback
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback"
 	"github.com/cashback-platform/services/cashback-service-api/pkg/errorhandler"
 	httpjson "github.com/cashback-platform/services/cashback-service-api/pkg/http"
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 )
 
 const Path = "/cashback/calculate"
@@ -39,7 +39,7 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	purchaseID, err := uuid.Parse(payload.PurchaseID)
+	purchaseID, err := strconv.ParseInt(payload.PurchaseID, 10, 64)
 	if err != nil {
 		errorhandler.Render(w, calculatecashback.ErrInvalidPurchaseID)
 		return

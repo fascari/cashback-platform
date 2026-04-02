@@ -1,6 +1,8 @@
 package findpurchase
 
 import (
+	"strconv"
+
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/domain"
 )
 
@@ -15,8 +17,8 @@ type OutputPayload struct {
 
 func ToOutputPayload(purchase domain.Purchase) OutputPayload {
 	return OutputPayload{
-		ID:         purchase.ID.String(),
-		UserID:     purchase.UserID.String(),
+		ID:         strconv.FormatInt(purchase.ID, 10),
+		UserID:     strconv.FormatInt(purchase.UserID, 10),
 		Amount:     purchase.Amount,
 		MerchantID: purchase.MerchantID,
 		Status:     purchase.Status,

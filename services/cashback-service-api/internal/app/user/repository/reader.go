@@ -5,11 +5,10 @@ import (
 	"errors"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-func (r Repository) FindByID(ctx context.Context, id uuid.UUID) (domain.User, error) {
+func (r Repository) FindByID(ctx context.Context, id int64) (domain.User, error) {
 	var user userModel
 
 	err := r.db.WithContext(ctx).First(&user, id).Error

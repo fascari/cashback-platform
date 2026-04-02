@@ -4,8 +4,6 @@ package domain
 import (
 	"errors"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // Cashback status values represent the lifecycle of a cashback transaction.
@@ -28,9 +26,9 @@ var (
 // Cashback represents a cashback transaction in the system.
 // It tracks the cashback amount, status, and relationships to users and purchases.
 type Cashback struct {
-	ID              uuid.UUID
-	UserID          uuid.UUID
-	PurchaseID      uuid.UUID
+	ID              int64
+	UserID          int64
+	PurchaseID      int64
 	Amount          float64
 	CashbackPercent float64
 	Status          string
@@ -40,12 +38,12 @@ type Cashback struct {
 
 // NewCashback creates a new cashback instance with validation.
 // It calculates the cashback amount based on the purchase amount and percentage.
-// Returns an error if any validation fails.
-func NewCashback(userID, purchaseID uuid.UUID, purchaseAmount, cashbackPercent float64) (Cashback, error) {
-	if userID == uuid.Nil {
+// Returns an error if any validation fails. The ID is set by the database on insert.
+func NewCashback(userID, purchaseID int64, purchaseAmount, cashbackPercent float64) (Cashback, error) {
+	if userID == 0 {
 		return Cashback{}, ErrInvalidUserID
 	}
-	if purchaseID == uuid.Nil {
+	if purchaseID == 0 {
 		return Cashback{}, ErrInvalidPurchaseID
 	}
 	if purchaseAmount <= 0 {
@@ -59,7 +57,6 @@ func NewCashback(userID, purchaseID uuid.UUID, purchaseAmount, cashbackPercent f
 	cashbackAmount := purchaseAmount * (cashbackPercent / 100)
 
 	return Cashback{
-		ID:              uuid.New(),
 		UserID:          userID,
 		PurchaseID:      purchaseID,
 		Amount:          cashbackAmount,

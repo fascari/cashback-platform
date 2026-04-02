@@ -7,6 +7,7 @@ import (
 
 type (
 	Database struct {
+		DSN      string
 		Host     string
 		Port     string
 		User     string
@@ -45,6 +46,7 @@ func LoadServer() Server {
 }
 
 func loadDatabaseConfig() (Database, error) {
+	viper.SetDefault("POSTGRES_DSN_CASHBACK", "postgres://cashback_app:cashback_app@localhost:15432/cashback_service_db?sslmode=disable&search_path=cashback")
 	viper.SetDefault("DATABASE_HOST", "localhost")
 	viper.SetDefault("DATABASE_PORT", "5432")
 	viper.SetDefault("DATABASE_USER", "postgres")
@@ -54,6 +56,7 @@ func loadDatabaseConfig() (Database, error) {
 	viper.AutomaticEnv()
 
 	return Database{
+		DSN:      viper.GetString("POSTGRES_DSN_CASHBACK"),
 		Host:     viper.GetString("DATABASE_HOST"),
 		Port:     viper.GetString("DATABASE_PORT"),
 		User:     viper.GetString("DATABASE_USER"),

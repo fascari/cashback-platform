@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/domain"
-	"github.com/google/uuid"
 )
 
 type (
@@ -23,12 +22,12 @@ func New(repository Repository) UseCase {
 	}
 }
 
-func (u UseCase) Execute(ctx context.Context, userID uuid.UUID, amount float64, merchant string) (domain.Purchase, error) {
+func (u UseCase) Execute(ctx context.Context, userID int64, amount float64, merchant string) (domain.Purchase, error) {
 	if amount <= 0 {
 		return domain.Purchase{}, ErrInvalidAmount
 	}
 
-	if userID == uuid.Nil {
+	if userID == 0 {
 		return domain.Purchase{}, ErrInvalidUserID
 	}
 

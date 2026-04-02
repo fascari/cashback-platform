@@ -5,11 +5,10 @@ import (
 	"errors"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-func (r Repository) FindByID(ctx context.Context, id uuid.UUID) (domain.Cashback, error) {
+func (r Repository) FindByID(ctx context.Context, id int64) (domain.Cashback, error) {
 	var cashback cashbackModel
 
 	err := r.db.WithContext(ctx).First(&cashback, id).Error
@@ -23,7 +22,7 @@ func (r Repository) FindByID(ctx context.Context, id uuid.UUID) (domain.Cashback
 	return cashback.toDomain(), nil
 }
 
-func (r Repository) FindByUserID(ctx context.Context, userID uuid.UUID) ([]domain.Cashback, error) {
+func (r Repository) FindByUserID(ctx context.Context, userID int64) ([]domain.Cashback, error) {
 	var cashbacks []cashbackModel
 
 	err := r.db.WithContext(ctx).
@@ -42,7 +41,7 @@ func (r Repository) FindByUserID(ctx context.Context, userID uuid.UUID) ([]domai
 	return result, nil
 }
 
-func (r Repository) FindByPurchaseID(ctx context.Context, purchaseID uuid.UUID) (domain.Cashback, error) {
+func (r Repository) FindByPurchaseID(ctx context.Context, purchaseID int64) (domain.Cashback, error) {
 	var cashback cashbackModel
 
 	err := r.db.WithContext(ctx).
@@ -58,7 +57,7 @@ func (r Repository) FindByPurchaseID(ctx context.Context, purchaseID uuid.UUID) 
 	return cashback.toDomain(), nil
 }
 
-func (r Repository) TotalByUserID(ctx context.Context, userID uuid.UUID) (float64, error) {
+func (r Repository) TotalByUserID(ctx context.Context, userID int64) (float64, error) {
 	var total float64
 	err := r.db.WithContext(ctx).
 		Model(&cashbackModel{}).

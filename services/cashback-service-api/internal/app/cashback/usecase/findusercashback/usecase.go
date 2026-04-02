@@ -4,13 +4,12 @@ import (
 	"context"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
-	"github.com/google/uuid"
 )
 
 type (
 	Repository interface {
-		FindByUserID(ctx context.Context, userID uuid.UUID) ([]domain.Cashback, error)
-		TotalByUserID(ctx context.Context, userID uuid.UUID) (float64, error)
+		FindByUserID(ctx context.Context, userID int64) ([]domain.Cashback, error)
+		TotalByUserID(ctx context.Context, userID int64) (float64, error)
 	}
 
 	UseCase struct {
@@ -18,7 +17,7 @@ type (
 	}
 
 	UserCashbackSummary struct {
-		UserID         uuid.UUID
+		UserID         int64
 		Cashbacks      []domain.Cashback
 		TotalMinted    float64
 		TotalCashbacks int
@@ -31,8 +30,8 @@ func New(repository Repository) UseCase {
 	}
 }
 
-func (u UseCase) Execute(ctx context.Context, userID uuid.UUID) (UserCashbackSummary, error) {
-	if userID == uuid.Nil {
+func (u UseCase) Execute(ctx context.Context, userID int64) (UserCashbackSummary, error) {
+	if userID == 0 {
 		return UserCashbackSummary{}, domain.ErrInvalidUserID
 	}
 

@@ -2,12 +2,12 @@ package createpurchase
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/usecase/createpurchase"
 	httpjson "github.com/cashback-platform/services/cashback-service-api/pkg/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 )
 
 const Path = "/purchases"
@@ -38,7 +38,7 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := uuid.Parse(payload.UserID)
+	userID, err := strconv.ParseInt(payload.UserID, 10, 64)
 	if err != nil {
 		http.Error(w, "invalid user ID", http.StatusBadRequest)
 		return

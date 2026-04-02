@@ -1,16 +1,12 @@
 // Package domain contains the core business entities and rules for users.
 package domain
 
-import (
-	"time"
-
-	"github.com/google/uuid"
-)
+import "time"
 
 // User represents a user in the system.
 // Each user has a unique external ID, email, and blockchain wallet address.
 type User struct {
-	ID            uuid.UUID
+	ID            int64
 	ExternalID    string
 	Email         string
 	WalletAddress string

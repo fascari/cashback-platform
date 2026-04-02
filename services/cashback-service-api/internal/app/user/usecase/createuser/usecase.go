@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
-	"github.com/google/uuid"
 )
 
 type (
@@ -27,16 +26,15 @@ func New(repository Repository) UseCase {
 }
 
 func (u UseCase) Execute(ctx context.Context, externalID, email, walletAddress string) (domain.User, error) {
-	if existingUser, _ := u.repository.FindByEmail(ctx, email); existingUser.ID != uuid.Nil {
+	if existingUser, _ := u.repository.FindByEmail(ctx, email); existingUser.ID != 0 {
 		return domain.User{}, ErrUserAlreadyExists
 	}
 
-	if existingUser, _ := u.repository.FindByExternalID(ctx, externalID); existingUser.ID != uuid.Nil {
+	if existingUser, _ := u.repository.FindByExternalID(ctx, externalID); existingUser.ID != 0 {
 		return domain.User{}, ErrUserAlreadyExists
 	}
 
 	user := domain.User{
-		ID:            uuid.New(),
 		ExternalID:    externalID,
 		Email:         email,
 		WalletAddress: walletAddress,

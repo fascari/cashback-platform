@@ -1,6 +1,8 @@
 package findusercashback
 
 import (
+	"strconv"
+
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/findusercashback"
 )
@@ -30,7 +32,7 @@ func ToOutputPayload(summary findusercashback.UserCashbackSummary) OutputPayload
 	}
 
 	return OutputPayload{
-		UserID:         summary.UserID.String(),
+		UserID:         strconv.FormatInt(summary.UserID, 10),
 		Cashbacks:      cashbacks,
 		TotalMinted:    summary.TotalMinted,
 		TotalCashbacks: summary.TotalCashbacks,
@@ -39,8 +41,8 @@ func ToOutputPayload(summary findusercashback.UserCashbackSummary) OutputPayload
 
 func toCashbackItem(c domain.Cashback) CashbackItem {
 	return CashbackItem{
-		ID:              c.ID.String(),
-		PurchaseID:      c.PurchaseID.String(),
+		ID:              strconv.FormatInt(c.ID, 10),
+		PurchaseID:      strconv.FormatInt(c.PurchaseID, 10),
 		Amount:          c.Amount,
 		CashbackPercent: c.CashbackPercent,
 		Status:          c.Status,

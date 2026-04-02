@@ -4,12 +4,11 @@ import (
 	"context"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/domain"
-	"github.com/google/uuid"
 )
 
 type (
 	Repository interface {
-		FindByID(ctx context.Context, id uuid.UUID) (domain.Purchase, error)
+		FindByID(ctx context.Context, id int64) (domain.Purchase, error)
 	}
 
 	UseCase struct {
@@ -23,6 +22,6 @@ func New(repository Repository) UseCase {
 	}
 }
 
-func (u UseCase) Execute(ctx context.Context, id uuid.UUID) (domain.Purchase, error) {
+func (u UseCase) Execute(ctx context.Context, id int64) (domain.Purchase, error) {
 	return u.repository.FindByID(ctx, id)
 }

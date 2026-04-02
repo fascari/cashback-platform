@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strconv"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
 	purchasedomain "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/domain"
 	userdomain "github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
-	"github.com/google/uuid"
 )
 
 const (
@@ -20,17 +20,17 @@ type (
 	// Repository interface for cashback operations
 	Repository interface {
 		Create(ctx context.Context, cashback domain.Cashback) (domain.Cashback, error)
-		FindByPurchaseID(ctx context.Context, purchaseID uuid.UUID) (domain.Cashback, error)
+		FindByPurchaseID(ctx context.Context, purchaseID int64) (domain.Cashback, error)
 	}
 
 	// PurchaseRepository interface for purchase operations
 	PurchaseRepository interface {
-		FindByID(ctx context.Context, id uuid.UUID) (purchasedomain.Purchase, error)
+		FindByID(ctx context.Context, id int64) (purchasedomain.Purchase, error)
 	}
 
 	// UserRepository interface for user operations
 	UserRepository interface {
-		FindByID(ctx context.Context, id uuid.UUID) (userdomain.User, error)
+		FindByID(ctx context.Context, id int64) (userdomain.User, error)
 	}
 
 	// OutboxPublisher publishes events to the outbox
@@ -72,10 +72,10 @@ func New(
 }
 
 // Execute calculates and creates cashback for a purchase
-func (u UseCase) Execute(ctx context.Context, purchaseID uuid.UUID) (domain.Cashback, error) {
+func (u UseCase) Execute(ctx context.Context, purchaseID int64) (domain.Cashback, error) {
 	existingCashback, err := u.repository.FindByPurchaseID(ctx, purchaseID)
 	if err == nil {
-		log.Printf("Cashback already exists for purchase %s", purchaseID)
+		log.Printf("Cashback already exists for purchase %d", purchaseID)
 		return existingCashback, ErrCashbackAlreadyExists
 	}
 	if !errors.Is(err, domain.ErrCashbackNotFound) {
@@ -87,13 +87,11 @@ func (u UseCase) Execute(ctx context.Context, purchaseID uuid.UUID) (domain.Cash
 		return domain.Cashback{}, ErrPurchaseNotFound
 	}
 
-	// Get user details (to validate and get wallet address)
 	user, err := u.userRepository.FindByID(ctx, purchase.UserID)
 	if err != nil {
 		return domain.Cashback{}, ErrUserNotFound
 	}
 
-	// Calculate cashback
 	cashback, err := domain.NewCashback(
 		purchase.UserID,
 		purchase.ID,
@@ -104,21 +102,18 @@ func (u UseCase) Execute(ctx context.Context, purchaseID uuid.UUID) (domain.Cash
 		return domain.Cashback{}, err
 	}
 
-	// Approve cashback immediately (business rule: auto-approve)
 	cashback.Approve()
 
-	// Persist cashback
 	cashback, err = u.repository.Create(ctx, cashback)
 	if err != nil {
 		return domain.Cashback{}, err
 	}
 
-	// Publish cashback.approved event for async minting
 	event := CashbackApprovedEvent{
-		CashbackID:      cashback.ID.String(),
-		UserID:          cashback.UserID.String(),
+		CashbackID:      strconv.FormatInt(cashback.ID, 10),
+		UserID:          strconv.FormatInt(cashback.UserID, 10),
 		WalletAddress:   user.WalletAddress,
-		PurchaseID:      cashback.PurchaseID.String(),
+		PurchaseID:      strconv.FormatInt(cashback.PurchaseID, 10),
 		Amount:          cashback.Amount,
 		CashbackPercent: cashback.CashbackPercent,
 	}
@@ -128,7 +123,7 @@ func (u UseCase) Execute(ctx context.Context, purchaseID uuid.UUID) (domain.Cash
 		return cashback, ErrFailedToPublishEvent
 	}
 
-	log.Printf("Cashback approved: %s for user %s, amount: %.2f",
+	log.Printf("Cashback approved: %d for user %d, amount: %.2f",
 		cashback.ID, cashback.UserID, cashback.Amount)
 
 	return cashback, nil

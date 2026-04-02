@@ -5,11 +5,10 @@ import (
 	"errors"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/domain"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-func (r Repository) FindByID(ctx context.Context, id uuid.UUID) (domain.Purchase, error) {
+func (r Repository) FindByID(ctx context.Context, id int64) (domain.Purchase, error) {
 	var purchase purchaseModel
 
 	err := r.db.WithContext(ctx).First(&purchase, id).Error
@@ -23,7 +22,7 @@ func (r Repository) FindByID(ctx context.Context, id uuid.UUID) (domain.Purchase
 	return purchase.toDomain(), nil
 }
 
-func (r Repository) FindByUserID(ctx context.Context, userID uuid.UUID) ([]domain.Purchase, error) {
+func (r Repository) FindByUserID(ctx context.Context, userID int64) ([]domain.Purchase, error) {
 	var purchases []purchaseModel
 
 	err := r.db.WithContext(ctx).Where("user_id = ?", userID).Find(&purchases).Error

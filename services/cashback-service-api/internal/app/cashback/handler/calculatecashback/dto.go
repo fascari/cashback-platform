@@ -1,6 +1,8 @@
 package calculatecashback
 
 import (
+	"strconv"
+
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
 )
 
@@ -29,9 +31,9 @@ func (p InputPayload) Validate() error {
 
 func ToOutputPayload(cashback domain.Cashback) OutputPayload {
 	return OutputPayload{
-		ID:              cashback.ID.String(),
-		UserID:          cashback.UserID.String(),
-		PurchaseID:      cashback.PurchaseID.String(),
+		ID:              strconv.FormatInt(cashback.ID, 10),
+		UserID:          strconv.FormatInt(cashback.UserID, 10),
+		PurchaseID:      strconv.FormatInt(cashback.PurchaseID, 10),
 		Amount:          cashback.Amount,
 		CashbackPercent: cashback.CashbackPercent,
 		Status:          cashback.Status,

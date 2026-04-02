@@ -4,23 +4,20 @@ import (
 	"time"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
-	"github.com/google/uuid"
 )
 
 type cashbackModel struct {
-	ID              uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
-	UserID          uuid.UUID `gorm:"type:uuid;not null;index"`
-	PurchaseID      uuid.UUID `gorm:"type:uuid;not null;uniqueIndex"`
-	Amount          float64   `gorm:"not null"`
-	CashbackPercent float64   `gorm:"not null"`
-	Status          string    `gorm:"not null;default:'pending';index"`
-	CreatedAt       time.Time `gorm:"autoCreateTime"`
-	UpdatedAt       time.Time `gorm:"autoUpdateTime"`
+	ID              int64   `gorm:"primaryKey;autoIncrement"`
+	UserID          int64   `gorm:"not null;index"`
+	PurchaseID      int64   `gorm:"not null;uniqueIndex"`
+	Amount          float64 `gorm:"not null"`
+	CashbackPercent float64 `gorm:"not null"`
+	Status          string  `gorm:"not null;default:'pending';index"`
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
-func (cashbackModel) TableName() string {
-	return "cashback_ledger"
-}
+func (cashbackModel) TableName() string { return "cashback_ledger" }
 
 func (m cashbackModel) toDomain() domain.Cashback {
 	return domain.Cashback{

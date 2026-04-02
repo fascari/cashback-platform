@@ -2,11 +2,11 @@ package findusercashback
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/findusercashback"
 	httpjson "github.com/cashback-platform/services/cashback-service-api/pkg/http"
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 )
 
 const Path = "/users/{user_id}/cashback"
@@ -27,7 +27,7 @@ func RegisterEndpoint(r chi.Router, h Handler) {
 
 func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 	userIDStr := chi.URLParam(r, "user_id")
-	userID, err := uuid.Parse(userIDStr)
+	userID, err := strconv.ParseInt(userIDStr, 10, 64)
 	if err != nil {
 		http.Error(w, "invalid user id", http.StatusBadRequest)
 		return

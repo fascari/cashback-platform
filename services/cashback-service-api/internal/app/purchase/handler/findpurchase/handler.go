@@ -2,10 +2,10 @@ package findpurchase
 
 import (
 	"net/http"
+	"strconv"
 
 	findpurchaseuc "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/usecase/findpurchase"
 	httpjson "github.com/cashback-platform/services/cashback-service-api/pkg/http"
-	"github.com/google/uuid"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -28,7 +28,7 @@ func RegisterEndpoint(r chi.Router, h Handler) {
 
 func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	id, err := uuid.Parse(idStr)
+	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		http.Error(w, "invalid purchase id", http.StatusBadRequest)
 		return

@@ -1,6 +1,8 @@
 package finduser
 
 import (
+	"strconv"
+
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
 )
 
@@ -14,7 +16,7 @@ type OutputPayload struct {
 
 func ToOutputPayload(user domain.User) OutputPayload {
 	return OutputPayload{
-		ID:            user.ID.String(),
+		ID:            strconv.FormatInt(user.ID, 10),
 		ExternalID:    user.ExternalID,
 		Email:         user.Email,
 		WalletAddress: user.WalletAddress,
