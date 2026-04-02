@@ -26,7 +26,6 @@ func NewNATSClient(cfg *config.Config) (*NATSClient, error) {
 		return nil, fmt.Errorf("failed to create JetStream context: %w", err)
 	}
 
-	// Create streams if they don't exist
 	if err := createStreams(js); err != nil {
 		conn.Close()
 		return nil, err

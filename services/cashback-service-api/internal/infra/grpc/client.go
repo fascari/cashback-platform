@@ -11,7 +11,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-// BlockchainAdapterClient wraps the generated gRPC client for the blockchain adapter.
 type BlockchainAdapterClient struct {
 	conn        *grpc.ClientConn
 	tokenClient tokenpb.TokenServiceClient
@@ -33,13 +32,8 @@ func NewBlockchainAdapterClient(cfg *config.Config) (*BlockchainAdapterClient, e
 	}, nil
 }
 
-// MintToken calls the blockchain adapter's MintToken RPC.
 func (c *BlockchainAdapterClient) MintToken(ctx context.Context, req *tokenpb.MintTokenRequest) (*tokenpb.MintTokenResponse, error) {
 	return c.tokenClient.MintToken(ctx, req)
-}
-
-func (c *BlockchainAdapterClient) Connection() *grpc.ClientConn {
-	return c.conn
 }
 
 func (c *BlockchainAdapterClient) Close() error {
