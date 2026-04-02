@@ -2,8 +2,8 @@ package repository
 
 import (
 	"context"
+	"time"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -13,14 +13,15 @@ type (
 	}
 
 	OutboxEvent struct {
-		ID         uuid.UUID
-		EventType  string
-		Payload    []byte
-		RetryCount int
-		MaxRetries int
-		Published  bool
-		Failed     bool
-		Error      string
+		ID            int64
+		EventType     string
+		AggregateType string
+		AggregateID   int64
+		Payload       []byte
+		Status        string
+		RetryCount    int
+		MaxRetries    int
+		ErrorMessage  string
 	}
 )
 
@@ -28,15 +29,15 @@ func New(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) Create(ctx context.Context, eventType string, payload []byte) error {
+func (r *Repository) Create(ctx context.Context, eventType, aggregateType string, aggregateID int64, payload []byte) error {
 	event := outboxModel{
-		ID:         uuid.New(),
-		EventType:  eventType,
-		Payload:    payload,
-		RetryCount: 0,
-		MaxRetries: 3,
-		Published:  false,
-		Failed:     false,
+		EventType:     eventType,
+		AggregateType: aggregateType,
+		AggregateID:   aggregateID,
+		Payload:       payload,
+		Status:        "pending",
+		RetryCount:    0,
+		MaxRetries:    5,
 	}
 	return r.db.WithContext(ctx).Create(&event).Error
 }
@@ -44,7 +45,7 @@ func (r *Repository) Create(ctx context.Context, eventType string, payload []byt
 func (r *Repository) Pending(ctx context.Context, limit int) ([]OutboxEvent, error) {
 	var models []outboxModel
 	if err := r.db.WithContext(ctx).
-		Where("published = ? AND failed = ?", false, false).
+		Where("status = ?", "pending").
 		Limit(limit).
 		Find(&models).Error; err != nil {
 		return nil, err
@@ -54,39 +55,44 @@ func (r *Repository) Pending(ctx context.Context, limit int) ([]OutboxEvent, err
 	for i, m := range models {
 		d := toDomain(&m)
 		events[i] = OutboxEvent{
-			ID:         d.ID,
-			EventType:  d.EventType,
-			Payload:    d.Payload,
-			RetryCount: d.RetryCount,
-			MaxRetries: d.MaxRetries,
-			Published:  d.Published,
-			Failed:     d.Failed,
-			Error:      d.Error,
+			ID:            d.ID,
+			EventType:     d.EventType,
+			AggregateType: d.AggregateType,
+			AggregateID:   d.AggregateID,
+			Payload:       d.Payload,
+			Status:        d.Status,
+			RetryCount:    d.RetryCount,
+			MaxRetries:    d.MaxRetries,
+			ErrorMessage:  d.ErrorMessage,
 		}
 	}
 	return events, nil
 }
 
-func (r *Repository) IncrementRetry(ctx context.Context, id uuid.UUID) error {
+func (r *Repository) IncrementRetry(ctx context.Context, id int64) error {
 	return r.db.WithContext(ctx).
 		Model(&outboxModel{}).
 		Where("id = ?", id).
 		Update("retry_count", gorm.Expr("retry_count + ?", 1)).Error
 }
 
-func (r *Repository) MarkAsPublished(ctx context.Context, id uuid.UUID) error {
-	return r.db.WithContext(ctx).
-		Model(&outboxModel{}).
-		Where("id = ?", id).
-		Update("published", true).Error
-}
-
-func (r *Repository) MarkAsFailed(ctx context.Context, id uuid.UUID, errMsg string) error {
+func (r *Repository) MarkAsPublished(ctx context.Context, id int64) error {
+	now := time.Now().UTC()
 	return r.db.WithContext(ctx).
 		Model(&outboxModel{}).
 		Where("id = ?", id).
 		Updates(map[string]any{
-			"failed": true,
-			"error":  errMsg,
+			"status":       "published",
+			"published_at": now,
+		}).Error
+}
+
+func (r *Repository) MarkAsFailed(ctx context.Context, id int64, errMsg string) error {
+	return r.db.WithContext(ctx).
+		Model(&outboxModel{}).
+		Where("id = ?", id).
+		Updates(map[string]any{
+			"status":        "failed",
+			"error_message": errMsg,
 		}).Error
 }

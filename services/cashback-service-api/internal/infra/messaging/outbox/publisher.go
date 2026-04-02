@@ -34,7 +34,7 @@ func (p *OutboxPublisher) Publish(ctx context.Context, eventType string, payload
 	if err != nil {
 		return err
 	}
-	return p.outboxRepo.Create(ctx, eventType, payloadBytes)
+	return p.outboxRepo.Create(ctx, eventType, eventType, 0, payloadBytes)
 }
 
 func (p *OutboxPublisher) Start(ctx context.Context) {
