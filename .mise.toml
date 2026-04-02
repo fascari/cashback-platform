@@ -1,6 +1,5 @@
 [tools]
-go = "1.26"
-node = "22"
+go = "1.25"
 
 [env]
 GOFLAGS = "-mod=mod"
@@ -13,25 +12,45 @@ run = [
   "cd services/blockchain-adapter && go mod tidy",
 ]
 
-[tasks.build]
-description = "Build blockchain-adapter"
-run = "cd services/blockchain-adapter && go build -o ../../bin/blockchain-adapter ./cmd/main.go"
+[tasks."run:api"]
+description = "Run cashback-service-api"
+run = "cd services/cashback-service-api && go run ./cmd/api/main.go"
 
-[tasks.run]
+[tasks."run:adapter"]
 description = "Run blockchain-adapter"
 run = "cd services/blockchain-adapter && go run ./cmd/main.go"
 
-[tasks.test]
+[tasks."run:consumer"]
+description = "Run mint-consumer"
+run = "cd services/mint-consumer && go run ./cmd/main.go"
+
+[tasks."test:api"]
+description = "Test cashback-service-api"
+run = "cd services/cashback-service-api && go test -v -race -coverprofile=coverage.out ./..."
+
+[tasks."test:adapter"]
 description = "Test blockchain-adapter"
 run = "cd services/blockchain-adapter && go test -v -race -coverprofile=coverage.out ./..."
 
-[tasks.lint]
-description = "Lint blockchain-adapter"
-run = "cd services/blockchain-adapter && golangci-lint run"
+[tasks."test:consumer"]
+description = "Test mint-consumer"
+run = "cd services/mint-consumer && go test -v -race -coverprofile=coverage.out ./..."
 
-[tasks.fmt]
-description = "Format blockchain-adapter"
-run = "cd services/blockchain-adapter && gofmt -s -w ."
+[tasks.test]
+description = "Test all modules"
+run = [
+  "cd services/cashback-service-api && go test -v -race -coverprofile=coverage.out ./...",
+  "cd services/mint-consumer && go test -v -race -coverprofile=coverage.out ./...",
+  "cd services/blockchain-adapter && go test -v -race -coverprofile=coverage.out ./...",
+]
+
+[tasks.lint]
+description = "Lint all modules"
+run = [
+  "cd services/cashback-service-api && golangci-lint run",
+  "cd services/mint-consumer && golangci-lint run",
+  "cd services/blockchain-adapter && golangci-lint run",
+]
 
 [tasks.proto]
 description = "Generate Go code from proto/token.proto"
@@ -41,10 +60,6 @@ protoc \
   --go-grpc_out=. --go-grpc_opt=paths=source_relative \
   proto/token.proto
 """
-
-[tasks."contracts:compile"]
-description = "Compile Solidity contracts"
-run = "cd contracts && npm install && npx hardhat compile"
 
 [tasks."contracts:bindings"]
 description = "Generate Go bindings from CashbackToken ABI"
@@ -56,10 +71,3 @@ abigen \
   --out services/blockchain-adapter/internal/contracts/cashbacktoken.go
 """
 
-[tasks."contracts:deploy-local"]
-description = "Deploy to local Hardhat network"
-run = "cd contracts && npx hardhat run scripts/deploy.ts --network localhost"
-
-[tasks."contracts:deploy-sepolia"]
-description = "Deploy to Sepolia testnet"
-run = "cd contracts && npx hardhat run scripts/deploy.ts --network sepolia"
