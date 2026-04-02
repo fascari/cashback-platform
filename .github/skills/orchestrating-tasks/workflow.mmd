@@ -1,0 +1,13 @@
+flowchart TD
+  UserRequest --> Orchestrator
+  Orchestrator --> Researcher
+  Researcher -->|writes research.md| Planner
+  Planner -->|writes implementation-plan.md| Checkpoint1{Approve plan?}
+  Checkpoint1 -->|Yes| Coder
+  Checkpoint1 -->|No| Planner
+  Coder -->|"updates progress.md"| Reviewer
+  Reviewer -->|"writes reviews/"| Sanitizer["Text Sanitizer"]
+  Sanitizer -->|"sanitized output"| Checkpoint2{"Approve changes?"}
+  Checkpoint2 -->|Yes| GitCommitter["Git Committer"]
+  Checkpoint2 -->|No| Coder
+

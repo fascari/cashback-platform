@@ -9,6 +9,7 @@
 | `token.mint.requested` | mint-consumer | mint-consumer (internal state) | mint-consumer receives `cashback.approved` |
 | `token.minted` | mint-consumer | cashback-service-api (optional) | blockchain-adapter confirms successful mint |
 | `token.mint.failed` | mint-consumer | mint-consumer (retry logic) | blockchain-adapter returns an error |
+| `deposit.detected` | blockchain-adapter (deposit monitor) | cashback-service-api (credit flow) | On-chain inbound transfer detected and confirmed |
 
 ---
 
@@ -25,7 +26,8 @@
     "cashback_id": "uuid",
     "purchase_id": "uuid",
     "user_id": "uuid",
-    "wallet_address": "0x...",
+    "chain_id": "ethereum-sepolia",
+    "wallet_address": "0x... (Ethereum) or base58 (Solana)",
     "cashback_amount": 1.50,
     "token_amount": "1500000000000000000",
     "calculation_basis": {
@@ -47,10 +49,11 @@
     "mint_request_id": "uuid",
     "cashback_id": "uuid",
     "user_id": "uuid",
+    "chain_id": "ethereum-sepolia",
     "wallet_address": "0x...",
     "token_amount": "1500000000000000000",
-    "transaction_hash": "0x...",
-    "block_number": 12345678,
+    "transaction_hash": "0x... (Ethereum) or base58 (Solana)",
+    "block_reference": 12345678,
     "minted_at": "2024-01-15T10:30:05Z"
   }
 }
@@ -66,6 +69,7 @@
   "data": {
     "mint_request_id": "uuid",
     "cashback_id": "uuid",
+    "chain_id": "ethereum-sepolia",
     "wallet_address": "0x...",
     "token_amount": "1500000000000000000",
     "error_code": "BLOCKCHAIN_UNAVAILABLE",
@@ -73,6 +77,29 @@
     "retry_count": 1,
     "max_retries": 5,
     "next_retry_at": "2024-01-15T10:31:05Z"
+  }
+}
+```
+
+### deposit.detected
+
+Published by the blockchain-adapter deposit monitor when a confirmed inbound transfer is detected on-chain.
+
+```json
+{
+  "event_id": "uuid",
+  "event_type": "deposit.detected",
+  "timestamp": "2024-01-15T10:45:00Z",
+  "data": {
+    "deposit_id": "uuid",
+    "chain_id": "ethereum-sepolia",
+    "wallet_address": "0x...",
+    "from_address": "0x...",
+    "transaction_hash": "0x...",
+    "token_amount": "1500000000000000000",
+    "block_reference": 12345690,
+    "confirmations": 12,
+    "detected_at": "2024-01-15T10:45:00Z"
   }
 }
 ```
@@ -88,6 +115,7 @@
 | `CASHBACK_EVENTS` | `cashback.>` | Limits | 7 days | File |
 | `TOKEN_EVENTS` | `token.>` | Limits | 7 days | File |
 | `PURCHASE_EVENTS` | `purchase.>` | Limits | 7 days | File |
+| `DEPOSIT_EVENTS` | `deposit.>` | Limits | 7 days | File |
 
 ### Consumers
 
@@ -95,6 +123,7 @@
 |---|---|---|---|---|---|
 | `mint-consumer` | CASHBACK_EVENTS | `cashback.approved` | Explicit | 5 | 30s |
 | `cashback-service-token-updates` | TOKEN_EVENTS | `token.minted` | Explicit | 5 | 30s |
+| `cashback-service-deposits` | DEPOSIT_EVENTS | `deposit.detected` | Explicit | 5 | 30s |
 
 ---
 

@@ -1,28 +1,27 @@
-# GitHub Copilot Instructions — cashback-platform
+# GitHub Copilot Instructions
 
-This file is the entry point for AI agents working in this repo. It provides project context and points to the canonical sources for rules, conventions, and workflows. Do not duplicate content that already exists in `.github/ai/rules/` or `.github/ai/skills/`.
+This file is the entry point for AI agents working in this repo. It provides project context, rule summaries, plan conventions, and skill references. Detailed rules are auto-injected via path-specific instructions in `.github/instructions/`; skills are in `.github/skills/`.
 
 ---
 
 ## Project Basics
 
-- **Language**: Go (multiple services with independent modules)
-- **Services**:
-  - `cashback-service-api`: REST API for cashback operations
-  - `blockchain-adapter`: gRPC service for blockchain interactions
-  - `mint-consumer`: Event consumer for token minting
-- **Local Environment**: Docker Compose + make targets per service
+> **Fill in for each project.**
+
+- **Language / Stack**: {e.g. Go 1.26, Node.js 22, Python 3.12}
+- **Entrypoints**: {e.g. `cmd/server/main.go`, `src/index.ts`}
+- **Local Environment**: {e.g. `.env`, `mise`}
 
 ### Essential Commands
 
 ```sh
-# Service-specific builds
-cd services/cashback-service-api && make run
-cd services/blockchain-adapter && make run
-cd services/mint-consumer && make run
-
-# Tests (per service)
-make test             # Run tests in current service
+# Add the project's actual commands here, for example:
+# mise run dev          # Start locally
+# mise run test         # Run all tests
+# mise run lint         # Lint the codebase
+# mise run build        # Build artifacts
+# mise run migrate      # Run DB migrations
+# mise tasks            # List all available tasks
 ```
 
 ---
@@ -39,113 +38,92 @@ Only create `.md` files for project documentation that belongs in the repository
 
 ---
 
-## Project Architecture
+## Plans Directory
 
-Clean architecture with domain-driven design:
+Plans are stored locally and symlinked into `.github/plans` for IDE visibility.
 
-- **Domain Layer**: Core business entities and rules — no JSON tags, no cross-domain imports
-- **Use Case Layer**: Application-specific business logic — defines `Repository` and `TransactionManager` as local interfaces
-- **Repository Layer**: Data access — propagates context through all database operations
-- **Handler Layer**: HTTP request/response — maps errors to status codes, uses `RegisterEndpoints`
+- **Path**: `.github/plans/{slug}/` (relative to project root)
+- **Physical location**: `~/ai-plans/{repo-name}/{slug}/`
+- **Symlink**: `.github/plans -> ~/ai-plans/{repo-name}/`
 
-### Directory Layout
-
-```
-/services/{service-name}/
-    cmd/
-        main.go or api/main.go
-    internal/
-        app/{domain}/
-            domain/
-            handler/{operation}/
-            repository/
-            usecase/{operation}/
-            errors.go
-        config/
-        bootstrap/
-    pkg/                # Service-specific utilities
-/pkg/                   # Shared utilities across services
-/db/                    # Database schema files
-/proto/                 # Protocol buffer definitions
-```
-
-### Key Rules (full detail in rules files)
-
-| Rule | File |
-|------|------|
-| Clean architecture, new endpoint guide, layer contracts | `.github/ai/rules/codebase/rule-1-clean-architecture.md` |
-| Transaction pattern (TransactionManager interface) | `.github/ai/rules/codebase/rule-2-transaction-pattern.md` |
-| Go style (grouping, no else, any, errors.Is, naming) | `.github/ai/rules/language/go/rule-3-go-style.md` |
-| Testing (should pattern, table-driven, mockery, build tags) | `.github/ai/rules/language/go/rule-4-testing.md` |
-| Error handling (never log+return, domain errors, wrapping) | `.github/ai/rules/language/go/rule-5-error-handling.md` |
-
----
-
-## AI Skills
-
-Use the **Orchestrator** as the single entry point for any task involving codebase analysis or changes. Do not perform code analysis, implementation, or review directly — always delegate through the appropriate skill.
-
-| Task | Skill |
-|------|-------|
-| Any codebase analysis or research | `orchestrator/SKILL.md` → delegates to `researcher/SKILL.md` |
-| Planning an implementation | `orchestrator/SKILL.md` → delegates to `planner/SKILL.md` |
-| Implementation | `orchestrator/SKILL.md` → delegates to `coder/SKILL.md` |
-| Code review | `reviewer/SKILL.md` |
-| Writing and executing commits | `git-committer/SKILL.md` |
-| Compress session to avoid context loss | `context-compressor/SKILL.md` (also: `/compress`) |
-
-All skill files are under `.github/ai/skills/`.
-
-### Plans are local-only
-
-Plans live in `~/ai-plans/{repo-name}/{slug}/` and are **never committed**. They are stored
-completely outside the repository — immune to all git operations.
+Before any plan file access, ensure the symlink exists:
 
 ```bash
-# Path for this repo
-~/ai-plans/cashback-platform/{slug}/
+PLANS_DIR=~/ai-plans/$(basename $(git rev-parse --show-toplevel))
+[ -d "$PLANS_DIR" ] || mkdir -p "$PLANS_DIR"
+[ -L .github/plans ] || ln -s "$PLANS_DIR" .github/plans
 ```
-
-- Plans survive branch switches, stash, rebase, and `git clean` (they are outside the repo)
-- Each developer owns their own local plans
-- To resume on a different machine: run `/compress` first to generate `session-summary.md`,
-  then share that file manually and use the re-attach prompt at the bottom of it
 
 ### Plan Discovery
 
-Skills discover the active plan automatically. When no slug is explicit, they scan
-`~/ai-plans/{repo-name}/` and read `progress.md` in each directory to find `IN_PROGRESS` plans.
-If a ticket ID is provided, the slug is matched by prefix.
+When no explicit slug is provided, scan `.github/plans/` and read `progress.md` in each directory to find `IN_PROGRESS` plans.
 
-```bash
-# Path for this repo
-~/ai-plans/cashback-platform/{slug}/
-```
-
-- Plans survive branch switches, stash, rebase, and `git clean` (they are outside the repo)
-- Each developer owns their own local plans
-- To resume on a different machine: run `/compress` first to generate `session-summary.md`,
-  then share that file manually and use the re-attach prompt at the bottom of it
-
-### Critical: Codebase Analysis
-
-Any analysis that involves reading source files, tracing call chains, identifying impacted paths, or researching existing behavior must go through the Orchestrator → Researcher flow. Do not answer analysis questions from memory or partial context — always read the relevant files first.
+Plans are never committed. They survive branch switches, stash, rebase, and `git clean` because they live outside the repo.
 
 ---
 
+## Project Architecture
 
-## Database Migrations
+> **Fill in for each project.** Replace with the actual directory layout and architecture notes.
 
-- Database schema is managed in `db/schema.sql`
-- Apply migrations manually before testing changes
+```
+/src/                   # Application source
+/tests/                 # Test files
+/docs/                  # Documentation
+```
+
+Detailed architecture and layer rules are in `.github/instructions/`.
+
+---
+
+## Path-Specific Instructions
+
+Detailed coding rules are in `.github/instructions/` and are auto-injected by Copilot when editing matching files:
+
+| Instruction file | Applies to | Summary |
+|-----------------|------------|---------|
+| `go-style` | `**/*.go` | Google Go Style Guide + project conventions |
+| `clean-architecture` | `internal/app/**/*.go` | Layer rules, DI, dependency direction |
+| `testing` | `**/*_test.go`, `**/testdata/**/*.go` | Table-driven, mockery, integration suites |
+| `error-handling` | `**/*.go` | Domain errors, wrapping, no log-and-return |
+| `package-design` | `**/*.go` | Package philosophy: provide not contain, dependency direction |
+
+> Add or remove entries to match the instruction files that actually exist in this project.
+
+---
+
+## Skills Reference
+
+Use the **orchestrating-tasks** skill as the single entry point for tasks involving codebase analysis or changes. Non-coding tasks use their dedicated skill directly.
+
+Invoke skills directly via `/skill:name` in the Copilot chat.
+
+| Task | Skill |
+|------|-------|
+| Any codebase analysis or research | `/skill:orchestrating-tasks` -> `/skill:researching-codebase` |
+| Planning an implementation | `/skill:orchestrating-tasks` -> `/skill:planning-implementation` |
+| Implementation | `/skill:orchestrating-tasks` -> `/skill:implementing-feature` |
+| Code review | `/skill:reviewing-code` |
+| Write and run tests | `/skill:testing-implementation` |
+| Writing and executing commits | `/skill:committing-changes` |
+| Open a Pull Request | `/skill:creating-pull-request` |
+| Compress session to avoid context loss | `/skill:compressing-context` |
+| Resume a compressed session | `/skill:resuming-context` |
+| Sanitize text before publishing | `/skill:sanitizing-text` |
+
+All skill files are under `.github/skills/{name}/SKILL.md`.
+
+### Critical: Codebase Analysis
+
+Any analysis that involves reading source files, tracing call chains, identifying impacted paths, or researching existing behavior must go through the orchestrating-tasks -> researching-codebase flow. Do not answer analysis questions from memory or partial context: always read the relevant files first.
 
 ---
 
 ## Observability
 
-- Always propagate `ctx` through all calls for trace ID support
-- Use `internal/logger` for structured logging
-- Use New Relic helpers for custom events on critical paths
+- Always propagate request context through all calls for trace ID support
+- Use structured logging on critical paths
+- Add metrics/telemetry for operations that matter in production
 
 ---
 
@@ -154,78 +132,123 @@ Any analysis that involves reading source files, tracing call chains, identifyin
 ### PR Checklist
 
 - [ ] Tests added/updated
-- [ ] Database schema changes reviewed
+- [ ] Documentation updated if behavior changed
+- [ ] Migrations reviewed (if applicable)
 - [ ] All relevant modules wired
-- [ ] Documentation updated if needed
 
-### PR Description Format
+### PR Title
 
-- **Summary**: What and why
-- **New Components**: New modules/domains added
-- **Refactoring**: Code reorganization
-- **New Types**: New types/interfaces introduced
-
-### PR Title Format
-
-Follow your project's convention. Common patterns:
-- `Brief description of the change`
-- `TICKET-123 | Brief description`
-- `[component] Brief description`
+```
+Brief description of the change
+```
 
 ### Branching Strategy
 
-Adapt to your team's workflow. Common patterns:
-- Feature branches from `main` or `develop`
-- Bugfix branches for releases
-- Hotfix branches for production issues
-- Release branches for version management
+| Type | From | Merge to |
+|------|------|----------|
+| `feature` | `main` or `develop` | `main` or `develop` |
+| `bugfix` | `main` or `develop` | `main` or `develop` |
+| `hotfix` | `main` | `main` |
+
+### Branch Naming
+
+```
+feature/short-description
+bugfix/wrong-calculation
+hotfix/urgent-fix
+```
+
+---
+
+## Terminal Safety Rules
+
+These rules apply to all skills that run terminal commands.
+
+- Always `--no-pager` on all `git` commands (`log`, `diff`, `show`, `blame`)
+- Always `PAGER=cat` on all `gh` commands
+- Never use heredocs (`<<EOF`) in terminal — use `create_file` tool instead
+- Pipe long output: `command | head -50`
+- Never embed `\n` in a single `-m` string — use multiple `-m` flags
+- If a command might hang, recommend it to the user instead of running it
+
+---
+
+## ⛔ HARD RULE — Never Commit or Push Without Explicit User Authorization
+
+No `git commit`, `git add` + commit, or `git push` must ever be executed by this agent or by any skill unless the user has **explicitly and unambiguously authorized it in the current turn**. This means:
+
+- "Go ahead and implement" is **NOT** authorization to commit
+- "Looks good" is **NOT** authorization to commit
+- "Proceed" without seeing a commit plan is **NOT** authorization to commit
+- Completing an implementation task does **NOT** automatically authorize a commit
+- The user must say "commit", "yes commit", "go ahead and commit", "y" (after seeing the commit plan), or equivalent explicit authorization
+
+This rule applies to:
+
+- All direct bash tool calls (`git commit`, `git add`, `git push`)
+- All skill invocations (`committing-changes`, `creating-pull-request`)
+- Fleet mode / sub-agent dispatches — sub-agents also cannot commit without the user's authorization
+
+---
+
+## Approval Protocol
+
+Skills that call external APIs (GitHub), execute git commits, or run git push must follow this protocol:
+
+1. Present a full preview of all actions before executing
+2. Wait for written approval ("yes", "approve", "confirm", "ok", "y")
+3. "Go ahead", "do it", or "create all" before seeing the preview is NOT approval — present the preview first
+4. If scope changes during execution, stop, present the change, and wait for approval
 
 ---
 
 ## Commit Conventions
 
-Full execution skill: `.github/ai/skills/git-committer/SKILL.md`
+Full execution skill: `.github/skills/committing-changes/SKILL.md`
 
 ### Format
 
-Adapt to your project's convention. Common patterns:
-
-**With ticket tracking:**
-```
-<ticket-id> | <subject>
-
-<body>
-```
-
-**Without ticket tracking:**
 ```
 <subject>
 
 <body>
 ```
 
-### General Guidelines
+### Field Rules
 
-- **Subject line**: Keep under 50-72 characters, imperative mood, capitalized, no period
-- **Body**: Wrap at 72 characters, explain what and why (not how)
-- **Separation**: Blank line between subject and body
+- `subject`: **HARD LIMIT: 50 characters or fewer.** Imperative mood, capitalized, no trailing period. Describe intent or impact, not the file changed.
+- `body`: required when more than one file is changed or the intent is not obvious. Single paragraph, wrap at 72 chars.
 
-### Chris Beams' Seven Rules (recommended)
+> **Self-check before finalizing**: count every character in the subject line. If it exceeds 50, shorten it. Never submit a subject line longer than 50 chars.
+
+### Chris Beams' Seven Rules (mandatory)
 
 1. Separate subject from body with a blank line
-2. Limit the subject line to 50 characters
+2. **Limit the subject line to 50 characters**
 3. Capitalize the subject line
 4. Do not end the subject line with a period
-5. Use imperative mood — "Add feature" not "Added" / "Adding"
+5. Use imperative mood: "Add feature" not "Added" / "Adding"
 6. Wrap the body at 72 characters
 7. Use the body to explain **what** and **why**, not how
 
-### Example
+### Examples
 
 ```
-Add consumer health check endpoint
-
-Implements HTTP /health endpoint that verifies consumer connectivity
-to message broker and database.
+Add user health check endpoint
 ```
+`Add user health check endpoint` = 30 chars
 
+```
+Allow git stash to include plans dir
+
+Plans content remains ignored via .gitignore wildcard. The .gitkeep anchor makes the folder known to git so stash and branch operations work correctly.
+```
+`Allow git stash to include plans dir` = 36 chars
+
+### Anti-patterns
+
+| Wrong | Correct |
+|---|---|
+| `Update SKILL.md to standardize plans directory paths and enhance session compression instructions` (97 chars) | `Standardize plans path in SKILL.md` (35 chars) |
+| Subject describes the file changed | Subject describes the intent/impact |
+| Subject exceeds 50 chars | Shorten: ruthlessly cut words |
