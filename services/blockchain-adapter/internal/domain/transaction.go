@@ -14,14 +14,15 @@ const (
 )
 
 type (
-	// TransactionStatus represents the status of a blockchain transaction
+	// TransactionStatus represents the status of a blockchain transaction.
 	TransactionStatus string
 
-	// BlockchainTransaction represents a blockchain transaction record
+	// BlockchainTransaction represents a blockchain transaction record.
 	BlockchainTransaction struct {
-		ID              uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+		ID              int64     `gorm:"primaryKey;autoIncrement"`
 		IdempotencyKey  uuid.UUID `gorm:"type:uuid;uniqueIndex;not null"`
 		WalletAddress   string    `gorm:"type:varchar(42);not null"`
+		ChainID         string    `gorm:"type:varchar(50);not null;default:'ethereum'"`
 		TokenAmount     string    `gorm:"type:varchar(78);not null"`
 		TransactionHash string    `gorm:"type:varchar(66)"`
 		BlockNumber     int64
@@ -37,7 +38,7 @@ type (
 	}
 )
 
-// TableName specifies the table name for GORM
+// TableName specifies the schema-qualified table name for GORM.
 func (BlockchainTransaction) TableName() string {
-	return "blockchain_transactions"
+	return "blockchain.blockchain_transactions"
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/cashback-platform/services/blockchain-adapter/internal/domain"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -37,7 +36,6 @@ func (r *nonceRepository) GetAndIncrement(ctx context.Context, walletAddress str
 		if result.Error == gorm.ErrRecordNotFound {
 			// Create new record
 			nonce = domain.WalletNonce{
-				ID:            uuid.New(),
 				WalletAddress: walletAddress,
 				CurrentNonce:  0,
 			}
