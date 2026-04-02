@@ -4,6 +4,37 @@ go = "1.25"
 [env]
 GOFLAGS = "-mod=mod"
 
+[tasks.up]
+description = "Start all infrastructure services"
+run = "docker-compose up -d"
+
+[tasks.down]
+description = "Stop all infrastructure services"
+run = "docker-compose down"
+
+[tasks."db:setup"]
+description = "Apply schema to all databases (run after 'mise run up')"
+run = """
+until docker-compose exec -T postgres pg_isready -U cashback; do
+  echo "Waiting for PostgreSQL..."
+  sleep 2
+done
+docker-compose exec -T postgres psql -U cashback -d cashback_service_db -f /schema.sql
+docker-compose exec -T postgres psql -U cashback -d mint_consumer_db -f /schema.sql
+docker-compose exec -T postgres psql -U cashback -d blockchain_adapter_db -f /schema.sql
+"""
+
+[tasks."db:reset"]
+description = "Reset all databases (drops and recreates)"
+run = """
+docker-compose down -v
+docker-compose up -d postgres
+until docker-compose exec -T postgres pg_isready -U cashback; do
+  sleep 2
+done
+echo "Databases reset."
+"""
+
 [tasks.deps]
 description = "Tidy all modules"
 run = [
