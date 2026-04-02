@@ -4,13 +4,14 @@ import (
 	"strconv"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/domain"
+	"github.com/cashback-platform/services/cashback-service-api/pkg/validator"
 )
 
 type (
 	InputPayload struct {
-		UserID   string  `json:"user_id"`
-		Amount   float64 `json:"amount"`
-		Merchant string  `json:"merchant"`
+		UserID   string  `json:"user_id"  validate:"required,numeric"`
+		Amount   float64 `json:"amount"   validate:"gt=0"`
+		Merchant string  `json:"merchant" validate:"required"`
 	}
 
 	OutputPayload struct {
@@ -24,16 +25,7 @@ type (
 )
 
 func (p InputPayload) Validate() error {
-	if p.UserID == "" {
-		return domain.ErrInvalidUserID
-	}
-	if p.Amount <= 0 {
-		return domain.ErrInvalidAmount
-	}
-	if p.Merchant == "" {
-		return domain.ErrInvalidMerchant
-	}
-	return nil
+	return validator.Validate(p)
 }
 
 func ToOutputPayload(purchase domain.Purchase) OutputPayload {
@@ -42,7 +34,7 @@ func ToOutputPayload(purchase domain.Purchase) OutputPayload {
 		UserID:     strconv.FormatInt(purchase.UserID, 10),
 		Amount:     purchase.Amount,
 		MerchantID: purchase.MerchantID,
-		Status:     purchase.Status,
+		Status:     string(purchase.Status),
 		CreatedAt:  purchase.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}
 }

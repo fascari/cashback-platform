@@ -21,7 +21,7 @@ func ToOutputPayload(purchase domain.Purchase) OutputPayload {
 		UserID:     strconv.FormatInt(purchase.UserID, 10),
 		Amount:     purchase.Amount,
 		MerchantID: purchase.MerchantID,
-		Status:     purchase.Status,
+		Status:     string(purchase.Status),
 		CreatedAt:  purchase.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}
 }

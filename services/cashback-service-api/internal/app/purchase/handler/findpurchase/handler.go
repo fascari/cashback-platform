@@ -4,7 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
+	purchasehandler "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/handler"
 	findpurchaseuc "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/usecase/findpurchase"
+	"github.com/cashback-platform/services/cashback-service-api/pkg/errorhandler"
 	httpjson "github.com/cashback-platform/services/cashback-service-api/pkg/http"
 
 	"github.com/go-chi/chi/v5"
@@ -17,9 +19,7 @@ type Handler struct {
 }
 
 func NewHandler(useCase findpurchaseuc.UseCase) Handler {
-	return Handler{
-		useCase: useCase,
-	}
+	return Handler{useCase: useCase}
 }
 
 func RegisterEndpoint(r chi.Router, h Handler) {
@@ -36,11 +36,7 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 
 	purchase, err := h.useCase.Execute(r.Context(), id)
 	if err != nil {
-		if err.Error() == "purchase not found" {
-			http.Error(w, "purchase not found", http.StatusNotFound)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		errorhandler.Render(w, err, purchasehandler.ErrorMapping)
 		return
 	}
 

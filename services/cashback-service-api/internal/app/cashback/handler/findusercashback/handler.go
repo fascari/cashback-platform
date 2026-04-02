@@ -4,7 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
+	cashbackhandler "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/handler"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/findusercashback"
+	"github.com/cashback-platform/services/cashback-service-api/pkg/errorhandler"
 	httpjson "github.com/cashback-platform/services/cashback-service-api/pkg/http"
 	"github.com/go-chi/chi/v5"
 )
@@ -35,7 +37,7 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 
 	summary, err := h.useCase.Execute(r.Context(), userID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		errorhandler.Render(w, err, cashbackhandler.ErrorMapping)
 		return
 	}
 

@@ -4,11 +4,12 @@ import (
 	"strconv"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
+	"github.com/cashback-platform/services/cashback-service-api/pkg/validator"
 )
 
 type (
 	InputPayload struct {
-		PurchaseID string `json:"purchase_id"`
+		PurchaseID string `json:"purchase_id" validate:"required,numeric"`
 	}
 
 	OutputPayload struct {
@@ -23,10 +24,7 @@ type (
 )
 
 func (p InputPayload) Validate() error {
-	if p.PurchaseID == "" {
-		return domain.ErrInvalidPurchaseID
-	}
-	return nil
+	return validator.Validate(p)
 }
 
 func ToOutputPayload(cashback domain.Cashback) OutputPayload {
@@ -36,7 +34,7 @@ func ToOutputPayload(cashback domain.Cashback) OutputPayload {
 		PurchaseID:      strconv.FormatInt(cashback.PurchaseID, 10),
 		Amount:          cashback.Amount,
 		CashbackPercent: cashback.CashbackPercent,
-		Status:          cashback.Status,
+		Status:          string(cashback.Status),
 		CreatedAt:       cashback.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}
 }

@@ -4,7 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
+	purchasehandler "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/handler"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/usecase/createpurchase"
+	"github.com/cashback-platform/services/cashback-service-api/pkg/errorhandler"
 	httpjson "github.com/cashback-platform/services/cashback-service-api/pkg/http"
 
 	"github.com/go-chi/chi/v5"
@@ -46,7 +48,7 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 
 	purchase, err := h.useCase.Execute(r.Context(), userID, payload.Amount, payload.Merchant)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		errorhandler.Render(w, err, purchasehandler.ErrorMapping)
 		return
 	}
 

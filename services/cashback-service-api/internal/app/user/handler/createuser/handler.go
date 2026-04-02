@@ -1,13 +1,14 @@
 package createuser
 
 import (
-	"errors"
 	"net/http"
 
-	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/usecase/createuser"
-	httpjson "github.com/cashback-platform/services/cashback-service-api/pkg/http"
-
 	"github.com/go-chi/chi/v5"
+
+	userhandler "github.com/cashback-platform/services/cashback-service-api/internal/app/user/handler"
+	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/usecase/createuser"
+	"github.com/cashback-platform/services/cashback-service-api/pkg/errorhandler"
+	httpjson "github.com/cashback-platform/services/cashback-service-api/pkg/http"
 )
 
 const Path = "/users"
@@ -40,11 +41,7 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.useCase.Execute(r.Context(), payload.ExternalID, payload.Email, payload.WalletAddress)
 	if err != nil {
-		if errors.Is(err, createuser.ErrUserAlreadyExists) {
-			http.Error(w, err.Error(), http.StatusConflict)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		errorhandler.Render(w, err, userhandler.ErrorMapping)
 		return
 	}
 

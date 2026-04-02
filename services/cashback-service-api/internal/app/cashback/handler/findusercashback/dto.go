@@ -45,7 +45,7 @@ func toCashbackItem(c domain.Cashback) CashbackItem {
 		PurchaseID:      strconv.FormatInt(c.PurchaseID, 10),
 		Amount:          c.Amount,
 		CashbackPercent: c.CashbackPercent,
-		Status:          c.Status,
+		Status:          string(c.Status),
 		CreatedAt:       c.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}
 }

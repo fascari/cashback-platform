@@ -4,7 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
+	userhandler "github.com/cashback-platform/services/cashback-service-api/internal/app/user/handler"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/usecase/finduser"
+	"github.com/cashback-platform/services/cashback-service-api/pkg/errorhandler"
 	httpjson "github.com/cashback-platform/services/cashback-service-api/pkg/http"
 
 	"github.com/go-chi/chi/v5"
@@ -17,9 +19,7 @@ type Handler struct {
 }
 
 func NewHandler(useCase finduser.UseCase) Handler {
-	return Handler{
-		useCase: useCase,
-	}
+	return Handler{useCase: useCase}
 }
 
 func RegisterEndpoint(r chi.Router, h Handler) {
@@ -36,11 +36,7 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.useCase.Execute(r.Context(), id)
 	if err != nil {
-		if err.Error() == "user not found" {
-			http.Error(w, "user not found", http.StatusNotFound)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		errorhandler.Render(w, err, userhandler.ErrorMapping)
 		return
 	}
 

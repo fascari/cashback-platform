@@ -9,9 +9,9 @@ import (
 
 type (
 	InputPayload struct {
-		ExternalID    string `json:"external_id"`
-		Email         string `json:"email"`
-		WalletAddress string `json:"wallet_address"`
+		ExternalID    string `json:"external_id"    validate:"required"`
+		Email         string `json:"email"          validate:"required,email"`
+		WalletAddress string `json:"wallet_address" validate:"required,min=20"`
 	}
 
 	OutputPayload struct {
@@ -24,13 +24,7 @@ type (
 )
 
 func (p InputPayload) Validate() error {
-	if p.ExternalID == "" {
-		return validator.ErrRequired
-	}
-	if err := validator.ValidateEmail(p.Email); err != nil {
-		return err
-	}
-	return validator.ValidateWalletAddress(p.WalletAddress)
+	return validator.Validate(p)
 }
 
 func ToOutputPayload(user domain.User) OutputPayload {
