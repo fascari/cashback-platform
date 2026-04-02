@@ -1,0 +1,33 @@
+[tasks.install]
+description = "Install npm dependencies"
+run = "npm install"
+
+[tasks.compile]
+description = "Compile Solidity contracts with Hardhat"
+run = "npm install && npm run compile"
+
+[tasks.evm]
+description = "Start local Ethereum node (keeps running, use for local development)"
+run = "npx hardhat node"
+
+[tasks.deploy]
+description = "Deploy to local Hardhat node (requires: mise run evm in another terminal)"
+run = "npm run deploy:local"
+
+[tasks."deploy:sepolia"]
+description = "Deploy to Sepolia testnet (requires ETHEREUM_RPC_URL and DEPLOYER_PRIVATE_KEY)"
+run = "npm run deploy:sepolia"
+
+[tasks.bindings]
+description = "Generate Go bindings for blockchain-adapter from compiled ABI"
+run = """
+mkdir -p ../services/blockchain-adapter/internal/contracts
+cat ./artifacts/contracts/CashbackToken.sol/CashbackToken.json \
+  | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin)['abi']))" \
+  > ./artifacts/contracts/CashbackToken.sol/CashbackToken.abi
+abigen \
+  --abi=./artifacts/contracts/CashbackToken.sol/CashbackToken.abi \
+  --pkg=contracts \
+  --type=CashbackToken \
+  --out=../services/blockchain-adapter/internal/contracts/cashbacktoken.go
+"""
