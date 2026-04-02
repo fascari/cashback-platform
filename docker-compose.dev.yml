@@ -1,0 +1,60 @@
+services:
+  postgres:
+    networks:
+      - cashback-net
+
+  nats:
+    networks:
+      - cashback-net
+
+  redis:
+    networks:
+      - cashback-net
+
+  cashback-service-api:
+    build:
+      context: ./services/cashback-service-api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - cashback-net
+
+  mint-consumer:
+    build:
+      context: ./services/mint-consumer
+      dockerfile: Dockerfile
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - cashback-net
+
+  blockchain-adapter:
+    build:
+      context: ./services/blockchain-adapter
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - cashback-net
+
+networks:
+  cashback-net:
