@@ -11,6 +11,7 @@ CREATE TABLE wallet_nonces (
     id BIGSERIAL PRIMARY KEY,
     wallet_address VARCHAR(42) UNIQUE NOT NULL,
     current_nonce BIGINT NOT NULL DEFAULT 0,
+    fence_token BIGINT NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
