@@ -40,12 +40,12 @@ func (TokenUsecase) MintToken(_ context.Context, _, _, _ string) (*MintResult, e
 	return &MintResult{Success: false}, nil
 }
 
-func (TokenUsecase) GetBalance(_ context.Context, _ string) (*BalanceResult, error) {
+func (TokenUsecase) Balance(_ context.Context, _ string) (*BalanceResult, error) {
 	// TODO: Implementar lógica de obtenção de saldo
 	return &BalanceResult{}, nil
 }
 
-func (TokenUsecase) GetTransaction(_ context.Context, _ string) (*TransactionResult, error) {
+func (TokenUsecase) Transaction(_ context.Context, _ string) (*TransactionResult, error) {
 	// TODO: Implementar lógica de obtenção de transação
 	return &TransactionResult{}, nil
 }

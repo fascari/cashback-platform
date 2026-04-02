@@ -14,7 +14,6 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-// TokenServer implements the gRPC TokenServiceServer interface.
 type TokenServer struct {
 	tokenpb.UnimplementedTokenServiceServer
 	tokenUsecase *usecase.TokenUsecase
@@ -24,7 +23,6 @@ func NewTokenServer(tokenUsecase *usecase.TokenUsecase) *TokenServer {
 	return &TokenServer{tokenUsecase: tokenUsecase}
 }
 
-// MintToken handles the MintToken gRPC call.
 func (s *TokenServer) MintToken(ctx context.Context, req *tokenpb.MintTokenRequest) (*tokenpb.MintTokenResponse, error) {
 	result, err := s.tokenUsecase.MintToken(ctx, req.IdempotencyKey, req.WalletAddress, req.TokenAmount)
 	if err != nil {
@@ -50,7 +48,7 @@ func (s *TokenServer) MintToken(ctx context.Context, req *tokenpb.MintTokenReque
 
 // GetBalance handles the GetBalance gRPC call.
 func (s *TokenServer) GetBalance(ctx context.Context, req *tokenpb.GetBalanceRequest) (*tokenpb.GetBalanceResponse, error) {
-	result, err := s.tokenUsecase.GetBalance(ctx, req.WalletAddress)
+	result, err := s.tokenUsecase.Balance(ctx, req.WalletAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +62,7 @@ func (s *TokenServer) GetBalance(ctx context.Context, req *tokenpb.GetBalanceReq
 
 // GetTransaction handles the GetTransaction gRPC call.
 func (s *TokenServer) GetTransaction(ctx context.Context, req *tokenpb.GetTransactionRequest) (*tokenpb.GetTransactionResponse, error) {
-	result, err := s.tokenUsecase.GetTransaction(ctx, req.TransactionHash)
+	result, err := s.tokenUsecase.Transaction(ctx, req.TransactionHash)
 	if err != nil {
 		return nil, err
 	}
