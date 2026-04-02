@@ -1,6 +1,8 @@
 package modules
 
 import (
+	"context"
+
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/handler/calculatecashback"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/handler/findusercashback"
 	cashbackrepo "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/repository"
@@ -8,7 +10,7 @@ import (
 	findusercashbackuc "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/findusercashback"
 	purchaserepo "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/repository"
 	userrepo "github.com/cashback-platform/services/cashback-service-api/internal/app/user/repository"
-	"github.com/cashback-platform/services/cashback-service-api/internal/infra/messaging"
+	"github.com/cashback-platform/services/cashback-service-api/internal/infra/messaging/outbox"
 
 	"go.uber.org/fx"
 )
@@ -27,12 +29,12 @@ var (
 			return repo
 		},
 		func(repo purchaserepo.Repository) calculatecashbackuc.PurchaseRepository {
-			return repo
+			return purchaseRepoAdapter{repo: repo}
 		},
 		func(repo userrepo.Repository) calculatecashbackuc.UserRepository {
-			return repo
+			return userRepoAdapter{repo: repo}
 		},
-		func(pub messaging.EventPublisher) calculatecashbackuc.OutboxPublisher {
+		func(pub outbox.Publisher) calculatecashbackuc.EventPublisher {
 			return pub
 		},
 		func(repo cashbackrepo.Repository) findusercashbackuc.Repository {
@@ -55,3 +57,29 @@ var (
 		cashbackInvokes,
 	)
 )
+
+type (
+	purchaseRepoAdapter struct {
+		repo purchaserepo.Repository
+	}
+
+	userRepoAdapter struct {
+		repo userrepo.Repository
+	}
+)
+
+func (a purchaseRepoAdapter) FindByID(ctx context.Context, id int64) (calculatecashbackuc.Purchase, error) {
+	p, err := a.repo.FindByID(ctx, id)
+	if err != nil {
+		return calculatecashbackuc.Purchase{}, err
+	}
+	return calculatecashbackuc.Purchase{ID: p.ID, UserID: p.UserID, Amount: p.Amount}, nil
+}
+
+func (a userRepoAdapter) FindByID(ctx context.Context, id int64) (calculatecashbackuc.User, error) {
+	u, err := a.repo.FindByID(ctx, id)
+	if err != nil {
+		return calculatecashbackuc.User{}, err
+	}
+	return calculatecashbackuc.User{WalletAddress: u.WalletAddress}, nil
+}

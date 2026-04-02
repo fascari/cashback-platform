@@ -46,11 +46,9 @@ func NewConfig() (*Config, error) {
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("./config")
 
-	// Environment variable bindings
 	viper.SetEnvPrefix("")
 	viper.AutomaticEnv()
 
-	// Defaults
 	viper.SetDefault("APP_NAME", "cashback-service-api")
 	viper.SetDefault("APP_ENV", "development")
 	viper.SetDefault("SERVER_PORT", "8080")
@@ -63,7 +61,6 @@ func NewConfig() (*Config, error) {
 	viper.SetDefault("NATS_URL", "nats://localhost:4222")
 	viper.SetDefault("BLOCKCHAIN_ADAPTER_GRPC_ADDRESS", "localhost:50051")
 
-	// Try to read config file (optional)
 	_ = viper.ReadInConfig()
 
 	return &Config{

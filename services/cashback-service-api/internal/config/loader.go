@@ -1,6 +1,8 @@
 package config
 
 import (
+	"time"
+
 	"github.com/cashback-platform/services/cashback-service-api/pkg/logger"
 	"github.com/spf13/viper"
 )
@@ -27,6 +29,11 @@ type (
 	Server struct {
 		Port string
 	}
+
+	OutboxConfig struct {
+		MaxRetries   int
+		PollInterval time.Duration
+	}
 )
 
 func LoadDatabase() Database {
@@ -43,6 +50,10 @@ func LoadGRPC() GRPC {
 
 func LoadServer() Server {
 	return loadConfigWithPanic(loadServerConfig, "failed to load server config")
+}
+
+func LoadOutbox() OutboxConfig {
+	return loadConfigWithPanic(loadOutboxConfig, "failed to load outbox config")
 }
 
 func loadDatabaseConfig() (Database, error) {
@@ -82,6 +93,16 @@ func loadServerConfig() (Server, error) {
 	viper.SetDefault("SERVER_PORT", "8080")
 	viper.AutomaticEnv()
 	return Server{Port: viper.GetString("SERVER_PORT")}, nil
+}
+
+func loadOutboxConfig() (OutboxConfig, error) {
+	viper.SetDefault("OUTBOX_MAX_RETRIES", 5)
+	viper.SetDefault("OUTBOX_POLL_INTERVAL_MS", 100)
+	viper.AutomaticEnv()
+	return OutboxConfig{
+		MaxRetries:   viper.GetInt("OUTBOX_MAX_RETRIES"),
+		PollInterval: time.Duration(viper.GetInt("OUTBOX_POLL_INTERVAL_MS")) * time.Millisecond,
+	}, nil
 }
 
 func loadConfigWithPanic[T any](loader func() (T, error), errorMsg string) T {
