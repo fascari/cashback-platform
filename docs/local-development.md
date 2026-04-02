@@ -32,7 +32,7 @@ Compiles `CashbackToken.sol` and writes artifacts to `contracts/artifacts/`.
 ## 3. Start a local Ethereum node
 
 ```bash
-npx hardhat node
+mise run evm
 ```
 
 Starts a local EVM blockchain at `localhost:8545`.
@@ -81,10 +81,12 @@ the compiled ABI. Re-run after any change to `CashbackToken.sol`.
 
 ## 7. Run the services
 
+Each service runs in its own terminal:
+
 ```bash
-go run ./services/cashback-service-api/cmd/...
-go run ./services/mint-consumer/cmd/...
-go run ./services/blockchain-adapter/cmd/...
+mise run run:api       # cashback-service-api
+mise run run:consumer  # mint-consumer
+mise run run:adapter   # blockchain-adapter
 ```
 
 ## Full cashback flow

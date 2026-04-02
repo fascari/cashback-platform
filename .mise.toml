@@ -92,13 +92,11 @@ protoc \
   proto/token.proto
 """
 
+[tasks."contracts:compile"]
+description = "Compile Solidity contracts"
+run = "cd contracts && mise run compile"
+
 [tasks."contracts:bindings"]
-description = "Generate Go bindings from CashbackToken ABI"
-run = """
-abigen \
-  --abi contracts/artifacts/contracts/CashbackToken.sol/CashbackToken.json \
-  --bin contracts/artifacts/contracts/CashbackToken.sol/CashbackToken.bin \
-  --pkg contracts \
-  --out services/blockchain-adapter/internal/contracts/cashbacktoken.go
-"""
+description = "Generate Go bindings for blockchain-adapter"
+run = "cd contracts && mise run bindings"
 
