@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cashback
+      POSTGRES_PASSWORD: cashback
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init.sh:ro
+      - ./db/schema.sql:/schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cashback"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  nats:
+    image: nats:2.10-alpine
+    command: ["-js", "-c", "/etc/nats/nats.conf"]
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    volumes:
+      - ./nats.conf:/etc/nats/nats.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8222/healthz || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
