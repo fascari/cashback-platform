@@ -46,13 +46,7 @@ Plans are stored locally and symlinked into `.github/plans` for IDE visibility.
 - **Physical location**: `~/ai-plans/{repo-name}/{slug}/`
 - **Symlink**: `.github/plans -> ~/ai-plans/{repo-name}/`
 
-Before any plan file access, ensure the symlink exists:
-
-```bash
-PLANS_DIR=~/ai-plans/$(basename $(git rev-parse --show-toplevel))
-[ -d "$PLANS_DIR" ] || mkdir -p "$PLANS_DIR"
-[ -L .github/plans ] || ln -s "$PLANS_DIR" .github/plans
-```
+Before any plan file access, ensure the symlink exists — run setup from `.github/skills/references/plans-setup.md`.
 
 ### Plan Discovery
 
