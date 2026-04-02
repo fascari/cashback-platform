@@ -1,8 +1,8 @@
 go 1.25
 
 use (
+	./proto
+	./services/blockchain-adapter
 	./services/cashback-service-api
 	./services/mint-consumer
-	./services/blockchain-adapter
 )
-

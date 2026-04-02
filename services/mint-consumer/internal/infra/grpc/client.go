@@ -5,27 +5,17 @@ import (
 	"fmt"
 	"log"
 
+	tokenpb "github.com/cashback-platform/proto/token"
 	"github.com/cashback-platform/services/mint-consumer/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type (
-	// MintResult represents the result of a mint operation
-	MintResult struct {
-		Success         bool
-		TransactionHash string
-		BlockNumber     int64
-		ErrorCode       string
-		ErrorMessage    string
-		Retryable       bool
-	}
-
-	BlockchainAdapterClient struct {
-		conn    *grpc.ClientConn
-		address string
-	}
-)
+// BlockchainAdapterClient wraps the generated gRPC client for the blockchain adapter.
+type BlockchainAdapterClient struct {
+	conn        *grpc.ClientConn
+	tokenClient tokenpb.TokenServiceClient
+}
 
 func NewBlockchainAdapterClient(cfg *config.Config) (*BlockchainAdapterClient, error) {
 	conn, err := grpc.Dial(
@@ -38,22 +28,18 @@ func NewBlockchainAdapterClient(cfg *config.Config) (*BlockchainAdapterClient, e
 
 	log.Printf("Connected to blockchain adapter at %s", cfg.GRPC.BlockchainAdapterAddress)
 	return &BlockchainAdapterClient{
-		conn:    conn,
-		address: cfg.GRPC.BlockchainAdapterAddress,
+		conn:        conn,
+		tokenClient: tokenpb.NewTokenServiceClient(conn),
 	}, nil
 }
 
-func (*BlockchainAdapterClient) MintToken(_ context.Context, idempotencyKey, walletAddress, tokenAmount string) (*MintResult, error) {
-	// TODO: Use generated gRPC client from proto files
-	// For now, return a mock successful response
-	log.Printf("Minting token: idempotencyKey=%s, wallet=%s, amount=%s", idempotencyKey, walletAddress, tokenAmount)
-
-	// Simulated successful mint
-	return &MintResult{
-		Success:         true,
-		TransactionHash: fmt.Sprintf("0x%s", idempotencyKey[:32]),
-		BlockNumber:     12345678,
-	}, nil
+// MintToken calls the blockchain adapter's MintToken RPC.
+func (c *BlockchainAdapterClient) MintToken(ctx context.Context, idempotencyKey, walletAddress, tokenAmount string) (*tokenpb.MintTokenResponse, error) {
+	return c.tokenClient.MintToken(ctx, &tokenpb.MintTokenRequest{
+		IdempotencyKey: idempotencyKey,
+		WalletAddress:  walletAddress,
+		TokenAmount:    tokenAmount,
+	})
 }
 
 func (c *BlockchainAdapterClient) Connection() *grpc.ClientConn {

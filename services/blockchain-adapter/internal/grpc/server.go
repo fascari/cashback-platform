@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 
+	tokenpb "github.com/cashback-platform/proto/token"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/config"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/usecase"
 	"go.uber.org/fx"
@@ -13,83 +14,31 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-// TokenServer implements the gRPC TokenService
-type (
-	TokenServer struct {
-		tokenUsecase *usecase.TokenUsecase
-	}
-
-	// MintTokenRequest represents a request to mint tokens
-	MintTokenRequest struct {
-		IdempotencyKey string
-		WalletAddress  string
-		TokenAmount    string
-	}
-
-	// MintTokenResponse represents the response from a mint operation
-	MintTokenResponse struct {
-		Success         bool
-		TransactionHash string
-		BlockNumber     int64
-		Status          string
-		Error           *MintError
-	}
-
-	// MintError represents an error in mint operation
-	MintError struct {
-		Code      string
-		Message   string
-		Retryable bool
-	}
-
-	// GetBalanceRequest represents a request to get balance
-	GetBalanceRequest struct {
-		WalletAddress string
-	}
-
-	// GetBalanceResponse represents the response from a balance query
-	GetBalanceResponse struct {
-		WalletAddress string
-		Balance       string
-		BlockNumber   int64
-	}
-
-	// GetTransactionRequest represents a request to get transaction status
-	GetTransactionRequest struct {
-		TransactionHash string
-	}
-
-	// GetTransactionResponse represents the response from a transaction query
-	GetTransactionResponse struct {
-		TransactionHash string
-		Status          string
-		BlockNumber     int64
-		Confirmations   int64
-		GasUsed         int64
-		Success         bool
-	}
-)
+// TokenServer implements the gRPC TokenServiceServer interface.
+type TokenServer struct {
+	tokenpb.UnimplementedTokenServiceServer
+	tokenUsecase *usecase.TokenUsecase
+}
 
 func NewTokenServer(tokenUsecase *usecase.TokenUsecase) *TokenServer {
 	return &TokenServer{tokenUsecase: tokenUsecase}
 }
 
-// MintToken handles the MintToken gRPC call
-func (s *TokenServer) MintToken(ctx context.Context, req *MintTokenRequest) (*MintTokenResponse, error) {
+// MintToken handles the MintToken gRPC call.
+func (s *TokenServer) MintToken(ctx context.Context, req *tokenpb.MintTokenRequest) (*tokenpb.MintTokenResponse, error) {
 	result, err := s.tokenUsecase.MintToken(ctx, req.IdempotencyKey, req.WalletAddress, req.TokenAmount)
 	if err != nil {
 		return nil, err
 	}
 
-	response := &MintTokenResponse{
+	response := &tokenpb.MintTokenResponse{
 		Success:         result.Success,
 		TransactionHash: result.TransactionHash,
 		BlockNumber:     result.BlockNumber,
-		Status:          result.Status,
 	}
 
 	if !result.Success {
-		response.Error = &MintError{
+		response.Error = &tokenpb.MintError{
 			Code:      result.ErrorCode,
 			Message:   result.ErrorMessage,
 			Retryable: result.Retryable,
@@ -99,30 +48,29 @@ func (s *TokenServer) MintToken(ctx context.Context, req *MintTokenRequest) (*Mi
 	return response, nil
 }
 
-// GetBalance handles the GetBalance gRPC call
-func (s *TokenServer) GetBalance(ctx context.Context, req *GetBalanceRequest) (*GetBalanceResponse, error) {
+// GetBalance handles the GetBalance gRPC call.
+func (s *TokenServer) GetBalance(ctx context.Context, req *tokenpb.GetBalanceRequest) (*tokenpb.GetBalanceResponse, error) {
 	result, err := s.tokenUsecase.GetBalance(ctx, req.WalletAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	return &GetBalanceResponse{
+	return &tokenpb.GetBalanceResponse{
 		WalletAddress: result.WalletAddress,
 		Balance:       result.Balance,
 		BlockNumber:   result.BlockNumber,
 	}, nil
 }
 
-// GetTransaction handles the GetTransaction gRPC call
-func (s *TokenServer) GetTransaction(ctx context.Context, req *GetTransactionRequest) (*GetTransactionResponse, error) {
+// GetTransaction handles the GetTransaction gRPC call.
+func (s *TokenServer) GetTransaction(ctx context.Context, req *tokenpb.GetTransactionRequest) (*tokenpb.GetTransactionResponse, error) {
 	result, err := s.tokenUsecase.GetTransaction(ctx, req.TransactionHash)
 	if err != nil {
 		return nil, err
 	}
 
-	return &GetTransactionResponse{
+	return &tokenpb.GetTransactionResponse{
 		TransactionHash: result.TransactionHash,
-		Status:          result.Status,
 		BlockNumber:     result.BlockNumber,
 		Confirmations:   result.Confirmations,
 		GasUsed:         result.GasUsed,
@@ -130,10 +78,10 @@ func (s *TokenServer) GetTransaction(ctx context.Context, req *GetTransactionReq
 	}, nil
 }
 
-func StartServer(lc fx.Lifecycle, _ *TokenServer, cfg *config.Config) {
+func StartServer(lc fx.Lifecycle, tokenServer *TokenServer, cfg *config.Config) {
 	server := grpc.NewServer()
 
-	// Register reflection for debugging
+	tokenpb.RegisterTokenServiceServer(server, tokenServer)
 	reflection.Register(server)
 
 	lc.Append(fx.Hook{
