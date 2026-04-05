@@ -18,7 +18,7 @@ type BlockchainAdapterClient struct {
 }
 
 func NewBlockchainAdapterClient(cfg *config.Config) (*BlockchainAdapterClient, error) {
-	conn, err := grpc.Dial(
+	conn, err := grpc.NewClient(
 		cfg.GRPC.BlockchainAdapterAddress,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
