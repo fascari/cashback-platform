@@ -9,6 +9,7 @@ import (
 
 func main() {
 	fx.New(
+		bootstrap.Logger(),
 		bootstrap.Config,
 		bootstrap.Database,
 		bootstrap.NATS,

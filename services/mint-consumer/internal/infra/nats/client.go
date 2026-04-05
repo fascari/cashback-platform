@@ -13,8 +13,8 @@ type NATSClient struct {
 	*kitnats.Client
 }
 
-func NewClient(cfg *config.Config) (*NATSClient, error) {
-	c, err := kitnats.New(cfg.NATS.URL)
+func NewClient(cfg config.NATS) (*NATSClient, error) {
+	c, err := kitnats.New(cfg.URL)
 	if err != nil {
 		return nil, fmt.Errorf("nats client: %w", err)
 	}

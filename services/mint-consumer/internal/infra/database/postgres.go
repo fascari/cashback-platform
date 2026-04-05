@@ -6,30 +6,25 @@ import (
 	"github.com/cashback-platform/services/mint-consumer/internal/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	gormlg "gorm.io/gorm/logger"
 )
 
-func NewPostgresDB(cfg *config.Config) (*gorm.DB, error) {
+func NewPostgresDB(cfg config.Database) (*gorm.DB, error) {
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		cfg.Database.Host,
-		cfg.Database.Port,
-		cfg.Database.User,
-		cfg.Database.Password,
-		cfg.Database.Name,
-		cfg.Database.SSLMode,
+		cfg.Host,
+		cfg.Port,
+		cfg.User,
+		cfg.Password,
+		cfg.Name,
+		cfg.SSLMode,
 	)
 
-	logLevel := logger.Silent
-	if cfg.App.Env == "development" {
-		logLevel = logger.Info
-	}
-
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logLevel),
+		Logger: gormlg.Default.LogMode(gormlg.Silent),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, fmt.Errorf("connect to database: %w", err)
 	}
 
 	return db, nil

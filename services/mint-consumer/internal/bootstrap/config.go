@@ -7,5 +7,7 @@ import (
 )
 
 var Config = fx.Module("config",
-	fx.Provide(config.NewConfig),
+	fx.Provide(config.LoadDatabase),
+	fx.Provide(config.LoadNATS),
+	fx.Provide(config.LoadGRPC),
 )
