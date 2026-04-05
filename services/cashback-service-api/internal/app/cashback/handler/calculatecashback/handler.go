@@ -8,7 +8,7 @@ import (
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback"
 	"github.com/cashback-platform/services/cashback-service-api/pkg/apperror"
 	"github.com/cashback-platform/services/cashback-service-api/pkg/errorhandler"
-	httpjson "github.com/cashback-platform/services/cashback-service-api/pkg/http"
+	"github.com/cashback-platform/services/cashback-service-api/pkg/httpjson"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -30,7 +30,7 @@ func RegisterEndpoint(r chi.Router, h Handler) {
 
 func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 	var payload InputPayload
-	if err := httpjson.ReadJSON(r, &payload); err != nil {
+	if err := httpjson.Read(r, &payload); err != nil {
 		errorhandler.RenderWithCode(w, http.StatusBadRequest, "invalid payload")
 		return
 	}
@@ -49,7 +49,7 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 	cashback, err := h.useCase.Execute(r.Context(), purchaseID)
 	if err != nil {
 		if apperror.As(err, calculatecashback.ErrCodeFailedToPublishEvent) {
-			httpjson.WriteJSON(w, http.StatusCreated, ToOutputPayload(cashback))
+			httpjson.Write(w, http.StatusCreated, ToOutputPayload(cashback))
 			return
 		}
 
@@ -57,5 +57,5 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpjson.WriteJSON(w, http.StatusCreated, ToOutputPayload(cashback))
+	httpjson.Write(w, http.StatusCreated, ToOutputPayload(cashback))
 }

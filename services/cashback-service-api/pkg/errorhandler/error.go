@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/cashback-platform/services/cashback-service-api/pkg/apperror"
-	httpjson "github.com/cashback-platform/services/cashback-service-api/pkg/http"
+	"github.com/cashback-platform/services/cashback-service-api/pkg/httpjson"
 	"github.com/cashback-platform/services/cashback-service-api/pkg/logger"
 )
 
@@ -22,7 +22,7 @@ func Render(w http.ResponseWriter, err error, mapping ...ErrorMapping) {
 	}
 	httpCode := resolveHTTPCode(err, m)
 	logError(httpCode, err)
-	httpjson.WriteError(w, httpCode, err)
+	httpjson.Error(w, httpCode, err)
 }
 
 // RenderWithCode writes a plain-text error response with an explicit status code.

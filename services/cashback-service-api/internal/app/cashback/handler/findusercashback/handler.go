@@ -7,7 +7,7 @@ import (
 	cashbackhandler "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/handler"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/findusercashback"
 	"github.com/cashback-platform/services/cashback-service-api/pkg/errorhandler"
-	httpjson "github.com/cashback-platform/services/cashback-service-api/pkg/http"
+	"github.com/cashback-platform/services/cashback-service-api/pkg/httpjson"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -41,5 +41,5 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpjson.WriteJSON(w, http.StatusOK, ToOutputPayload(summary))
+	httpjson.Write(w, http.StatusOK, ToOutputPayload(summary))
 }

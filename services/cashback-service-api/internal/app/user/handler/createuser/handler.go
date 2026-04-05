@@ -8,7 +8,7 @@ import (
 	userhandler "github.com/cashback-platform/services/cashback-service-api/internal/app/user/handler"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/usecase/createuser"
 	"github.com/cashback-platform/services/cashback-service-api/pkg/errorhandler"
-	httpjson "github.com/cashback-platform/services/cashback-service-api/pkg/http"
+	"github.com/cashback-platform/services/cashback-service-api/pkg/httpjson"
 )
 
 const Path = "/users"
@@ -29,7 +29,7 @@ func RegisterEndpoint(r chi.Router, h Handler) {
 
 func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 	var payload InputPayload
-	if err := httpjson.ReadJSON(r, &payload); err != nil {
+	if err := httpjson.Read(r, &payload); err != nil {
 		http.Error(w, "invalid payload", http.StatusBadRequest)
 		return
 	}
@@ -45,5 +45,5 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpjson.WriteJSON(w, http.StatusCreated, ToOutputPayload(user))
+	httpjson.Write(w, http.StatusCreated, ToOutputPayload(user))
 }
