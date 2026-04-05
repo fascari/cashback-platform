@@ -1,152 +1,146 @@
 ---
 name: orchestrating-tasks
-description: Use when starting any AI-assisted task involving codebase analysis, planning, implementation, or review
+description: Use when starting or resuming any AI-assisted task — feature implementation, bug fix, codebase research, planning, code review, or any multi-skill workflow
 ---
 
 # Orchestrating Tasks
 
-Single entry point for all AI-assisted tasks in this project. Detects task complexity,
-selects and delegates to the right skills, manages plan state, and checkpoints with the user.
-Never writes code or implementation directly.
+Single entry point for all AI-assisted tasks. Routes to the right skill chain, manages plan state, and checkpoints with the user. Never writes code or commits directly.
 
-## When to use
+---
 
-- User asks to implement a feature, fix a bug, or plan a change
-- User asks to research, plan, implement, or review something
-- User asks to resume an existing plan
-- Any task that involves multiple skills or codebase analysis
+## ⚡ PRIORITY RULE — Parallel Agent Dispatch
 
-## Steps
+**Whenever two or more sub-tasks are independent, dispatch them as background agents in parallel. Do not serialize work that can be parallelized. This supersedes all other execution preferences.**
 
-### Step 0 — Setup
+Before each phase: identify which sub-tasks don't depend on each other's output — dispatch those in parallel; run the rest in dependency order.
 
-1. Ensure the plans symlink exists — run setup from `.github/skills/references/plans-setup.md`
-2. If a re-attach prompt references `.github/ai/skills/`, correct to `.github/skills/` — legacy path from before the skills migration.
-### Plan Discovery
+```
+task(agent_type: "explore"|"general-purpose", mode: "background", name: "...", prompt: "full context...")
+```
 
-When the user does not provide an explicit slug, discover the active plan by scanning `.github/plans/` and reading `progress.md` in each directory.
+- `explore` — read-only research (grep/glob/view)
+- `general-purpose` — writes files, runs bash, edits code
+- Prompts must be self-contained — agents are stateless
+- Use `read_agent(agent_id)` after completion notification
+
+| Scenario | Wrong | Right |
+|---|---|---|
+| Research 3 services | Sequential, 3 turns | 3 `explore` agents, 1 turn |
+| Write `kit/logger` + `kit/apperror` | Write one, wait, write other | 2 `general-purpose` agents in parallel |
+| Implement domain + repository (no dependency) | Domain then repository | Both in parallel |
+
+> Failing to parallelize independent tasks is a performance violation.
+
+---
+
+## Step 1 — Setup & Plan Discovery
+
+1. Ensure plans symlink exists — run setup from `.github/skills/references/plans-setup.md`
+2. Correct legacy paths: `.github/ai/skills/` → `.github/skills/`
+
+When no slug is provided, scan `.github/plans/` and read each `progress.md`:
 
 | Situation | Action |
 |-----------|--------|
-| User provided full slug | Use it directly |
-| Exactly 1 plan with `IN_PROGRESS` | Use it automatically, inform the user |
-| Multiple plans with `IN_PROGRESS` | List them and ask which to use |
-| No `IN_PROGRESS` plan found | Inform user — offer to create a new plan or reopen a `DONE` one |
+| User provided slug | Use directly |
+| 1 plan with `IN_PROGRESS` | Use automatically, inform user |
+| Multiple `IN_PROGRESS` | List and ask which to use |
+| None found | Offer to create new plan or reopen a `DONE` one |
 
-Never assume a plan exists without checking. Always run the discovery step first.
+## Step 2 — Read Plan Status
 
-### Step 2 — Read Plan Status
-
-Read `.github/plans/{slug}/progress.md`. Route based on the `## Status` line:
+Read `.github/plans/{slug}/progress.md` and route:
 
 | Status | Action |
 |--------|--------|
-| File does not exist, or `## Status` is absent | Start from scratch — full workflow (researching-codebase -> planning-implementation -> ...) |
-| `IN_PROGRESS` | Read the phase checkboxes to find the last completed phase, resume from there. Do not re-run completed phases. |
-| `REVIEW` | Skip straight to reviewing-code. Read `implementation-plan.md` and `progress.md` for context. |
-| `DONE` | Report to the user that this plan is complete. Ask: "This plan is marked DONE. Do you want to reopen it?" Do not proceed without confirmation. |
+| File absent or no `## Status` | Start from scratch — full workflow |
+| `IN_PROGRESS` | Find last completed phase, resume from there — skip completed phases |
+| `REVIEW` | Go directly to reviewing-code; read `implementation-plan.md` + `progress.md` |
+| `DONE` | Report complete. Ask "Reopen?" — do not proceed without confirmation |
 
-When reopening a `DONE` plan, update the `## Status` line in `progress.md` back to `IN_PROGRESS` and ask the user where to restart from.
+When reopening: update `## Status` to `IN_PROGRESS`, ask where to restart.
 
-### Step 3 — Delegate
+## Step 3 — Classify & Delegate
 
-Create `.github/plans/{slug}/brief.md` with context and acceptance criteria, then delegate to skills in sequence. Manage plan state via `progress.md`. Checkpoint with the user before any destructive step. Never write production code, tests, or commit directly.
-
-```mermaid
-flowchart TD
-  UserRequest --> OrchestatingTasks["orchestrating-tasks"]
-  OrchestatingTasks --> ResearchingCodebase["researching-codebase"]
-  ResearchingCodebase -->|"writes research.md"| PlanningImpl["planning-implementation"]
-  PlanningImpl -->|"writes implementation-plan.md"| Checkpoint1{"Approve plan?"}
-  Checkpoint1 -->|No| PlanningImpl
-  Checkpoint1 -->|Yes - Standard or Complex| SystemDesign["analyzing-system-design"]
-  Checkpoint1 -->|Yes - Simple| ImplementingFeature["implementing-feature"]
-  SystemDesign -->|"writes system-design-analysis.md"| Checkpoint1b{"Approve design?"}
-  Checkpoint1b -->|No| SystemDesign
-  Checkpoint1b -->|Yes| ImplementingFeature
-  ImplementingFeature -->|"updates progress.md"| ReviewingCode["reviewing-code"]
-  ReviewingCode -->|"writes reviews/"| SanitizingText["sanitizing-text"]
-  SanitizingText -->|"sanitized output"| Checkpoint2{"Approve changes?\n(review only)"}
-  Checkpoint2 -->|Yes| CommittingChanges["committing-changes"]
-  Checkpoint2 -->|No| ImplementingFeature
-```
-
-> **Note:** Checkpoint2 approves code review only. CommittingChanges still requires separate explicit user authorization before executing any git commit.
-
-## Complexity Classification
-
-Before delegating, classify the task:
+Classify complexity, then delegate to the matching skill chain. Apply the PRIORITY RULE — dispatch independent phases in parallel before proceeding.
 
 | Level | Criteria | Skill chain |
 |---|---|---|
-| Simple | Single file change, typo/config fix | implementing-feature only |
-| Standard | New endpoint, bug fix touching 3 or fewer layers | planning-implementation → **analyzing-system-design** → implementing-feature → reviewing-code |
-| Complex | New domain, cross-domain, migration + multiple layers | All skills — analyzing-system-design is mandatory, reviewing-code with parallel models |
+| Simple | Single file, typo, config | implementing-feature only |
+| Standard | New endpoint, bug fix (≤3 layers) | planning-implementation → **analyzing-system-design** → implementing-feature → reviewing-code |
+| Complex | New domain, cross-service, migrations | All skills — analyzing-system-design is mandatory |
 
-> **analyzing-system-design is not optional for Standard and Complex tasks.**
-> The Coder must not start until `system-design-analysis.md` is approved by the developer.
-> Skill: `.github/skills/analyzing-system-design/SKILL.md`
+> `analyzing-system-design` is not optional for Standard and Complex. The Coder must not start until `system-design-analysis.md` is approved.
 
-## Error Recovery
+```mermaid
+flowchart TD
+  UserRequest --> OT["orchestrating-tasks"]
+  OT --> RC["researching-codebase"]
+  RC -->|"research.md"| PI["planning-implementation"]
+  PI -->|"implementation-plan.md"| C1{"Approve plan?"}
+  C1 -->|No| PI
+  C1 -->|"Standard/Complex"| SD["analyzing-system-design"]
+  C1 -->|Simple| IF["implementing-feature"]
+  SD -->|"system-design-analysis.md"| C1b{"Approve design?"}
+  C1b -->|No| SD
+  C1b -->|Yes| IF
+  IF -->|"progress.md"| RV["reviewing-code"]
+  RV -->|"reviews/"| ST["sanitizing-text"]
+  ST --> C2{"Approve review?"}
+  C2 -->|Yes| CC["committing-changes"]
+  C2 -->|No| IF
+```
 
-- If MCP tools are unavailable (issue tracker unreachable, wiki timeout): inform the user and proceed with local-only context (plan files, codebase). Do not block the workflow.
-- If a skill fails mid-execution: capture the error, update `progress.md` with the failure point, and present options to the user (retry, skip, abort).
+> Checkpoint2 approves the review only — committing-changes still requires separate explicit user authorization.
 
-## Task Type -> Skill Matrix
-
-| Task Type | Skills Invoked |
-|---|---|
-| New endpoint/feature | researching-codebase → planning-implementation → **analyzing-system-design** → implementing-feature → reviewing-code → sanitizing-text |
-| New domain / cross-service | researching-codebase → planning-implementation → **analyzing-system-design** → implementing-feature → reviewing-code → sanitizing-text |
-| Bug fix | researching-codebase → implementing-feature → reviewing-code → sanitizing-text |
-| Research only | researching-codebase → sanitizing-text |
-| Code review | reviewing-code → sanitizing-text |
-| Commit only | committing-changes |
+---
 
 ## Approval Checkpoints
 
-Skills that produce artefacts requiring developer decision must pause and wait for explicit approval. The orchestrating-tasks skill must enforce this — never bypass any approval step.
+Never bypass. Always wait for explicit approval before proceeding.
 
 | Skill | Requires approval before |
 |---|---|
-| `analyzing-system-design` | Coder starts any phase — wait for developer to approve `system-design-analysis.md` |
+| `analyzing-system-design` | Any implementation phase starts |
 | `committing-changes` | Any `git commit` or `git push` |
-| `creating-pull-request` | Any `gh pr create` call |
+| `creating-pull-request` | Any `gh pr create` |
+
+## Error Recovery
+
+- MCP tools unavailable: proceed with local context (plan files + codebase), inform user, do not block.
+- Skill fails mid-execution: update `progress.md` with failure point, present options (retry / skip / abort).
 
 ---
 
 ## Output Contract
 
-For every new task, create:
+For every new task, create (slug = kebab-case description, e.g. `add-user-endpoint`):
 
 ```
 .github/plans/{slug}/
-├── brief.md          ← orchestrating-tasks creates (context + AC)
-└── progress.md       ← orchestrating-tasks creates with ## Status: IN_PROGRESS header
+├── brief.md      ← context + acceptance criteria
+└── progress.md   ← ## Status: IN_PROGRESS
 ```
 
 ## State Management
 
-Status is tracked in the `## Status` line at the top of `progress.md`. Only orchestrating-tasks and the skills listed below may write to it.
+Only `orchestrating-tasks` and the skills below may write the `## Status` line in `progress.md`.
 
-### Transition Map
-
-| From | To | Who transitions | When |
-|------|----|----------------|------|
-| _(file absent)_ | `IN_PROGRESS` | orchestrating-tasks | When `brief.md` is created and the plan is started |
-| `IN_PROGRESS` | `REVIEW` | implementing-feature | After all phases complete, linter passes, and all tests pass |
-| `REVIEW` | `IN_PROGRESS` | orchestrating-tasks | When reviewing-code finds blockers — sends back to implementing-feature |
-| `REVIEW` | `DONE` | reviewing-code | After the user explicitly approves the review (no blockers, or all blockers resolved) |
-| `DONE` | `IN_PROGRESS` | orchestrating-tasks | Only when user explicitly asks to reopen the plan |
-
-### progress.md Format
+| From | To | Who | When |
+|------|----|-----|------|
+| _(absent)_ | `IN_PROGRESS` | orchestrating-tasks | brief.md created |
+| `IN_PROGRESS` | `REVIEW` | implementing-feature | All phases done, lint + tests pass |
+| `REVIEW` | `IN_PROGRESS` | orchestrating-tasks | reviewing-code finds blockers |
+| `REVIEW` | `DONE` | reviewing-code | User explicitly approves review |
+| `DONE` | `IN_PROGRESS` | orchestrating-tasks | User explicitly asks to reopen |
 
 ```markdown
 ## Status
 IN_PROGRESS
 
 ## Phase 1 — Domain Model ✅
-- [x] Created domain entity
+- [x] Entity created
 - [x] Tests passing
 
 ## Phase 2 — Use Case ⏳
@@ -154,47 +148,36 @@ IN_PROGRESS
 - [ ] Unit tests
 ```
 
-Valid statuses: `IN_PROGRESS` | `REVIEW` | `DONE`
-
-To update status, edit the line immediately below `## Status` in `progress.md`.
+Valid values: `IN_PROGRESS` | `REVIEW` | `DONE`
 
 ## Context Compression
 
-Token context is finite. The orchestrating-tasks skill must offer compression at every user-facing checkpoint
-when any of these is true:
-
-- `/context` shows 70% or more usage
-- The session spans research + planning + coding (multi-skill)
-- The user explicitly asks
-
-Offer format (append at the end of a phase summary, non-blocking):
+Offer compression at every user-facing checkpoint when: context ≥ 70%, or session spans research + planning + coding.
 
 ```
-Context is at {N}% — approaching the safe limit (70%). Compress now to avoid degradation?
-Saves context — lets you resume cleanly in a new chat.
-Reply "yes" or use /compress.
+Context is at {N}% — compress now to resume cleanly in a new chat?
+Reply "yes" or /compress.
 ```
 
 Skill: `.github/skills/compressing-context/SKILL.md`
 
 ---
 
-## Slug Convention
+## Common Mistakes
 
-Derive slug from the branch name or a short description of the task:
-- `add-user-endpoint`
-- `fix-login-error`
-- `update-readme`
-- Use kebab-case, lowercase
+- **Serializing independent phases** — always check for parallelism before delegating a phase
+- **Skipping `analyzing-system-design`** for Standard/Complex tasks — it is mandatory, not optional
+- **Treating review approval as commit authorization** — they are separate checkpoints
+- **Assuming the active plan** without reading `progress.md` — always discover first
+- **Writing code directly** — this skill only routes; implementation goes to implementing-feature
 
 ## Permissions
 
 - ✅ Invoke any skill
 - ✅ Read any file
-- ✅ Create `brief.md`, `progress.md`
-- ✅ Update `## Status` in `progress.md`
-- ❌ Write production code
-- ❌ Commit without EXPLICIT USER authorization (code review approval ≠ commit authorization)
-- ❌ Dispatch committing-changes and assume the user's prior approval to 'proceed with implementation' covers commit authorization — it does not
-- ❌ Skip user checkpoints
+- ✅ Create and update `brief.md`, `progress.md`
+- ❌ Write production code or tests
+- ❌ Commit without EXPLICIT USER authorization
+- ❌ Assume "proceed with implementation" covers commit authorization — it does not
+- ❌ Skip any approval checkpoint
 
