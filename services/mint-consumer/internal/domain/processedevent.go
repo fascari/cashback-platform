@@ -7,9 +7,8 @@ import (
 )
 
 type ProcessedEvent struct {
-	ID          int64
-	EventID     uuid.UUID
-	EventType   string
-	ProcessedAt time.Time
-	CreatedAt   time.Time
+	ID        int64
+	EventID   uuid.UUID
+	EventType string
+	CreatedAt time.Time
 }

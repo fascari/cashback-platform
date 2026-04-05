@@ -15,7 +15,7 @@ type mintRequestModel struct {
 	WalletAddress   string                   `gorm:"type:varchar(42);not null"`
 	TokenAmount     string                   `gorm:"type:varchar(78);not null"`
 	IdempotencyKey  uuid.UUID                `gorm:"type:uuid;uniqueIndex;not null"`
-	Status          domain.MintRequestStatus `gorm:"type:mint_request_status;not null;default:pending;index"`
+	Status          domain.MintRequestStatus `gorm:"type:mint.mint_request_status;not null;default:pending;index"`
 	RetryCount      int                      `gorm:"not null;default:0"`
 	MaxRetries      int                      `gorm:"not null;default:5"`
 	TransactionHash string                   `gorm:"type:varchar(66)"`

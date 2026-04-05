@@ -9,11 +9,10 @@ import (
 )
 
 type processedEventModel struct {
-	ID          int64     `gorm:"primaryKey;autoIncrement"`
-	EventID     uuid.UUID `gorm:"type:uuid;uniqueIndex;not null"`
-	EventType   string    `gorm:"type:varchar(100);not null"`
-	ProcessedAt time.Time `gorm:"autoCreateTime"`
-	CreatedAt   time.Time `gorm:"autoCreateTime"`
+	ID        int64     `gorm:"primaryKey;autoIncrement"`
+	EventID   uuid.UUID `gorm:"type:uuid;uniqueIndex;not null"`
+	EventType string    `gorm:"type:varchar(100);not null"`
+	CreatedAt time.Time `gorm:"autoCreateTime"`
 }
 
 func (processedEventModel) TableName() string {
@@ -22,11 +21,10 @@ func (processedEventModel) TableName() string {
 
 func (m processedEventModel) toDomain() domain.ProcessedEvent {
 	return domain.ProcessedEvent{
-		ID:          m.ID,
-		EventID:     m.EventID,
-		EventType:   m.EventType,
-		ProcessedAt: m.ProcessedAt,
-		CreatedAt:   m.CreatedAt,
+		ID:        m.ID,
+		EventID:   m.EventID,
+		EventType: m.EventType,
+		CreatedAt: m.CreatedAt,
 	}
 }
 

@@ -7,26 +7,30 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
+	"github.com/cashback-platform/kit/gormtx"
 	"github.com/cashback-platform/services/mint-consumer/internal/domain"
 )
 
-// Repository provides data access for mint requests.
 type Repository struct {
 	db *gorm.DB
 }
 
-// NewRepository creates a new mint request repository.
 func NewRepository(db *gorm.DB) Repository {
 	return Repository{db: db}
 }
 
-// Create persists a new mint request.
-func (r Repository) Create(ctx context.Context, request domain.MintRequest) error {
-	m := fromDomain(request)
-	return r.db.WithContext(ctx).Create(&m).Error
+func (r Repository) Create(ctx context.Context, request domain.MintRequest) (domain.MintRequest, error) {
+	m := new(fromDomain(request))
+	db := r.db.WithContext(ctx)
+	if tx := gormtx.ExtractTx(ctx); tx != nil {
+		db = tx.WithContext(ctx)
+	}
+	if err := db.Create(m).Error; err != nil {
+		return domain.MintRequest{}, err
+	}
+	return m.toDomain(), nil
 }
 
-// FindByID retrieves a mint request by its primary key.
 func (r Repository) FindByID(ctx context.Context, id int64) (domain.MintRequest, error) {
 	m := new(mintRequestModel)
 	if err := r.db.WithContext(ctx).Where("id = ?", id).First(m).Error; err != nil {
@@ -35,7 +39,6 @@ func (r Repository) FindByID(ctx context.Context, id int64) (domain.MintRequest,
 	return m.toDomain(), nil
 }
 
-// FindByCashbackID retrieves a mint request by cashback ID.
 func (r Repository) FindByCashbackID(ctx context.Context, cashbackID int64) (domain.MintRequest, error) {
 	m := new(mintRequestModel)
 	if err := r.db.WithContext(ctx).Where("cashback_id = ?", cashbackID).First(m).Error; err != nil {
@@ -44,7 +47,6 @@ func (r Repository) FindByCashbackID(ctx context.Context, cashbackID int64) (dom
 	return m.toDomain(), nil
 }
 
-// FindByIdempotencyKey retrieves a mint request by its idempotency key.
 func (r Repository) FindByIdempotencyKey(ctx context.Context, key uuid.UUID) (domain.MintRequest, error) {
 	m := new(mintRequestModel)
 	if err := r.db.WithContext(ctx).Where("idempotency_key = ?", key).First(m).Error; err != nil {
@@ -53,13 +55,11 @@ func (r Repository) FindByIdempotencyKey(ctx context.Context, key uuid.UUID) (do
 	return m.toDomain(), nil
 }
 
-// Update persists changes to an existing mint request.
 func (r Repository) Update(ctx context.Context, request domain.MintRequest) error {
 	m := fromDomain(request)
 	return r.db.WithContext(ctx).Save(&m).Error
 }
 
-// UpdateStatus changes the status of a mint request.
 func (r Repository) UpdateStatus(ctx context.Context, id int64, status domain.MintRequestStatus) error {
 	return r.db.WithContext(ctx).Model(&mintRequestModel{}).Where("id = ?", id).Update("status", status).Error
 }
@@ -82,17 +82,16 @@ func (r Repository) FindFailedRetryable(ctx context.Context, limit int) ([]domai
 	return requests, nil
 }
 
-// MarkCompleted marks a mint request as completed with its on-chain result.
 func (r Repository) MarkCompleted(ctx context.Context, id int64, txHash string, blockNumber int64) error {
+	completedAt := time.Now().UTC()
 	return r.db.WithContext(ctx).Model(&mintRequestModel{}).Where("id = ?", id).Updates(map[string]any{
 		"status":           domain.MintRequestStatusCompleted,
 		"transaction_hash": txHash,
 		"block_number":     blockNumber,
-		"completed_at":     new(time.Now().UTC()),
+		"completed_at":     &completedAt,
 	}).Error
 }
 
-// MarkFailed records a mint failure and schedules the next retry.
 func (r Repository) MarkFailed(ctx context.Context, id int64, errorCode, errorMessage string, nextRetryAt *time.Time) error {
 	return r.db.WithContext(ctx).Model(&mintRequestModel{}).Where("id = ?", id).Updates(map[string]any{
 		"status":        domain.MintRequestStatusFailed,
