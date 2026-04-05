@@ -1,19 +1,29 @@
 #!/bin/bash
 set -e
 
+# Creates the databases and schemas.
+# Schemas are needed before migrations run (search_path in DB_URL requires them to exist).
+# Table structures are applied by running migrations:
+#   ./scripts/migrate.sh cashback-service up
+#   ./scripts/migrate.sh blockchain-adapter up
+#   ./scripts/migrate.sh mint-consumer up
+
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres <<-EOSQL
     CREATE DATABASE cashback_service_db;
     CREATE DATABASE mint_consumer_db;
     CREATE DATABASE blockchain_adapter_db;
 EOSQL
 
-echo "Applying schema to cashback_service_db..."
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname cashback_service_db -f /db/cashback_service.sql
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname cashback_service_db <<-EOSQL
+    CREATE SCHEMA IF NOT EXISTS cashback;
+EOSQL
 
-echo "Applying schema to mint_consumer_db..."
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname mint_consumer_db -f /db/mint_consumer.sql
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname blockchain_adapter_db <<-EOSQL
+    CREATE SCHEMA IF NOT EXISTS blockchain;
+EOSQL
 
-echo "Applying schema to blockchain_adapter_db..."
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname blockchain_adapter_db -f /db/blockchain_adapter.sql
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname mint_consumer_db <<-EOSQL
+    CREATE SCHEMA IF NOT EXISTS mint;
+EOSQL
 
-echo "Database initialization complete."
+echo "Databases and schemas created. Run ./scripts/migrate.sh <service> up to apply table structures."

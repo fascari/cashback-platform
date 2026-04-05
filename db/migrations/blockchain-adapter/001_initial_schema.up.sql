@@ -1,12 +1,9 @@
--- Database: blockchain_adapter_db
 CREATE SCHEMA IF NOT EXISTS blockchain;
 SET search_path TO blockchain;
 
--- Enums
 CREATE TYPE transaction_status AS ENUM ('pending', 'submitted', 'confirmed', 'failed');
 CREATE TYPE deposit_status AS ENUM ('pending', 'processed', 'failed');
 
--- Nonce tracking per wallet — serialized via Redis distributed lock
 CREATE TABLE wallet_nonces (
     id BIGSERIAL PRIMARY KEY,
     wallet_address VARCHAR(42) UNIQUE NOT NULL,
@@ -20,7 +17,7 @@ CREATE INDEX idx_wallet_nonces_wallet_address ON wallet_nonces(wallet_address);
 
 CREATE TABLE blockchain_transactions (
     id BIGSERIAL PRIMARY KEY,
-    idempotency_key UUID UNIQUE NOT NULL, -- chave de negócio para deduplicação gRPC
+    idempotency_key UUID UNIQUE NOT NULL,
     wallet_address VARCHAR(42) NOT NULL,
     token_amount VARCHAR(78) NOT NULL,
     chain_id VARCHAR(50) NOT NULL DEFAULT 'ethereum',
@@ -42,7 +39,6 @@ CREATE INDEX idx_blockchain_transactions_transaction_hash ON blockchain_transact
 CREATE INDEX idx_blockchain_transactions_status ON blockchain_transactions(status);
 CREATE INDEX idx_blockchain_transactions_chain_id ON blockchain_transactions(chain_id);
 
--- Deposit monitor: on-chain deposits detected by the blockchain monitor
 CREATE TABLE detected_deposits (
     id BIGSERIAL PRIMARY KEY,
     chain_id VARCHAR(50) NOT NULL,

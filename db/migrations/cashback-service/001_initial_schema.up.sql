@@ -1,8 +1,6 @@
--- Database: cashback_service_db
 CREATE SCHEMA IF NOT EXISTS cashback;
 SET search_path TO cashback;
 
--- Enums
 CREATE TYPE purchase_status AS ENUM ('pending', 'approved', 'completed', 'cancelled');
 CREATE TYPE cashback_status AS ENUM ('pending', 'approved', 'minting', 'minted', 'failed');
 CREATE TYPE outbox_event_status AS ENUM ('pending', 'published', 'failed');
@@ -41,7 +39,7 @@ CREATE TABLE cashback_ledger (
     user_id BIGINT NOT NULL REFERENCES users(id),
     purchase_id BIGINT NOT NULL REFERENCES purchases(id),
     amount DECIMAL(18, 8) NOT NULL,
-    token_amount VARCHAR(78) NOT NULL, -- wei (uint256)
+    token_amount VARCHAR(78) NOT NULL,
     status cashback_status NOT NULL DEFAULT 'pending',
     calculation_basis JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -52,7 +50,6 @@ CREATE INDEX idx_cashback_ledger_user_id ON cashback_ledger(user_id);
 CREATE INDEX idx_cashback_ledger_purchase_id ON cashback_ledger(purchase_id);
 CREATE INDEX idx_cashback_ledger_status ON cashback_ledger(status);
 
--- Outbox Pattern: events pending publication to NATS
 CREATE TABLE outbox_events (
     id BIGSERIAL PRIMARY KEY,
     event_type VARCHAR(100) NOT NULL,

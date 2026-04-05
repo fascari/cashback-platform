@@ -20,3 +20,15 @@ abigen \
   --pkg contracts \
   --out internal/contracts/cashbacktoken.go
 """
+
+[tasks."db:migrate"]
+description = "Apply pending migrations for blockchain-adapter"
+run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh blockchain-adapter up"
+
+[tasks."db:rollback"]
+description = "Roll back last migration for blockchain-adapter"
+run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh blockchain-adapter down 1"
+
+[tasks."db:version"]
+description = "Show current migration version for blockchain-adapter"
+run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh blockchain-adapter version"

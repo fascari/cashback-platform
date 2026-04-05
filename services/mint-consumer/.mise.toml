@@ -9,3 +9,15 @@ run = "go test -v -race ./..."
 
 [tasks.lint]
 run = "golangci-lint run"
+
+[tasks."db:migrate"]
+description = "Apply pending migrations for mint-consumer"
+run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh mint-consumer up"
+
+[tasks."db:rollback"]
+description = "Roll back last migration for mint-consumer"
+run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh mint-consumer down 1"
+
+[tasks."db:version"]
+description = "Show current migration version for mint-consumer"
+run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh mint-consumer version"

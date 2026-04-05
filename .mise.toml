@@ -1,5 +1,5 @@
 [tools]
-go = "1.25"
+go = "1.26.1"
 
 [env]
 GOFLAGS = "-mod=mod"
@@ -13,26 +13,28 @@ description = "Stop all infrastructure services"
 run = "docker-compose down"
 
 [tasks."db:setup"]
-description = "Apply schema to all databases (run after 'mise run up')"
+description = "Wait for PostgreSQL and apply all pending migrations (run after 'mise run up')"
 run = """
 until docker-compose exec -T postgres pg_isready -U cashback; do
   echo "Waiting for PostgreSQL..."
   sleep 2
 done
-docker-compose exec -T postgres psql -U cashback -d cashback_service_db -f /schema.sql
-docker-compose exec -T postgres psql -U cashback -d mint_consumer_db -f /schema.sql
-docker-compose exec -T postgres psql -U cashback -d blockchain_adapter_db -f /schema.sql
+./scripts/migrate.sh cashback-service up
+./scripts/migrate.sh blockchain-adapter up
+./scripts/migrate.sh mint-consumer up
 """
 
 [tasks."db:reset"]
-description = "Reset all databases (drops and recreates)"
+description = "Destroy volumes, restart PostgreSQL and re-apply all migrations from scratch"
 run = """
 docker-compose down -v
 docker-compose up -d postgres
 until docker-compose exec -T postgres pg_isready -U cashback; do
   sleep 2
 done
-echo "Databases reset."
+./scripts/migrate.sh cashback-service up
+./scripts/migrate.sh blockchain-adapter up
+./scripts/migrate.sh mint-consumer up
 """
 
 [tasks.deps]

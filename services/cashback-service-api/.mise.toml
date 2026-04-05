@@ -9,3 +9,15 @@ run = "go test -v -race ./..."
 
 [tasks.lint]
 run = "golangci-lint run"
+
+[tasks."db:migrate"]
+description = "Apply pending migrations for cashback-service"
+run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh cashback-service up"
+
+[tasks."db:rollback"]
+description = "Roll back last migration for cashback-service"
+run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh cashback-service down 1"
+
+[tasks."db:version"]
+description = "Show current migration version for cashback-service"
+run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh cashback-service version"
