@@ -4,7 +4,7 @@ import "context"
 
 type MintUsecase struct{}
 
-func NewMintUsecase() *MintUsecase {
+func NewMint() *MintUsecase {
 	return &MintUsecase{}
 }
 

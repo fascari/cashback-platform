@@ -18,7 +18,7 @@ type CashbackConsumer struct {
 	sub         *natsgo.Subscription
 }
 
-func NewCashbackConsumer(mintUsecase *usecase.MintUsecase, natsClient *nats.NATSClient) *CashbackConsumer {
+func NewCashback(mintUsecase *usecase.MintUsecase, natsClient *nats.NATSClient) *CashbackConsumer {
 	return &CashbackConsumer{
 		mintUsecase: mintUsecase,
 		natsClient:  natsClient,

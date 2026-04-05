@@ -2,10 +2,8 @@ package database
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/cashback-platform/services/mint-consumer/internal/config"
-	"github.com/cashback-platform/services/mint-consumer/internal/domain"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -34,14 +32,5 @@ func NewPostgresDB(cfg *config.Config) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	// Auto migrate schemas
-	if err := db.AutoMigrate(
-		&domain.MintRequest{},
-		&domain.ProcessedEvent{},
-	); err != nil {
-		return nil, fmt.Errorf("failed to migrate database: %w", err)
-	}
-
-	log.Println("Database connected and migrated successfully")
 	return db, nil
 }

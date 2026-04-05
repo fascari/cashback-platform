@@ -19,7 +19,7 @@ func main() {
 
 		// Infrastructure
 		fx.Provide(database.NewPostgresDB),
-		fx.Provide(nats.NewNATSClient),
+		fx.Provide(nats.NewClient),
 		fx.Provide(grpc.NewBlockchainAdapterClient),
 
 		// Repositories
@@ -27,10 +27,10 @@ func main() {
 		fx.Provide(repoProcessedEvent.NewRepository),
 
 		// Usecases
-		fx.Provide(usecase.NewMintUsecase),
+		fx.Provide(usecase.NewMint),
 
 		// Consumer
-		fx.Provide(consumer.NewCashbackConsumer),
+		fx.Provide(consumer.NewCashback),
 
 		// Start consumer
 		fx.Invoke(consumer.StartConsumer),
