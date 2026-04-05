@@ -17,13 +17,13 @@ type transactionModel struct {
 	TransactionHash string    `gorm:"type:varchar(66)"`
 	BlockNumber     int64
 	GasUsed         int64
-	GasPrice        string                 `gorm:"type:varchar(78)"`
+	GasPrice        string                   `gorm:"type:varchar(78)"`
 	Status          domain.TransactionStatus `gorm:"type:varchar(50);not null;default:'pending';index"`
-	ErrorCode       string                 `gorm:"type:varchar(100)"`
-	ErrorMessage    string                 `gorm:"type:text"`
+	ErrorCode       string                   `gorm:"type:varchar(100)"`
+	ErrorMessage    string                   `gorm:"type:text"`
 	Nonce           int64
-	CreatedAt       time.Time  `gorm:"autoCreateTime"`
-	UpdatedAt       time.Time  `gorm:"autoUpdateTime"`
+	CreatedAt       time.Time `gorm:"autoCreateTime"`
+	UpdatedAt       time.Time `gorm:"autoUpdateTime"`
 	ConfirmedAt     *time.Time
 }
 
@@ -70,5 +70,3 @@ func fromDomain(tx domain.BlockchainTransaction) transactionModel {
 		ConfirmedAt:     tx.ConfirmedAt,
 	}
 }
-
-

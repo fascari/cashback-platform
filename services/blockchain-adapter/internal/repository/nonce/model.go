@@ -16,5 +16,3 @@ type walletNonceModel struct {
 func (walletNonceModel) TableName() string {
 	return "blockchain.wallet_nonces"
 }
-
-
