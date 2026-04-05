@@ -29,8 +29,8 @@ func RegisterEndpoint(r chi.Router, h Handler) {
 }
 
 func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
-	var payload InputPayload
-	if err := httpjson.Read(r, &payload); err != nil {
+	payload := new(InputPayload)
+	if err := httpjson.Read(r, payload); err != nil {
 		http.Error(w, "invalid payload", http.StatusBadRequest)
 		return
 	}

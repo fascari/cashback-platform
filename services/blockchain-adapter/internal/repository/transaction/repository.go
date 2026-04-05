@@ -21,23 +21,22 @@ func NewRepository(db *gorm.DB) Repository {
 }
 
 func (r Repository) Create(ctx context.Context, tx domain.BlockchainTransaction) (domain.BlockchainTransaction, error) {
-	m := fromDomain(tx)
-	if err := r.db.WithContext(ctx).Create(&m).Error; err != nil {
+	m := new(fromDomain(tx))
+	if err := r.db.WithContext(ctx).Create(m).Error; err != nil {
 		return domain.BlockchainTransaction{}, fmt.Errorf("create transaction: %w", err)
 	}
 	return m.toDomain(), nil
 }
 
 func (r Repository) FindByIdempotencyKey(ctx context.Context, key uuid.UUID) (*domain.BlockchainTransaction, error) {
-	var m transactionModel
-	if err := r.db.WithContext(ctx).Where("idempotency_key = ?", key).First(&m).Error; err != nil {
+	m := new(transactionModel)
+	if err := r.db.WithContext(ctx).Where("idempotency_key = ?", key).First(m).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, fmt.Errorf("find transaction by idempotency key: %w", err)
 	}
-	result := m.toDomain()
-	return new(result), nil
+	return new(m.toDomain()), nil
 }
 
 func (r Repository) UpdateStatus(ctx context.Context, id int64, status domain.TransactionStatus, txHash string, blockNumber int64) error {

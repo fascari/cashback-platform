@@ -9,9 +9,9 @@ import (
 )
 
 func (r Repository) FindByID(ctx context.Context, id int64) (domain.Cashback, error) {
-	var cashback cashbackModel
+	cashback := new(cashbackModel)
 
-	err := r.db.WithContext(ctx).First(&cashback, id).Error
+	err := r.db.WithContext(ctx).First(cashback, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return domain.Cashback{}, domain.ErrCashbackNotFound
@@ -42,11 +42,11 @@ func (r Repository) FindByUserID(ctx context.Context, userID int64) ([]domain.Ca
 }
 
 func (r Repository) FindByPurchaseID(ctx context.Context, purchaseID int64) (domain.Cashback, error) {
-	var cashback cashbackModel
+	cashback := new(cashbackModel)
 
 	err := r.db.WithContext(ctx).
 		Where("purchase_id = ?", purchaseID).
-		First(&cashback).Error
+		First(cashback).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return domain.Cashback{}, domain.ErrCashbackNotFound

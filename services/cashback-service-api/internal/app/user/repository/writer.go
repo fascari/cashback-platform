@@ -7,9 +7,9 @@ import (
 )
 
 func (r Repository) Create(ctx context.Context, user domain.User) (domain.User, error) {
-	model := fromDomain(user)
+	model := new(fromDomain(user))
 
-	if err := r.db.WithContext(ctx).Create(&model).Error; err != nil {
+	if err := r.db.WithContext(ctx).Create(model).Error; err != nil {
 		return domain.User{}, err
 	}
 

@@ -9,9 +9,9 @@ import (
 )
 
 func (r Repository) FindByID(ctx context.Context, id int64) (domain.Purchase, error) {
-	var purchase purchaseModel
+	purchase := new(purchaseModel)
 
-	err := r.db.WithContext(ctx).First(&purchase, id).Error
+	err := r.db.WithContext(ctx).First(purchase, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return domain.Purchase{}, domain.ErrPurchaseNotFound
