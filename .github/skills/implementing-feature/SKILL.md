@@ -27,6 +27,14 @@ Wait for the user to explicitly say: "commit", "go ahead and commit", or equival
 - orchestrating-tasks delegates implementation
 - User says "implement", "code this", "start coding"
 - User types /implement_plan
+- User says "continue", "continue implementation", "continue the plan", "continue the code"
+- User says "next phase", "next step", "proceed", "go ahead", "start"
+- User says "inicia", "continua", "continua a implementação", "continua o plano", "próxima fase"
+- User says "faz", "implementa", "codifica", "escreve o código", "começa a implementar"
+- User says "revise", "fix", "correct", "refactor" targeting specific implementation files
+- User references a phase number or task from a plan (e.g. "do phase 2", "implement task 3")
+- User pastes code and asks to apply a rule or pattern to it
+- Any instruction that results in writing or modifying production code
 
 ## Steps
 
@@ -77,7 +85,25 @@ Wait for the user to explicitly say: "commit", "go ahead and commit", or equival
 
 Run the full validation sequence in order. Do not skip any step.
 
-**Step 1 — Linter**
+**Step 1 — Go-Style Review**
+
+Read `.github/instructions/go-style.instructions.md` in full.
+
+For every modified `.go` file, verify each rule explicitly:
+- Package names: no `util`, `helper`, `common`, `types`, `model` — name by what it provides
+- Exported symbols do not repeat the package name (`httpjson.Write`, not `httpjson.WriteJSON`)
+- No `Get`/`Set` prefixes on methods (`Name()`, not `GetName()`)
+- No `else` — early returns only
+- Receivers: short, consistent abbreviation of the type
+- Interfaces defined at point of use, not at implementation
+- Errors compared with `errors.Is`, never `==`
+- `errors.New` used instead of `fmt.Errorf` when there is no wrapping
+- Imports grouped in 3 blocks: stdlib / third-party / internal
+- `any` instead of `interface{}`
+
+Fix ALL violations before proceeding.
+
+**Step 2 — Linter**
 
 Run the project linter scoped to modified paths (check project `Makefile`, `package.json`, or equivalent for the right command).
 
@@ -136,10 +162,11 @@ Apply those rules in full. The sections below are reminders of universal princip
 
 ## Quality Checklist (before presenting code)
 
-Apply the checklist from the project's `.github/instructions/` files in full.
+Read `.github/instructions/go-style.instructions.md` and apply every rule to each modified Go file. Do not rely on memory — read the file.
 
 Universal items that apply to any project:
 
+- [ ] Go-style review completed — every modified `.go` file checked against `.github/instructions/go-style.instructions.md`
 - [ ] Declarations grouped by kind (types, constants, variables)
 - [ ] No `else` · early returns · context propagated through all calls
 - [ ] Errors wrapped with context: describe the failing operation
