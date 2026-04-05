@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -12,13 +13,13 @@ import (
 )
 
 type CashbackConsumer struct {
-	mintUsecase *usecase.MintUsecase
+	mintUsecase usecase.MintUsecase
 	natsClient  *nats.NATSClient
 	done        chan struct{}
 	sub         *natsgo.Subscription
 }
 
-func NewCashback(mintUsecase *usecase.MintUsecase, natsClient *nats.NATSClient) *CashbackConsumer {
+func NewCashback(mintUsecase usecase.MintUsecase, natsClient *nats.NATSClient) *CashbackConsumer {
 	return &CashbackConsumer{
 		mintUsecase: mintUsecase,
 		natsClient:  natsClient,
@@ -39,7 +40,7 @@ func (c *CashbackConsumer) Start(ctx context.Context) error {
 	}
 
 	_, err := js.AddConsumer("CASHBACK_EVENTS", consumerConfig)
-	if err != nil && err != natsgo.ErrConsumerNameAlreadyInUse {
+	if err != nil && !errors.Is(err, natsgo.ErrConsumerNameAlreadyInUse) {
 		log.Printf("Warning: Failed to create consumer: %v", err)
 	}
 
