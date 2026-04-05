@@ -2,6 +2,7 @@ package nonce
 
 import (
 	"context"
+	_ "embed"
 	"errors"
 	"fmt"
 	"strconv"
@@ -14,21 +15,14 @@ import (
 	redisclient "github.com/cashback-platform/services/blockchain-adapter/internal/infra/redis"
 )
 
-const (
-	lockTTLMs = 30_000
-
-	// acquireLockScript uses a Lua transaction to guarantee that the lock acquisition and
-	// fence token increment are atomic on the Redis side — no other caller can interleave.
-	acquireLockScript = `
-local acquired = redis.call('SET', KEYS[1], ARGV[1], 'NX', 'PX', ARGV[2])
-if acquired then
-return redis.call('INCR', KEYS[2])
-end
-return nil
-`
-)
+const lockTTLMs = 30_000
 
 var (
+	// acquireLockScript uses a Lua transaction to guarantee that lock acquisition and
+	// fence token increment are atomic on the Redis side — no other caller can interleave.
+	//go:embed acquire_lock.lua
+	acquireLockScript string
+
 	ErrLockNotAcquired = errors.New("nonce lock already held by another process")
 	ErrStaleLockToken  = errors.New("stale fencing token: lock was acquired by a newer holder")
 
