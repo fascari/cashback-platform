@@ -1,6 +1,7 @@
 package calculatecashback_test
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"testing"
@@ -27,6 +28,7 @@ type (
 		purchaseRepo *mocks.PurchaseRepository
 		userRepo     *mocks.UserRepository
 		publisher    *mocks.EventPublisher
+		tm           *mocks.TransactionManager
 	}
 )
 
@@ -39,12 +41,13 @@ func newCashbackMocks(t *testing.T) cashbackMocks {
 		purchaseRepo: mocks.NewPurchaseRepository(t),
 		userRepo:     mocks.NewUserRepository(t),
 		publisher:    mocks.NewEventPublisher(t),
+		tm:           mocks.NewTransactionManager(t),
 	}
 }
 
 func (m cashbackMocks) newHandler() calculatecashbackhandler.Handler {
 	return calculatecashbackhandler.NewHandler(
-		calculatecashbackuc.New(m.repo, m.purchaseRepo, m.userRepo, m.publisher),
+		calculatecashbackuc.New(m.repo, m.purchaseRepo, m.userRepo, m.publisher, m.tm),
 	)
 }
 
@@ -53,6 +56,10 @@ func (s *CalculateCashbackSuite) TestSuccess() {
 		t := s.T()
 		m := newCashbackMocks(t)
 
+		m.tm.EXPECT().WithTransaction(mock.Anything, mock.Anything).
+			RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+				return fn(ctx)
+			})
 		m.repo.EXPECT().FindByPurchaseID(mock.Anything, int64(1)).Return(cashdomain.Cashback{}, cashdomain.ErrCashbackNotFound)
 		m.purchaseRepo.EXPECT().FindByID(mock.Anything, int64(1)).Return(calculatecashbackuc.Purchase{ID: 1, UserID: 42, Amount: 100.0}, nil)
 		m.userRepo.EXPECT().FindByID(mock.Anything, int64(42)).Return(calculatecashbackuc.User{WalletAddress: "0xabc"}, nil)
@@ -71,6 +78,10 @@ func (s *CalculateCashbackSuite) TestSuccess() {
 		t := s.T()
 		m := newCashbackMocks(t)
 
+		m.tm.EXPECT().WithTransaction(mock.Anything, mock.Anything).
+			RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+				return fn(ctx)
+			})
 		m.repo.EXPECT().FindByPurchaseID(mock.Anything, int64(1)).Return(cashdomain.Cashback{}, cashdomain.ErrCashbackNotFound)
 		m.purchaseRepo.EXPECT().FindByID(mock.Anything, int64(1)).Return(calculatecashbackuc.Purchase{ID: 1, UserID: 42, Amount: 100.0}, nil)
 		m.userRepo.EXPECT().FindByID(mock.Anything, int64(42)).Return(calculatecashbackuc.User{WalletAddress: "0xabc"}, nil)

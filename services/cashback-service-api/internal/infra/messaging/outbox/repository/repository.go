@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/cashback-platform/kit/gormtx"
 	outboxdomain "github.com/cashback-platform/services/cashback-service-api/internal/infra/messaging/outbox/domain"
 	"gorm.io/gorm"
 )
@@ -18,15 +19,18 @@ func New(db *gorm.DB, maxRetries int) Repository {
 }
 
 func (r Repository) Create(ctx context.Context, eventType, aggregateType string, aggregateID int64, payload []byte) error {
-	event := outboxModel{
+	db := r.db.WithContext(ctx)
+	if tx := gormtx.ExtractTx(ctx); tx != nil {
+		db = tx.WithContext(ctx)
+	}
+	return db.Create(new(outboxModel{
 		EventType:     eventType,
 		AggregateType: aggregateType,
 		AggregateID:   aggregateID,
 		Payload:       payload,
 		Status:        outboxdomain.StatusPending,
 		MaxRetries:    r.maxRetries,
-	}
-	return r.db.WithContext(ctx).Create(&event).Error
+	})).Error
 }
 
 func (r Repository) Pending(ctx context.Context, limit int) ([]outboxdomain.Event, error) {

@@ -1,6 +1,7 @@
 go 1.26.1
 
 use (
+	./kit
 	./proto
 	./services/blockchain-adapter
 	./services/cashback-service-api

@@ -3,13 +3,19 @@ package repository
 import (
 	"context"
 
+	"github.com/cashback-platform/kit/gormtx"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
 )
 
 func (r Repository) Create(ctx context.Context, cashback domain.Cashback) (domain.Cashback, error) {
-	model := fromDomain(cashback)
+	model := new(fromDomain(cashback))
 
-	if err := r.db.WithContext(ctx).Create(&model).Error; err != nil {
+	db := r.db.WithContext(ctx)
+	if tx := gormtx.ExtractTx(ctx); tx != nil {
+		db = tx.WithContext(ctx)
+	}
+
+	if err := db.Create(model).Error; err != nil {
 		return domain.Cashback{}, err
 	}
 
@@ -17,6 +23,5 @@ func (r Repository) Create(ctx context.Context, cashback domain.Cashback) (domai
 }
 
 func (r Repository) Update(ctx context.Context, cashback domain.Cashback) error {
-	model := fromDomain(cashback)
-	return r.db.WithContext(ctx).Save(&model).Error
+	return r.db.WithContext(ctx).Save(new(fromDomain(cashback))).Error
 }

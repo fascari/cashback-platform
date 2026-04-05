@@ -15,6 +15,16 @@ import (
 	"github.com/cashback-platform/services/cashback-service-api/pkg/apperror"
 )
 
+func txManagerPassthrough(t *testing.T) *mocks.TransactionManager {
+	t.Helper()
+	tm := mocks.NewTransactionManager(t)
+	tm.EXPECT().WithTransaction(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+			return fn(ctx)
+		})
+	return tm
+}
+
 func TestCalculateCashback_ShouldCalculateAndSaveCashback(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	purchaseRepo := mocks.NewPurchaseRepository(t)
@@ -32,7 +42,7 @@ func TestCalculateCashback_ShouldCalculateAndSaveCashback(t *testing.T) {
 	publisher.EXPECT().Publish(mock.Anything, calculatecashback.EventTypeCashbackApproved, mock.Anything, mock.Anything).
 		Return(nil)
 
-	uc := calculatecashback.New(repo, purchaseRepo, userRepo, publisher)
+	uc := calculatecashback.New(repo, purchaseRepo, userRepo, publisher, txManagerPassthrough(t))
 	result, err := uc.Execute(context.Background(), testdata.PurchaseID)
 
 	require.NoError(t, err)
@@ -44,11 +54,12 @@ func TestCalculateCashback_ShouldReturnErrorWhenCashbackAlreadyExists(t *testing
 	purchaseRepo := mocks.NewPurchaseRepository(t)
 	userRepo := mocks.NewUserRepository(t)
 	publisher := mocks.NewEventPublisher(t)
+	tm := mocks.NewTransactionManager(t)
 
 	repo.EXPECT().FindByPurchaseID(mock.Anything, testdata.PurchaseID).
 		Return(testdata.ExistingCashback(), nil)
 
-	uc := calculatecashback.New(repo, purchaseRepo, userRepo, publisher)
+	uc := calculatecashback.New(repo, purchaseRepo, userRepo, publisher, tm)
 	_, err := uc.Execute(context.Background(), testdata.PurchaseID)
 
 	require.ErrorIs(t, err, cashdomain.ErrCashbackAlreadyExists)
@@ -59,13 +70,14 @@ func TestCalculateCashback_ShouldReturnErrorWhenPurchaseNotFound(t *testing.T) {
 	purchaseRepo := mocks.NewPurchaseRepository(t)
 	userRepo := mocks.NewUserRepository(t)
 	publisher := mocks.NewEventPublisher(t)
+	tm := mocks.NewTransactionManager(t)
 
 	repo.EXPECT().FindByPurchaseID(mock.Anything, testdata.PurchaseID).
 		Return(cashdomain.Cashback{}, apperror.New(cashdomain.ErrCodeCashbackNotFound, "not found"))
 	purchaseRepo.EXPECT().FindByID(mock.Anything, testdata.PurchaseID).
 		Return(calculatecashback.Purchase{}, errors.New("not found"))
 
-	uc := calculatecashback.New(repo, purchaseRepo, userRepo, publisher)
+	uc := calculatecashback.New(repo, purchaseRepo, userRepo, publisher, tm)
 	_, err := uc.Execute(context.Background(), testdata.PurchaseID)
 
 	require.ErrorIs(t, err, calculatecashback.ErrPurchaseNotFound)
@@ -76,6 +88,7 @@ func TestCalculateCashback_ShouldReturnErrorWhenUserNotFound(t *testing.T) {
 	purchaseRepo := mocks.NewPurchaseRepository(t)
 	userRepo := mocks.NewUserRepository(t)
 	publisher := mocks.NewEventPublisher(t)
+	tm := mocks.NewTransactionManager(t)
 
 	repo.EXPECT().FindByPurchaseID(mock.Anything, testdata.PurchaseID).
 		Return(cashdomain.Cashback{}, apperror.New(cashdomain.ErrCodeCashbackNotFound, "not found"))
@@ -84,7 +97,7 @@ func TestCalculateCashback_ShouldReturnErrorWhenUserNotFound(t *testing.T) {
 	userRepo.EXPECT().FindByID(mock.Anything, testdata.UserID).
 		Return(calculatecashback.User{}, errors.New("not found"))
 
-	uc := calculatecashback.New(repo, purchaseRepo, userRepo, publisher)
+	uc := calculatecashback.New(repo, purchaseRepo, userRepo, publisher, tm)
 	_, err := uc.Execute(context.Background(), testdata.PurchaseID)
 
 	require.ErrorIs(t, err, calculatecashback.ErrUserNotFound)
@@ -107,7 +120,7 @@ func TestCalculateCashback_ShouldReturnErrorWhenPublishFails(t *testing.T) {
 	publisher.EXPECT().Publish(mock.Anything, calculatecashback.EventTypeCashbackApproved, mock.Anything, mock.Anything).
 		Return(errors.New("broker unavailable"))
 
-	uc := calculatecashback.New(repo, purchaseRepo, userRepo, publisher)
+	uc := calculatecashback.New(repo, purchaseRepo, userRepo, publisher, txManagerPassthrough(t))
 	_, err := uc.Execute(context.Background(), testdata.PurchaseID)
 
 	require.ErrorIs(t, err, calculatecashback.ErrFailedToPublishEvent)

@@ -3,6 +3,7 @@ module github.com/cashback-platform/services/cashback-service-api
 go 1.26.1
 
 require (
+	github.com/cashback-platform/kit v0.0.0
 	github.com/cashback-platform/proto v0.0.0
 	github.com/go-chi/chi/v5 v5.0.11
 	github.com/go-playground/locales v0.14.1
@@ -59,5 +60,7 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/cashback-platform/kit => ../../kit
 
 replace github.com/cashback-platform/proto => ../../proto

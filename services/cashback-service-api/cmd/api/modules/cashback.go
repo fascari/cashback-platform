@@ -3,6 +3,7 @@ package modules
 import (
 	"context"
 
+	"github.com/cashback-platform/kit/gormtx"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/handler/calculatecashback"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/handler/findusercashback"
 	cashbackrepo "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/repository"
@@ -13,6 +14,7 @@ import (
 	"github.com/cashback-platform/services/cashback-service-api/internal/infra/messaging/outbox"
 
 	"go.uber.org/fx"
+	"gorm.io/gorm"
 )
 
 var (
@@ -22,6 +24,9 @@ var (
 		findusercashbackuc.New,
 		calculatecashback.NewHandler,
 		findusercashback.NewHandler,
+		func(db *gorm.DB) calculatecashbackuc.TransactionManager {
+			return gormtx.NewTransactionManager(db)
+		},
 	)
 
 	cashbackDependencies = fx.Provide(
