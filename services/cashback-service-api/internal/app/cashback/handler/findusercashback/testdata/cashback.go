@@ -5,6 +5,8 @@ import (
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/findusercashback"
 )
 
+const ValidUserID = int64(42)
+
 func CashbackSummary() findusercashback.UserCashbackSummary {
 	return findusercashback.UserCashbackSummary{
 		UserID:         42,

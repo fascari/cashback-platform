@@ -1,8 +1,6 @@
 package testdata
 
-import (
-	userdomain "github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
-)
+import userdomain "github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
 
 func CreatedUser() userdomain.User {
 	p := ValidPayload()
