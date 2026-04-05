@@ -1,6 +1,6 @@
 package createpurchase
 
-import "github.com/cashback-platform/services/cashback-service-api/pkg/apperror"
+import "github.com/cashback-platform/kit/apperror"
 
 const (
 	ErrCodeInvalidAmount   = "error_createpurchase_invalid_amount"

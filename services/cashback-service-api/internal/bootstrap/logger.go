@@ -1,7 +1,7 @@
 package bootstrap
 
 import (
-	"github.com/cashback-platform/services/cashback-service-api/pkg/logger"
+	"github.com/cashback-platform/kit/logger"
 
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"

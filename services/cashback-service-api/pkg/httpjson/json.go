@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/cashback-platform/services/cashback-service-api/pkg/apperror"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/logger"
+	"github.com/cashback-platform/kit/apperror"
+	"github.com/cashback-platform/kit/logger"
 )
 
 func Write(w http.ResponseWriter, statusCode int, payload any) {

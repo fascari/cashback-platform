@@ -3,7 +3,7 @@ package bootstrap
 import (
 	"github.com/cashback-platform/services/cashback-service-api/internal/config"
 	"github.com/cashback-platform/services/cashback-service-api/internal/database"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/logger"
+	"github.com/cashback-platform/kit/logger"
 
 	"go.uber.org/fx"
 	"gorm.io/gorm"

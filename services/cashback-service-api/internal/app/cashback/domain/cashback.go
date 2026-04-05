@@ -3,7 +3,7 @@ package domain
 import (
 	"time"
 
-	"github.com/cashback-platform/services/cashback-service-api/pkg/apperror"
+	"github.com/cashback-platform/kit/apperror"
 )
 
 const (

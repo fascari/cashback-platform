@@ -1,6 +1,6 @@
 package calculatecashback
 
-import "github.com/cashback-platform/services/cashback-service-api/pkg/apperror"
+import "github.com/cashback-platform/kit/apperror"
 
 const (
 	ErrCodePurchaseNotFound     = "error_calculatecashback_purchase_not_found"

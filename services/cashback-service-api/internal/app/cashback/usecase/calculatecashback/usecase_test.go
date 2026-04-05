@@ -12,7 +12,7 @@ import (
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback/mocks"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback/testdata"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/apperror"
+	"github.com/cashback-platform/kit/apperror"
 )
 
 func txManagerPassthrough(t *testing.T) *mocks.TransactionManager {

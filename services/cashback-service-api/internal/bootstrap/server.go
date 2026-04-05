@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/config"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/logger"
+	"github.com/cashback-platform/kit/logger"
 
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/fx"

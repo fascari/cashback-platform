@@ -3,7 +3,7 @@ package config
 import (
 	"time"
 
-	"github.com/cashback-platform/services/cashback-service-api/pkg/logger"
+	"github.com/cashback-platform/kit/logger"
 	"github.com/spf13/viper"
 )
 

@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/cashback-platform/services/cashback-service-api/pkg/apperror"
+	"github.com/cashback-platform/kit/apperror"
 	"github.com/cashback-platform/services/cashback-service-api/pkg/httpjson"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/logger"
+	"github.com/cashback-platform/kit/logger"
 )
 
 // ErrorMapping maps apperror codes to HTTP status codes.
