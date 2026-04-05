@@ -7,5 +7,5 @@ import (
 )
 
 var GRPCClients = fx.Module("grpc-clients",
-	fx.Provide(infragrpc.NewBlockchainAdapterClient),
+	fx.Provide(infragrpc.New),
 )

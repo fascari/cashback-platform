@@ -2,10 +2,8 @@ package modules
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/cashback-platform/kit/gormtx"
-	tokenpb "github.com/cashback-platform/proto/token"
 	"github.com/cashback-platform/services/mint-consumer/internal/consumer"
 	infragrpc "github.com/cashback-platform/services/mint-consumer/internal/infra/grpc"
 	repoMintRequest "github.com/cashback-platform/services/mint-consumer/internal/repository/mintrequest"
@@ -25,7 +23,7 @@ var (
 	)
 
 	mintDependencies = fx.Provide(
-		func(client *infragrpc.BlockchainAdapterClient) usecase.BlockchainClient {
+		func(client *infragrpc.Client) usecase.BlockchainClient {
 			return blockchainGRPCClient{client: client}
 		},
 		func(db *gorm.DB) usecase.TransactionManager {
@@ -42,31 +40,28 @@ var (
 	)
 )
 
+// blockchainGRPCClient adapts infragrpc.Client to usecase.BlockchainClient.
+// Removed in Phase 6 once use cases reference infragrpc types directly.
 type blockchainGRPCClient struct {
-	client *infragrpc.BlockchainAdapterClient
+	client *infragrpc.Client
 }
 
 func (c blockchainGRPCClient) MintToken(ctx context.Context, req usecase.MintTokenRequest) (usecase.MintResult, error) {
-	resp, err := c.client.MintToken(ctx, req.IdempotencyKey, req.WalletAddress, req.TokenAmount)
+	result, err := c.client.MintToken(ctx, infragrpc.MintTokenRequest{
+		IdempotencyKey: req.IdempotencyKey,
+		WalletAddress:  req.WalletAddress,
+		TokenAmount:    req.TokenAmount,
+		ChainID:        req.ChainID,
+	})
 	if err != nil {
-		return usecase.MintResult{}, fmt.Errorf("mint token grpc: %w", err)
+		return usecase.MintResult{}, err
 	}
-
-	result := usecase.MintResult{
-		TransactionHash: resp.GetTransactionHash(),
-		BlockNumber:     resp.GetBlockNumber(),
-	}
-
-	if e := resp.GetError(); e != nil {
-		result.ErrorCode = e.GetCode()
-		result.ErrorMessage = e.GetMessage()
-		result.Retryable = e.GetRetryable()
-	}
-
-	if resp.GetStatus() == tokenpb.MintStatus_MINT_STATUS_FAILED && result.ErrorCode == "" {
-		result.ErrorCode = "mint_failed"
-		result.ErrorMessage = "mint operation failed without details"
-	}
-
-	return result, nil
+	return usecase.MintResult{
+		TransactionHash: result.TransactionHash,
+		BlockNumber:     result.BlockNumber,
+		ErrorCode:       result.ErrorCode,
+		ErrorMessage:    result.ErrorMessage,
+		Retryable:       result.Retryable,
+	}, nil
 }
+
