@@ -14,6 +14,7 @@ require (
 )
 
 require (
+	github.com/cashback-platform/kit v0.0.0
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -53,3 +54,5 @@ require (
 )
 
 replace github.com/cashback-platform/proto => ../../proto
+
+replace github.com/cashback-platform/kit => ../../kit
