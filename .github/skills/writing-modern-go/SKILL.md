@@ -50,6 +50,56 @@ cfg := Config{Timeout: new(30)}
 Type is inferred: `new(0)` → `*int`, `new("s")` → `*string`, `new(T{})` → `*T`.
 Never use redundant casts like `new(int(0))`.
 
+**GORM scan targets** — the most common missed case in this codebase:
+
+```go
+// Before
+var m userModel
+r.db.WithContext(ctx).First(&m, id)
+return m.toDomain(), nil
+
+// After
+m := new(userModel)
+r.db.WithContext(ctx).First(m, id)
+return m.toDomain(), nil
+```
+
+**Struct literal pointer** — eliminate the intermediate variable:
+
+```go
+// Before
+event := outboxModel{EventType: t, Payload: p}
+db.Create(&event)
+
+// After
+db.Create(new(outboxModel{EventType: t, Payload: p}))
+```
+
+**fromDomain result** — when the pointer is needed for GORM and the result is used after:
+
+```go
+// Before
+model := fromDomain(entity)
+db.Create(&model)
+return model.toDomain(), nil
+
+// After
+model := new(fromDomain(entity))
+db.Create(model)
+return model.toDomain(), nil
+```
+
+**Return pointer to computed value**:
+
+```go
+// Before
+result := m.toDomain()
+return &result, nil
+
+// After
+return new(m.toDomain()), nil
+```
+
 ### `errors.AsType[T](err)` — type-safe error matching
 
 ```go

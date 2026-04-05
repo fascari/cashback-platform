@@ -18,19 +18,34 @@ Also performs requirements traceability reviews when an issue tracker ticket key
 
 ## Steps
 
-1. Read `.github/skills/implementing-feature/SKILL.md` — apply its Quality Checklist, Testing Rules, and all anti-pattern tables verbatim.
-2. Read `.github/instructions/` — apply all project-specific coding rules, architecture rules, and anti-patterns.
-3. Read `.github/plans/{slug}/implementation-plan.md` and `.github/plans/{slug}/progress.md` for context.
-4. Review all changed files against the checklists below.
-5. If an issue tracker ticket key is provided, run the Requirements Traceability Review.
-6. Write results to `.github/plans/{slug}/reviews/review-{model}.md`.
-7. If verdict is APPROVED and user confirms, update `## Status` in `progress.md` to `DONE`.
+1. Read `.github/skills/writing-modern-go/SKILL.md` — apply every modern Go pattern to all reviewed `.go` files. Flag any legacy pattern as a `BLOCKER` when a modern equivalent exists in the project's Go version.
+2. Read `.github/skills/implementing-feature/SKILL.md` — apply its Quality Checklist, Testing Rules, and all anti-pattern tables verbatim.
+3. Read `.github/instructions/` — apply all project-specific coding rules, architecture rules, and anti-patterns.
+4. Read `.github/plans/{slug}/implementation-plan.md` and `.github/plans/{slug}/progress.md` for context.
+5. Review all changed files against the checklists below.
+6. If an issue tracker ticket key is provided, run the Requirements Traceability Review.
+7. Write results to `.github/plans/{slug}/reviews/review-{model}.md`.
+8. If verdict is APPROVED and user confirms, update `## Status` in `progress.md` to `DONE`.
 
 ## Output
 
 Write to `.github/plans/{slug}/reviews/review-{model}.md`.
 
 ## Review Checklist
+
+### Modern Go Patterns
+
+Apply `.github/skills/writing-modern-go/SKILL.md` in full to every reviewed `.go` file.
+
+Any legacy pattern that has a modern replacement available in the project's Go version is a `BLOCKER`. The most commonly missed patterns in this codebase:
+
+| Legacy | Modern (Go 1.26) | Flag as |
+|---|---|---|
+| `var m T; r.db.First(&m, ...)` | `m := new(T); r.db.First(m, ...)` | BLOCKER |
+| `model := fromDomain(x); db.Create(&model)` | `model := new(fromDomain(x)); db.Create(model)` | BLOCKER |
+| `result := x.toDomain(); return &result, nil` | `return new(x.toDomain()), nil` | BLOCKER |
+| `errors.As(err, &target)` | `errors.AsType[T](err)` | BLOCKER |
+| `interface{}` | `any` | BLOCKER |
 
 ### implementing-feature Quality Checklist
 

@@ -85,11 +85,16 @@ Wait for the user to explicitly say: "commit", "go ahead and commit", or equival
 
 Run the full validation sequence in order. Do not skip any step.
 
-**Step 1 — Go-Style Review**
+**Step 1 — Modern Go + Go-Style Review**
 
-Read `.github/instructions/go-style.instructions.md` in full.
+Read `.github/skills/writing-modern-go/SKILL.md` in full and apply every pattern to each modified `.go` file.
+Then read `.github/instructions/go-style.instructions.md` in full and verify each rule explicitly:
 
-For every modified `.go` file, verify each rule explicitly:
+- **Modern Go** (Go 1.26 — most likely to be missed):
+  - `var m T; &m` → `m := new(T)` for all scan targets (GORM, JSON decoders, etc.)
+  - `result := x.toDomain(); &result` → `new(x.toDomain())`
+  - `errors.As(err, &target)` → `errors.AsType[T](err)`
+  - `interface{}` → `any`
 - Package names: no `util`, `helper`, `common`, `types`, `model` — name by what it provides
 - Exported symbols do not repeat the package name (`httpjson.Write`, not `httpjson.WriteJSON`)
 - No `Get`/`Set` prefixes on methods (`Name()`, not `GetName()`)
@@ -166,6 +171,7 @@ Read `.github/instructions/go-style.instructions.md` and apply every rule to eac
 
 Universal items that apply to any project:
 
+- [ ] **Modern Go patterns** — every modified `.go` file checked against `.github/skills/writing-modern-go/SKILL.md`. Pay special attention to Go 1.26: `new(val)` for all local variable pointer patterns (`var m T; &m`, `result := x.Foo(); &result`, `v := fromDomain(x); &v`), `errors.AsType[T]`, `any` instead of `interface{}`
 - [ ] Go-style review completed — every modified `.go` file checked against `.github/instructions/go-style.instructions.md`
 - [ ] Declarations grouped by kind (types, constants, variables)
 - [ ] No `else` · early returns · context propagated through all calls
