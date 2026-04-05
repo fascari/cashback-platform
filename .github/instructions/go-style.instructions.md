@@ -234,6 +234,24 @@ import (
 2. Third-party packages
 3. Internal packages
 
+### Import Aliases
+
+Only alias an import when its package name conflicts with another import or with a local identifier. Never use a redundant alias that repeats the last path segment:
+
+```go
+// Bad: alias matches the package name — redundant
+gormtx "github.com/cashback-platform/kit/gormtx"
+domain "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
+
+// Good: no alias needed when the package name is unambiguous
+"github.com/cashback-platform/kit/gormtx"
+"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
+
+// Good: alias required to resolve a collision
+cashdomain "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
+userdomain  "github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
+```
+
 ## Concurrency
 
 Channels for coordination, mutexes for shared state:
