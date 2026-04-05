@@ -8,7 +8,7 @@ import (
 
 	"github.com/cashback-platform/services/blockchain-adapter/internal/config"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/contracts"
-	ethereumpkg "github.com/cashback-platform/services/blockchain-adapter/pkg/ethereum"
+	ethereumpkg "github.com/cashback-platform/kit/ethereum"
 )
 
 var Ethereum = fx.Module("ethereum",

@@ -14,7 +14,7 @@ import (
 	"github.com/cashback-platform/services/blockchain-adapter/internal/domain"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/usecase"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/usecase/mocks"
-	ethereumpkg "github.com/cashback-platform/services/blockchain-adapter/pkg/ethereum"
+	ethereumpkg "github.com/cashback-platform/kit/ethereum"
 )
 
 const (

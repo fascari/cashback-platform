@@ -17,7 +17,7 @@ import (
 	"github.com/cashback-platform/services/blockchain-adapter/internal/config"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/contracts"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/domain"
-	"github.com/cashback-platform/services/blockchain-adapter/pkg/ethereum"
+	"github.com/cashback-platform/kit/ethereum"
 )
 
 const errCodeSendFailed = "send_failed"

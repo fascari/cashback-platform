@@ -3,6 +3,7 @@ module github.com/cashback-platform/services/blockchain-adapter
 go 1.26.1
 
 require (
+	github.com/cashback-platform/kit v0.0.0
 	github.com/cashback-platform/proto v0.0.0
 	github.com/ethereum/go-ethereum v1.15.8
 	github.com/google/uuid v1.6.0
@@ -79,3 +80,5 @@ require (
 )
 
 replace github.com/cashback-platform/proto => ../../proto
+
+replace github.com/cashback-platform/kit => ../../kit
