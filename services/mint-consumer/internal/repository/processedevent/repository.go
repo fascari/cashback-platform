@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/cashback-platform/kit/gormtx"
-	"github.com/cashback-platform/services/mint-consumer/internal/domain"
+	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/domain"
 )
 
 type Repository struct {

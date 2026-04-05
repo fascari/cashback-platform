@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/cashback-platform/services/mint-consumer/internal/domain"
+	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/domain"
 )
 
 type mintRequestModel struct {
