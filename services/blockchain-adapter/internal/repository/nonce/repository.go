@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	lockTTLMs = 10_000
+	lockTTLMs = 30_000
 
 	// acquireLockScript uses a Lua transaction to guarantee that the lock acquisition and
 	// fence token increment are atomic on the Redis side — no other caller can interleave.
@@ -76,18 +76,18 @@ func (r Repository) acquireLock(ctx context.Context, walletAddress string) (int6
 func (r Repository) incrementInTx(ctx context.Context, walletAddress string, fenceToken int64) (int64, error) {
 	var current int64
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		var m walletNonceModel
+		m := new(walletNonceModel)
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 			Where("wallet_address = ?", walletAddress).
-			First(&m).Error; err != nil {
+			First(m).Error; err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return err
 			}
-			return tx.Create(&walletNonceModel{
+			return tx.Create(new(walletNonceModel{
 				WalletAddress: walletAddress,
 				CurrentNonce:  1,
 				FenceToken:    fenceToken,
-			}).Error
+			})).Error
 		}
 
 		if fenceToken <= m.FenceToken {
@@ -97,14 +97,14 @@ func (r Repository) incrementInTx(ctx context.Context, walletAddress string, fen
 		current = m.CurrentNonce
 		m.CurrentNonce++
 		m.FenceToken = fenceToken
-		return tx.Save(&m).Error
+		return tx.Save(m).Error
 	})
 	return current, err
 }
 
 func (r Repository) CurrentNonce(ctx context.Context, walletAddress string) (int64, error) {
-	var m walletNonceModel
-	if err := r.db.WithContext(ctx).Where("wallet_address = ?", walletAddress).First(&m).Error; err != nil {
+	m := new(walletNonceModel)
+	if err := r.db.WithContext(ctx).Where("wallet_address = ?", walletAddress).First(m).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return 0, nil
 		}
@@ -114,10 +114,16 @@ func (r Repository) CurrentNonce(ctx context.Context, walletAddress string) (int
 }
 
 func (r Repository) SyncFromChain(ctx context.Context, walletAddress string, nonce int64) error {
+	m := walletNonceModel{
+		WalletAddress: walletAddress,
+		CurrentNonce:  nonce,
+	}
 	if err := r.db.WithContext(ctx).
-		Model(&walletNonceModel{}).
-		Where("wallet_address = ?", walletAddress).
-		Updates(map[string]any{"current_nonce": nonce}).Error; err != nil {
+		Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "wallet_address"}},
+			DoUpdates: clause.AssignmentColumns([]string{"current_nonce"}),
+		}).
+		Create(&m).Error; err != nil {
 		return fmt.Errorf("sync nonce from chain for %s: %w", walletAddress, err)
 	}
 	return nil

@@ -124,6 +124,7 @@ func (u TokenUsecase) MintToken(ctx context.Context, idempotencyKeyStr, walletAd
 
 	recordID, err := u.persistPending(ctx, key, existing, walletAddress, tokenAmount, txHash, nonce)
 	if err != nil {
+		_ = u.nonceRepo.SyncFromChain(ctx, walletAddress, nonce)
 		return nil, err
 	}
 
