@@ -77,5 +77,7 @@ repo.On("FindByID", mock.Anything, "id-1").Return(entity, nil)
 - [ ] `//go:generate` or equivalent present on all mocked interfaces (if applicable)
 - [ ] Test names follow project convention (`TestFoo_ShouldDoX` / `"should do x"`)
 - [ ] Test data via factory/fixture helpers — never inline complex structs
+- [ ] `testdata/` files named after domain entities (`user.go`, `purchase.go`), not by role (`inputs.go`, `expected.go`)
+- [ ] Factory function names describe entity state: `CreatedUser()`, `ApprovedCashback()`, `FoundPurchase()` — not just the type name
 - [ ] Integration tests tagged appropriately (e.g. `//go:build integration`, pytest marker, etc.)
 - [ ] All fixtures in `testdata/` or equivalent project fixture directory

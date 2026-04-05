@@ -258,3 +258,98 @@ When the use case does not need transactions, the wiring is simpler:
 repo := repository.NewRepository(db)
 uc := usecase.NewUseCase(repo)
 ```
+
+## Uber/FX Application Structure
+
+All services MUST follow the bootstrap + modules pattern for dependency injection wiring.
+
+### Structure
+
+```
+cmd/{entrypoint}/
+├── main.go              # Only references bootstrap.* and modules.*
+└── modules/
+    ├── {domain}.go      # One file per business domain
+    └── types.go         # Shared FX parameter types (RouterParams etc.)
+
+internal/bootstrap/
+├── config.go            # fx.Module("config", ...)
+├── database.go          # fx.Module("database", ...)
+├── logger.go            # Logger() fx.Option function
+├── router.go            # fx.Module("router", ...)
+├── server.go            # fx.Module("server", ...)
+└── {infra}.go           # One file per infra concern (nats, redis, grpc, outbox...)
+```
+
+### main.go rules
+
+- MUST NOT contain any `fx.Provide(...)` or `fx.Invoke(...)` calls
+- MUST ONLY reference `bootstrap.*` and `modules.*`
+- Infrastructure logger init happens inside `bootstrap.Logger()` via `init()`
+
+```go
+// Correct
+func main() {
+    fx.New(
+        bootstrap.Logger(),
+        bootstrap.Config,
+        bootstrap.Database,
+        bootstrap.NATS,
+        bootstrap.Server,
+        modules.User,
+        modules.Purchase,
+    ).Run()
+}
+
+// Wrong — inline fx.Provide in main.go
+func main() {
+    fx.New(
+        fx.Provide(nats.NewNATSClient),   // ← must be in bootstrap.NATS
+        fx.Provide(config.LoadOutbox),    // ← must be in bootstrap.Config
+        modules.User,
+    ).Run()
+}
+```
+
+### bootstrap package rules
+
+- Each bootstrap file exports one `fx.Module("name", ...)` variable (or a `func() fx.Option` for the logger)
+- Bootstrap files wire infrastructure only: config, database, cache, message broker, HTTP/gRPC server, external API clients
+- Business domain logic NEVER goes in bootstrap files
+
+```go
+// bootstrap/nats.go
+var NATS = fx.Module("nats",
+    fx.Provide(nats.NewNATSClient),
+)
+```
+
+### modules package rules
+
+Each domain module file exports one `fx.Options(...)` variable named after the domain:
+
+```go
+// cmd/modules/user.go
+var User = fx.Options(
+    userFactories,    // fx.Provide(repo, use cases, handlers)
+    userDependencies, // fx.Provide(interface adapter functions)
+    userInvokes,      // fx.Invoke(register endpoints)
+)
+```
+
+The three-variable pattern:
+- `{domain}Factories` — `fx.Provide(repo.New, usecase.New, handler.NewHandler)`
+- `{domain}Dependencies` — `fx.Provide(func(repo X) usecase.SomeInterface { return repo })`
+- `{domain}Invokes` — `fx.Invoke(func(params RouterParams, h handler.Handler) { handler.RegisterEndpoint(...) })`
+
+### RouterParams
+
+Use `fx.In` tagged structs to inject named router values:
+
+```go
+type RouterParams struct {
+    fx.In
+    Router    *chi.Mux   `name:"main"`
+    APIRouter chi.Router `name:"api"`
+}
+```

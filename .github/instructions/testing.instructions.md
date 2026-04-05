@@ -146,26 +146,61 @@ Never define complex test data inline in test files.
 
 ### testdata/ package (per feature)
 
-For use case and handler tests, create `testdata/` within the package:
+For use case and handler tests, create `testdata/` within the package. Each file is named after the domain entity it constructs — **never by role** (`inputs.go`, `expected.go`, `errors.go` are wrong):
 
 ```
 pkg/{feature}/
 ├── feature.go
 ├── feature_test.go
 └── testdata/
-    ├── inputs.go
-    ├── expected.go
-    └── errors.go
+    ├── user.go       ← all User factory functions
+    ├── purchase.go   ← all Purchase factory functions
+    └── cashback.go   ← all Cashback factory functions
+```
+
+Each entity file:
+- Contains every factory function for that entity covering all states needed by the tests
+- Groups constants (IDs, mock timestamps) with the entity that primarily owns them
+- Uses no artificial split between "inputs" and "expected outputs" — both live in the same file
+
+Function names describe the **specific state** of the entity, not just the type:
+
+```go
+// testdata/cashback.go
+package testdata
+
+import cashdomain "github.com/example/internal/app/cashback/domain"
+
+const (
+    CashbackID int64 = 1
+    UserID     int64 = 10
+)
+
+func ApprovedCashback() cashdomain.Cashback {
+    return cashdomain.Cashback{ID: CashbackID, UserID: UserID, Status: cashdomain.StatusApproved}
+}
+
+func PendingCashback() cashdomain.Cashback {
+    return cashdomain.Cashback{ID: CashbackID, UserID: UserID, Status: cashdomain.StatusPending}
+}
 ```
 
 ```go
-// testdata/inputs.go
+// testdata/user.go
 package testdata
 
-func NewUser() domain.User {
-    return domain.User{ID: "user-123", Status: domain.StatusActive}
+import userdomain "github.com/example/internal/app/user/domain"
+
+func FoundUser() userdomain.User {
+    return userdomain.User{ID: UserID, Email: "user@example.com"}
+}
+
+func CreatedUser() userdomain.User {
+    return userdomain.User{ID: UserID, Email: "user@example.com", WalletAddress: "0xABC"}
 }
 ```
+
+One file per entity is the default. Split into multiple files for the same entity (e.g., `offer.go`, `offer_phc.go`) only when the file grows large or the variants are conceptually distinct.
 
 ### internal/test/factory/ (shared across domains)
 
