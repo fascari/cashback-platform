@@ -16,10 +16,10 @@ import (
 
 type TokenServer struct {
 	tokenpb.UnimplementedTokenServiceServer
-	tokenUsecase *usecase.TokenUsecase
+	tokenUsecase usecase.TokenUsecase
 }
 
-func NewTokenServer(tokenUsecase *usecase.TokenUsecase) *TokenServer {
+func NewTokenServer(tokenUsecase usecase.TokenUsecase) *TokenServer {
 	return &TokenServer{tokenUsecase: tokenUsecase}
 }
 
@@ -46,7 +46,6 @@ func (s *TokenServer) MintToken(ctx context.Context, req *tokenpb.MintTokenReque
 	return response, nil
 }
 
-// GetBalance handles the GetBalance gRPC call.
 func (s *TokenServer) GetBalance(ctx context.Context, req *tokenpb.GetBalanceRequest) (*tokenpb.GetBalanceResponse, error) {
 	result, err := s.tokenUsecase.Balance(ctx, req.WalletAddress)
 	if err != nil {
@@ -60,7 +59,6 @@ func (s *TokenServer) GetBalance(ctx context.Context, req *tokenpb.GetBalanceReq
 	}, nil
 }
 
-// GetTransaction handles the GetTransaction gRPC call.
 func (s *TokenServer) GetTransaction(ctx context.Context, req *tokenpb.GetTransactionRequest) (*tokenpb.GetTransactionResponse, error) {
 	result, err := s.tokenUsecase.Transaction(ctx, req.TransactionHash)
 	if err != nil {
