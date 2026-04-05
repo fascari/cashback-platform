@@ -4,10 +4,9 @@ import (
 	"context"
 
 	"github.com/cashback-platform/kit/gormtx"
+	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/repository"
 	"github.com/cashback-platform/services/mint-consumer/internal/consumer"
 	infragrpc "github.com/cashback-platform/services/mint-consumer/internal/infra/grpc"
-	repoMintRequest "github.com/cashback-platform/services/mint-consumer/internal/repository/mintrequest"
-	repoProcessedEvent "github.com/cashback-platform/services/mint-consumer/internal/repository/processedevent"
 	"github.com/cashback-platform/services/mint-consumer/internal/usecase"
 
 	"go.uber.org/fx"
@@ -16,13 +15,14 @@ import (
 
 var (
 	mintFactories = fx.Provide(
-		repoMintRequest.NewRepository,
-		repoProcessedEvent.NewRepository,
+		repository.New,
 		usecase.NewMint,
 		consumer.NewCashback,
 	)
 
 	mintDependencies = fx.Provide(
+		func(r repository.Repository) usecase.MintRequestRepository { return r },
+		func(r repository.Repository) usecase.ProcessedEventRepository { return r },
 		func(client *infragrpc.Client) usecase.BlockchainClient {
 			return blockchainGRPCClient{client: client}
 		},
@@ -40,8 +40,6 @@ var (
 	)
 )
 
-// blockchainGRPCClient adapts infragrpc.Client to usecase.BlockchainClient.
-// Removed in Phase 6 once use cases reference infragrpc types directly.
 type blockchainGRPCClient struct {
 	client *infragrpc.Client
 }
@@ -64,4 +62,5 @@ func (c blockchainGRPCClient) MintToken(ctx context.Context, req usecase.MintTok
 		Retryable:       result.Retryable,
 	}, nil
 }
+
 

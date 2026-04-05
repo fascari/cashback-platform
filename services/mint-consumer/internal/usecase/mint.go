@@ -14,15 +14,15 @@ import (
 
 type (
 	MintRequestRepository interface {
-		Create(ctx context.Context, req domain.MintRequest) (domain.MintRequest, error)
+		CreateMintRequest(ctx context.Context, req domain.MintRequest) (domain.MintRequest, error)
 		FindFailedRetryable(ctx context.Context, limit int) ([]domain.MintRequest, error)
 		MarkCompleted(ctx context.Context, id int64, txHash string, blockNumber int64) error
 		MarkFailed(ctx context.Context, id int64, errorCode, errorMessage string, nextRetryAt *time.Time) error
 	}
 
 	ProcessedEventRepository interface {
-		Exists(ctx context.Context, eventID uuid.UUID) (bool, error)
-		Create(ctx context.Context, event domain.ProcessedEvent) error
+		ExistsProcessedEvent(ctx context.Context, eventID uuid.UUID) (bool, error)
+		CreateProcessedEvent(ctx context.Context, event domain.ProcessedEvent) error
 	}
 
 	MintTokenRequest struct {
@@ -137,7 +137,7 @@ func (u MintUsecase) createMintInTX(ctx context.Context, event *CashbackApproved
 	var mintReq domain.MintRequest
 
 	txErr := u.txManager.WithTransaction(ctx, func(txCtx context.Context) error {
-		exists, err := u.processedEventRepo.Exists(txCtx, ids.eventID)
+		exists, err := u.processedEventRepo.ExistsProcessedEvent(txCtx, ids.eventID)
 		if err != nil {
 			return fmt.Errorf("check processed event: %w", err)
 		}
@@ -145,7 +145,7 @@ func (u MintUsecase) createMintInTX(ctx context.Context, event *CashbackApproved
 			return nil
 		}
 
-		mintReq, err = u.mintRequestRepo.Create(txCtx, domain.MintRequest{
+		mintReq, err = u.mintRequestRepo.CreateMintRequest(txCtx, domain.MintRequest{
 			CashbackID:     ids.cashbackID,
 			UserID:         ids.userID,
 			WalletAddress:  event.WalletAddress,
@@ -158,7 +158,7 @@ func (u MintUsecase) createMintInTX(ctx context.Context, event *CashbackApproved
 			return fmt.Errorf("create mint request: %w", err)
 		}
 
-		if err := u.processedEventRepo.Create(txCtx, domain.ProcessedEvent{
+		if err := u.processedEventRepo.CreateProcessedEvent(txCtx, domain.ProcessedEvent{
 			EventID:   ids.eventID,
 			EventType: "cashback.approved",
 		}); err != nil {
