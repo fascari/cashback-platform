@@ -7,7 +7,7 @@ No external accounts or testnets are required.
 
 - Docker and Docker Compose
 - Node.js 18+
-- Go 1.25+
+- Go 1.26.1+
 - [mise](https://mise.jdx.dev/) task runner
 
 ## 1. Start infrastructure
