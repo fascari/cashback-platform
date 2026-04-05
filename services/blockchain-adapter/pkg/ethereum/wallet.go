@@ -2,6 +2,7 @@ package ethereum
 
 import (
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"math/big"
 	"strings"
@@ -23,7 +24,7 @@ type Wallet struct {
 // derivation path (e.g. "m/44'/60'/0'/0/0").
 func NewFromMnemonic(mnemonic, derivationPath string) (*Wallet, error) {
 	if !bip39.IsMnemonicValid(mnemonic) {
-		return nil, fmt.Errorf("invalid mnemonic")
+		return nil, errors.New("invalid mnemonic")
 	}
 
 	seed := bip39.NewSeed(mnemonic, "")
