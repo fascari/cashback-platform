@@ -12,5 +12,6 @@ var Config = fx.Module("config",
 		config.LoadNATS,
 		config.LoadGRPC,
 		config.LoadServer,
+		config.LoadOutbox,
 	),
 )
