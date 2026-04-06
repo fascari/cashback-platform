@@ -58,12 +58,12 @@ func (r Repository) FindByPurchaseID(ctx context.Context, purchaseID int64) (dom
 }
 
 func (r Repository) TotalByUserID(ctx context.Context, userID int64) (float64, error) {
-	var total float64
+	total := new(float64)
 	err := r.db.WithContext(ctx).
 		Model(&cashbackModel{}).
 		Where("user_id = ? AND status = ?", userID, domain.StatusMinted).
 		Select("COALESCE(SUM(amount), 0)").
-		Scan(&total).Error
+		Scan(total).Error
 
-	return total, err
+	return *total, err
 }

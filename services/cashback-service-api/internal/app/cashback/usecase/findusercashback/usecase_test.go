@@ -1,7 +1,6 @@
 package findusercashback_test
 
 import (
-	"context"
 	"errors"
 	"testing"
 
@@ -21,7 +20,7 @@ func TestFindUserCashback_ShouldReturnCashbacksForUser(t *testing.T) {
 	repo.EXPECT().TotalByUserID(mock.Anything, testdata.UserID).Return(8.0, nil)
 
 	uc := findusercashback.New(repo)
-	result, err := uc.Execute(context.Background(), testdata.UserID)
+	result, err := uc.Execute(t.Context(), testdata.UserID)
 
 	require.NoError(t, err)
 	require.Len(t, result.Cashbacks, 2)
@@ -36,7 +35,7 @@ func TestFindUserCashback_ShouldReturnEmptyListWhenNoCashbacks(t *testing.T) {
 	repo.EXPECT().TotalByUserID(mock.Anything, testdata.UserID).Return(0.0, nil)
 
 	uc := findusercashback.New(repo)
-	result, err := uc.Execute(context.Background(), testdata.UserID)
+	result, err := uc.Execute(t.Context(), testdata.UserID)
 
 	require.NoError(t, err)
 	require.Empty(t, result.Cashbacks)
@@ -47,7 +46,7 @@ func TestFindUserCashback_ShouldReturnErrorWhenUserIDIsZero(t *testing.T) {
 	repo := mocks.NewRepository(t)
 
 	uc := findusercashback.New(repo)
-	_, err := uc.Execute(context.Background(), 0)
+	_, err := uc.Execute(t.Context(), 0)
 
 	require.ErrorIs(t, err, cashdomain.ErrInvalidUserID)
 }
@@ -58,7 +57,7 @@ func TestFindUserCashback_ShouldReturnErrorWhenRepositoryFails(t *testing.T) {
 	repo.EXPECT().FindByUserID(mock.Anything, testdata.UserID).Return(nil, errors.New("db error"))
 
 	uc := findusercashback.New(repo)
-	_, err := uc.Execute(context.Background(), testdata.UserID)
+	_, err := uc.Execute(t.Context(), testdata.UserID)
 
 	require.Error(t, err)
 }

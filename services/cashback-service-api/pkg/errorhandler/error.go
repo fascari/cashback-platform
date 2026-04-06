@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/cashback-platform/kit/apperror"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/httpjson"
 	"github.com/cashback-platform/kit/logger"
+	"github.com/cashback-platform/services/cashback-service-api/pkg/httpjson"
 )
 
 // ErrorMapping maps apperror codes to HTTP status codes.
@@ -31,8 +31,7 @@ func RenderWithCode(w http.ResponseWriter, code int, message string) {
 }
 
 func resolveHTTPCode(err error, mapping ErrorMapping) int {
-	var appErr apperror.AppError
-	if errors.As(err, &appErr) && len(mapping) > 0 {
+	if appErr, ok := errors.AsType[apperror.AppError](err); ok && len(mapping) > 0 {
 		if code, ok := mapping[appErr.Code]; ok {
 			return code
 		}

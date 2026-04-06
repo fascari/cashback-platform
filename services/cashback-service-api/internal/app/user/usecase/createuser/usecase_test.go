@@ -1,7 +1,6 @@
 package createuser_test
 
 import (
-	"context"
 	"errors"
 	"testing"
 
@@ -26,7 +25,7 @@ func TestCreateUser_ShouldCreateUserWhenValid(t *testing.T) {
 		Return(testdata.CreatedUser(), nil)
 
 	uc := createuser.New(repo)
-	result, err := uc.Execute(context.Background(), testdata.ExternalID, testdata.Email, testdata.WalletAddress)
+	result, err := uc.Execute(t.Context(), testdata.ExternalID, testdata.Email, testdata.WalletAddress)
 
 	require.NoError(t, err)
 	require.Equal(t, testdata.Email, result.Email)
@@ -39,7 +38,7 @@ func TestCreateUser_ShouldReturnErrorWhenEmailAlreadyExists(t *testing.T) {
 		Return(userdomain.User{ID: 1}, nil)
 
 	uc := createuser.New(repo)
-	_, err := uc.Execute(context.Background(), testdata.ExternalID, testdata.Email, testdata.WalletAddress)
+	_, err := uc.Execute(t.Context(), testdata.ExternalID, testdata.Email, testdata.WalletAddress)
 
 	require.ErrorIs(t, err, userdomain.ErrUserAlreadyExists)
 }
@@ -53,7 +52,7 @@ func TestCreateUser_ShouldReturnErrorWhenExternalIDAlreadyExists(t *testing.T) {
 		Return(userdomain.User{ID: 1}, nil)
 
 	uc := createuser.New(repo)
-	_, err := uc.Execute(context.Background(), testdata.ExternalID, testdata.Email, testdata.WalletAddress)
+	_, err := uc.Execute(t.Context(), testdata.ExternalID, testdata.Email, testdata.WalletAddress)
 
 	require.ErrorIs(t, err, userdomain.ErrUserAlreadyExists)
 }
@@ -69,7 +68,7 @@ func TestCreateUser_ShouldReturnErrorWhenRepositoryFails(t *testing.T) {
 		Return(userdomain.User{}, errors.New("db error"))
 
 	uc := createuser.New(repo)
-	_, err := uc.Execute(context.Background(), testdata.ExternalID, testdata.Email, testdata.WalletAddress)
+	_, err := uc.Execute(t.Context(), testdata.ExternalID, testdata.Email, testdata.WalletAddress)
 
 	require.Error(t, err)
 }

@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
 	"github.com/cashback-platform/kit/apperror"
+	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
 )
 
 const (

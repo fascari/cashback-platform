@@ -43,8 +43,7 @@ func Validate(s any) error {
 		return nil
 	}
 
-	var validationErrors govalidator.ValidationErrors
-	ok := errors.As(err, &validationErrors)
+	validationErrors, ok := errors.AsType[govalidator.ValidationErrors](err)
 	if !ok {
 		return err
 	}

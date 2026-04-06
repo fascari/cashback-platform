@@ -1,7 +1,6 @@
 package findpurchase_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -19,7 +18,7 @@ func TestFindPurchase_ShouldReturnPurchaseWhenFound(t *testing.T) {
 	repo.EXPECT().FindByID(mock.Anything, testdata.PurchaseID).Return(testdata.FoundPurchase(), nil)
 
 	uc := findpurchase.New(repo)
-	result, err := uc.Execute(context.Background(), testdata.PurchaseID)
+	result, err := uc.Execute(t.Context(), testdata.PurchaseID)
 
 	require.NoError(t, err)
 	require.Equal(t, testdata.FoundPurchase(), result)
@@ -34,7 +33,7 @@ func TestFindPurchase_ShouldReturnErrorWhenNotFound(t *testing.T) {
 		Return(purchasedomain.Purchase{}, purchasedomain.ErrPurchaseNotFound)
 
 	uc := findpurchase.New(repo)
-	_, err := uc.Execute(context.Background(), id)
+	_, err := uc.Execute(t.Context(), id)
 
 	require.ErrorIs(t, err, purchasedomain.ErrPurchaseNotFound)
 }

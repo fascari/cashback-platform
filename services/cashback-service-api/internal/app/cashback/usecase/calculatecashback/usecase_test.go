@@ -43,7 +43,7 @@ func TestCalculateCashback_ShouldCalculateAndSaveCashback(t *testing.T) {
 		Return(nil)
 
 	uc := calculatecashback.New(repo, purchaseRepo, userRepo, publisher, txManagerPassthrough(t))
-	result, err := uc.Execute(context.Background(), testdata.PurchaseID)
+	result, err := uc.Execute(t.Context(), testdata.PurchaseID)
 
 	require.NoError(t, err)
 	require.Equal(t, cashdomain.StatusApproved, result.Status)
@@ -60,7 +60,7 @@ func TestCalculateCashback_ShouldReturnErrorWhenCashbackAlreadyExists(t *testing
 		Return(testdata.ExistingCashback(), nil)
 
 	uc := calculatecashback.New(repo, purchaseRepo, userRepo, publisher, tm)
-	_, err := uc.Execute(context.Background(), testdata.PurchaseID)
+	_, err := uc.Execute(t.Context(), testdata.PurchaseID)
 
 	require.ErrorIs(t, err, cashdomain.ErrCashbackAlreadyExists)
 }
@@ -78,7 +78,7 @@ func TestCalculateCashback_ShouldReturnErrorWhenPurchaseNotFound(t *testing.T) {
 		Return(calculatecashback.Purchase{}, errors.New("not found"))
 
 	uc := calculatecashback.New(repo, purchaseRepo, userRepo, publisher, tm)
-	_, err := uc.Execute(context.Background(), testdata.PurchaseID)
+	_, err := uc.Execute(t.Context(), testdata.PurchaseID)
 
 	require.ErrorIs(t, err, calculatecashback.ErrPurchaseNotFound)
 }
@@ -98,7 +98,7 @@ func TestCalculateCashback_ShouldReturnErrorWhenUserNotFound(t *testing.T) {
 		Return(calculatecashback.User{}, errors.New("not found"))
 
 	uc := calculatecashback.New(repo, purchaseRepo, userRepo, publisher, tm)
-	_, err := uc.Execute(context.Background(), testdata.PurchaseID)
+	_, err := uc.Execute(t.Context(), testdata.PurchaseID)
 
 	require.ErrorIs(t, err, calculatecashback.ErrUserNotFound)
 }
@@ -121,7 +121,7 @@ func TestCalculateCashback_ShouldReturnErrorWhenPublishFails(t *testing.T) {
 		Return(errors.New("broker unavailable"))
 
 	uc := calculatecashback.New(repo, purchaseRepo, userRepo, publisher, txManagerPassthrough(t))
-	_, err := uc.Execute(context.Background(), testdata.PurchaseID)
+	_, err := uc.Execute(t.Context(), testdata.PurchaseID)
 
 	require.ErrorIs(t, err, calculatecashback.ErrFailedToPublishEvent)
 }

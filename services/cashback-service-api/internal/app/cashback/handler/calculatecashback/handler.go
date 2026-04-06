@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/cashback-platform/kit/apperror"
 	cashbackhandler "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/handler"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback"
-	"github.com/cashback-platform/kit/apperror"
 	"github.com/cashback-platform/services/cashback-service-api/pkg/errorhandler"
 	"github.com/cashback-platform/services/cashback-service-api/pkg/httpjson"
 	"github.com/go-chi/chi/v5"

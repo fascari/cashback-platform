@@ -1,7 +1,6 @@
 package finduser_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -19,7 +18,7 @@ func TestFindUser_ShouldReturnUserWhenFound(t *testing.T) {
 	repo.EXPECT().FindByID(mock.Anything, testdata.UserID).Return(testdata.FoundUser(), nil)
 
 	uc := finduser.New(repo)
-	result, err := uc.Execute(context.Background(), testdata.UserID)
+	result, err := uc.Execute(t.Context(), testdata.UserID)
 
 	require.NoError(t, err)
 	require.Equal(t, testdata.FoundUser(), result)
@@ -34,7 +33,7 @@ func TestFindUser_ShouldReturnErrorWhenNotFound(t *testing.T) {
 		Return(userdomain.User{}, userdomain.ErrUserNotFound)
 
 	uc := finduser.New(repo)
-	_, err := uc.Execute(context.Background(), id)
+	_, err := uc.Execute(t.Context(), id)
 
 	require.ErrorIs(t, err, userdomain.ErrUserNotFound)
 }
