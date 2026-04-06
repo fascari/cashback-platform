@@ -8,7 +8,6 @@ import (
 	natsgo "github.com/nats-io/nats.go"
 )
 
-// NATSClient wraps kit/nats.Client for mint-consumer.
 type NATSClient struct {
 	*kitnats.Client
 }
@@ -21,8 +20,6 @@ func NewClient(cfg config.NATS) (*NATSClient, error) {
 	return &NATSClient{Client: c}, nil
 }
 
-// JetStream exposes the underlying JetStreamContext for consumer setup.
 func (c *NATSClient) JetStream() natsgo.JetStreamContext {
 	return c.Client.JetStream()
 }
-

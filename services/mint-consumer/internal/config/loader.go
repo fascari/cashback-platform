@@ -5,22 +5,19 @@ import (
 	"github.com/spf13/viper"
 )
 
-// LoadDatabase reads database config from environment and panics on error.
 func LoadDatabase() Database {
-	return loadWithPanic(loadDatabase, "failed to load database config")
+	return loadWithPanic(readDatabase, "failed to load database config")
 }
 
-// LoadNATS reads NATS config from environment and panics on error.
 func LoadNATS() NATS {
-	return loadWithPanic(loadNATS, "failed to load NATS config")
+	return loadWithPanic(readNATS, "failed to load NATS config")
 }
 
-// LoadGRPC reads gRPC config from environment and panics on error.
 func LoadGRPC() GRPC {
-	return loadWithPanic(loadGRPC, "failed to load gRPC config")
+	return loadWithPanic(readGRPC, "failed to load gRPC config")
 }
 
-func loadDatabase() (Database, error) {
+func readDatabase() (Database, error) {
 	viper.SetDefault("DATABASE_HOST", "localhost")
 	viper.SetDefault("DATABASE_PORT", "5432")
 	viper.SetDefault("DATABASE_USER", "postgres")
@@ -38,13 +35,13 @@ func loadDatabase() (Database, error) {
 	}, nil
 }
 
-func loadNATS() (NATS, error) {
+func readNATS() (NATS, error) {
 	viper.SetDefault("NATS_URL", "nats://localhost:4222")
 	viper.AutomaticEnv()
 	return NATS{URL: viper.GetString("NATS_URL")}, nil
 }
 
-func loadGRPC() (GRPC, error) {
+func readGRPC() (GRPC, error) {
 	viper.SetDefault("BLOCKCHAIN_ADAPTER_GRPC_ADDRESS", "localhost:50051")
 	viper.AutomaticEnv()
 	return GRPC{BlockchainAdapterAddress: viper.GetString("BLOCKCHAIN_ADAPTER_GRPC_ADDRESS")}, nil
