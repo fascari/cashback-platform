@@ -4,39 +4,21 @@ import (
 	"context"
 	"fmt"
 
-	tokenpb "github.com/cashback-platform/proto/token"
 	"github.com/cashback-platform/kit/logger"
+	tokenpb "github.com/cashback-platform/proto/token"
+	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/domain"
 	"github.com/cashback-platform/services/mint-consumer/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 type (
-	// MintTokenRequest carries the inputs for a mint operation.
-	MintTokenRequest struct {
-		IdempotencyKey string
-		WalletAddress  string
-		TokenAmount    string
-		ChainID        string
-	}
-
-	// MintResult carries the outcome of a mint operation.
-	MintResult struct {
-		TransactionHash string
-		BlockNumber     int64
-		ErrorCode       string
-		ErrorMessage    string
-		Retryable       bool
-	}
-
-	// Client wraps the blockchain adapter gRPC client.
 	Client struct {
 		conn        *grpc.ClientConn
 		tokenClient tokenpb.TokenServiceClient
 	}
 )
 
-// New connects to the blockchain adapter gRPC server.
 func New(cfg config.GRPC) (*Client, error) {
 	conn, err := grpc.NewClient(
 		cfg.BlockchainAdapterAddress,
@@ -53,18 +35,17 @@ func New(cfg config.GRPC) (*Client, error) {
 	}, nil
 }
 
-// MintToken calls the blockchain adapter and returns a domain-level result.
-func (c *Client) MintToken(ctx context.Context, req MintTokenRequest) (MintResult, error) {
+func (c *Client) MintToken(ctx context.Context, req domain.MintTokenRequest) (domain.MintResult, error) {
 	resp, err := c.tokenClient.MintToken(ctx, &tokenpb.MintTokenRequest{
 		IdempotencyKey: req.IdempotencyKey,
 		WalletAddress:  req.WalletAddress,
 		TokenAmount:    req.TokenAmount,
 	})
 	if err != nil {
-		return MintResult{}, fmt.Errorf("mint token grpc: %w", err)
+		return domain.MintResult{}, fmt.Errorf("mint token grpc: %w", err)
 	}
 
-	result := MintResult{
+	result := domain.MintResult{
 		TransactionHash: resp.GetTransactionHash(),
 		BlockNumber:     resp.GetBlockNumber(),
 	}
