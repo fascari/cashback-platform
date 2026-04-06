@@ -64,10 +64,33 @@ if errors.Is(err, ErrNotFound{}) { ... }
 
 ## Error Wrapping
 
-Always wrap with context describing the operation that failed:
+Use `errors.New` for static sentinel errors with no dynamic content and no cause to wrap:
+
+```go
+var ErrNotFound = errors.New("not found")
+```
+
+Use `fmt.Errorf("context: %w", err)` to wrap a single error with operation context:
 
 ```go
 return fmt.Errorf("finding user by id %s: %w", id, err)
+```
+
+In Go 1.20+, use multiple `%w` verbs to join a named sentinel with the underlying cause. Both remain unwrappable by `errors.Is` / `errors.As`:
+
+```go
+// Good: both ErrFetchFailed and err are wrapped — errors.Is works on the full chain
+return fmt.Errorf("%w: %w", ErrFetchFailed, err)
+```
+
+Never use `%s` for an error in `fmt.Errorf`. It formats the error as a plain string, breaking the `errors.Is` / `errors.As` unwrap chain:
+
+```go
+// Bad: err is lost to the chain — errors.Is(result, err) returns false
+return fmt.Errorf("%w: %s", ErrFetchFailed, err)
+
+// Good
+return fmt.Errorf("%w: %w", ErrFetchFailed, err)
 ```
 
 ## Handler Error Mapping
