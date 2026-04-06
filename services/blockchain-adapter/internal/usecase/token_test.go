@@ -1,7 +1,6 @@
 package usecase_test
 
 import (
-	"context"
 	"errors"
 	"testing"
 	"time"
@@ -10,11 +9,11 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	ethereumpkg "github.com/cashback-platform/kit/ethereum"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/config"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/domain"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/usecase"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/usecase/mocks"
-	ethereumpkg "github.com/cashback-platform/kit/ethereum"
 )
 
 const (
@@ -56,7 +55,7 @@ func TestMintToken_ShouldReturnExistingResultWhenAlreadySubmitted(t *testing.T) 
 	txRepo.EXPECT().FindByIdempotencyKey(mock.Anything, key).Return(existing, nil)
 
 	uc := usecase.NewToken(nonceRepo, txRepo, ethClient, newTestWallet(t), nil, newTestConfig())
-	result, err := uc.MintToken(context.Background(), key.String(), testWalletAddress, testTokenAmount)
+	result, err := uc.MintToken(t.Context(), key.String(), testWalletAddress, testTokenAmount)
 
 	require.NoError(t, err)
 	require.True(t, result.Success)
@@ -79,7 +78,7 @@ func TestMintToken_ShouldReturnErrorWhenTransactionAlreadyFailed(t *testing.T) {
 	txRepo.EXPECT().FindByIdempotencyKey(mock.Anything, key).Return(existing, nil)
 
 	uc := usecase.NewToken(nonceRepo, txRepo, ethClient, newTestWallet(t), nil, newTestConfig())
-	result, err := uc.MintToken(context.Background(), key.String(), testWalletAddress, testTokenAmount)
+	result, err := uc.MintToken(t.Context(), key.String(), testWalletAddress, testTokenAmount)
 
 	require.ErrorIs(t, err, usecase.ErrTransactionFailed)
 	require.False(t, result.Success)
@@ -101,7 +100,7 @@ func TestMintToken_ShouldReturnRetryableWhenPendingIsRecent(t *testing.T) {
 	txRepo.EXPECT().FindByIdempotencyKey(mock.Anything, key).Return(existing, nil)
 
 	uc := usecase.NewToken(nonceRepo, txRepo, ethClient, newTestWallet(t), nil, newTestConfig())
-	result, err := uc.MintToken(context.Background(), key.String(), testWalletAddress, testTokenAmount)
+	result, err := uc.MintToken(t.Context(), key.String(), testWalletAddress, testTokenAmount)
 
 	require.NoError(t, err)
 	require.False(t, result.Success)
@@ -118,7 +117,7 @@ func TestMintToken_ShouldReturnLockUnavailableWhenNonceLockNotAcquired(t *testin
 	nonceRepo.EXPECT().Increment(mock.Anything, testWalletAddress).Return(int64(0), errors.New("lock held"))
 
 	uc := usecase.NewToken(nonceRepo, txRepo, ethClient, newTestWallet(t), nil, newTestConfig())
-	result, err := uc.MintToken(context.Background(), key.String(), testWalletAddress, testTokenAmount)
+	result, err := uc.MintToken(t.Context(), key.String(), testWalletAddress, testTokenAmount)
 
 	require.ErrorIs(t, err, usecase.ErrLockUnavailable)
 	require.True(t, result.Retryable)

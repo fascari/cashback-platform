@@ -6,9 +6,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"go.uber.org/fx"
 
+	ethereumpkg "github.com/cashback-platform/kit/ethereum"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/config"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/contracts"
-	ethereumpkg "github.com/cashback-platform/kit/ethereum"
 )
 
 var Ethereum = fx.Module("ethereum",

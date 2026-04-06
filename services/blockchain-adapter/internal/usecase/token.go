@@ -14,10 +14,10 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/google/uuid"
 
+	"github.com/cashback-platform/kit/ethereum"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/config"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/contracts"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/domain"
-	"github.com/cashback-platform/kit/ethereum"
 )
 
 const errCodeSendFailed = "send_failed"
@@ -215,7 +215,7 @@ func (u TokenUsecase) checkIdempotency(ctx context.Context, key uuid.UUID) (*dom
 func (u TokenUsecase) sendWithRetry(ctx context.Context, tx *types.Transaction, recordID int64, walletAddress string, nonce int64) error {
 	const maxRetries = 3
 	var lastErr error
-	for i := 0; i < maxRetries; i++ {
+	for i := range maxRetries {
 		lastErr = u.ethClient.SendTransaction(ctx, tx)
 		if lastErr == nil {
 			return nil
