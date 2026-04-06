@@ -25,8 +25,7 @@ func (e AppError) Error() string {
 
 // As reports whether any error in err's chain is an AppError with the given code.
 func As(err error, code string) bool {
-	var appErr AppError
-	if errors.As(err, &appErr) {
+	if appErr, ok := errors.AsType[AppError](err); ok {
 		return appErr.Code == code
 	}
 	return false

@@ -71,23 +71,22 @@ func (w *Wallet) PrivateKey() *ecdsa.PrivateKey {
 // deriveKey traverses the BIP-32 path from the master key.
 func deriveKey(master *bip32.Key, path string) (*bip32.Key, error) {
 	// path format: m/44'/60'/0'/0/0
-	segments := strings.Split(strings.TrimPrefix(path, "m/"), "/")
 	key := master
-	for _, seg := range segments {
+	for seg := range strings.SplitSeq(strings.TrimPrefix(path, "m/"), "/") {
 		hardened := strings.HasSuffix(seg, "'")
 		seg = strings.TrimSuffix(seg, "'")
 
-		var index uint32
-		if _, err := fmt.Sscan(seg, &index); err != nil {
+		index := new(uint32)
+		if _, err := fmt.Sscan(seg, index); err != nil {
 			return nil, fmt.Errorf("parse path segment %q: %w", seg, err)
 		}
 		if hardened {
-			index += bip32.FirstHardenedChild
+			*index += bip32.FirstHardenedChild
 		}
 
-		child, err := key.NewChildKey(index)
+		child, err := key.NewChildKey(*index)
 		if err != nil {
-			return nil, fmt.Errorf("derive child at index %d: %w", index, err)
+			return nil, fmt.Errorf("derive child at index %d: %w", *index, err)
 		}
 		key = child
 	}
