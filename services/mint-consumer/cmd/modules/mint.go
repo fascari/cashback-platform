@@ -3,9 +3,10 @@ package modules
 import (
 	"github.com/cashback-platform/kit/gormtx"
 	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/repository"
-	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/usecase/processcashbackapproved"
-	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/usecase/retryfailedmints"
+	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/usecase/mintcashback"
+	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/usecase/retrymints"
 	"github.com/cashback-platform/services/mint-consumer/internal/consumer"
+	"github.com/cashback-platform/services/mint-consumer/internal/consumer/cashbackapproved"
 	infragrpc "github.com/cashback-platform/services/mint-consumer/internal/infra/grpc"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
@@ -14,17 +15,18 @@ import (
 var (
 	mintFactories = fx.Provide(
 		repository.New,
-		processcashbackapproved.NewUseCase,
-		retryfailedmints.NewUseCase,
+		mintcashback.NewUseCase,
+		retrymints.NewUseCase,
+		cashbackapproved.New,
 		consumer.NewCashback,
 	)
 
 	mintDependencies = fx.Provide(
-		func(r repository.Repository) processcashbackapproved.Repository { return r },
-		func(r repository.Repository) retryfailedmints.Repository { return r },
-		func(c *infragrpc.Client) processcashbackapproved.BlockchainClient { return c },
-		func(c *infragrpc.Client) retryfailedmints.BlockchainClient { return c },
-		func(db *gorm.DB) processcashbackapproved.TransactionManager {
+		func(r repository.Repository) mintcashback.Repository { return r },
+		func(r repository.Repository) retrymints.Repository { return r },
+		func(c *infragrpc.Client) mintcashback.BlockchainClient { return c },
+		func(c *infragrpc.Client) retrymints.BlockchainClient { return c },
+		func(db *gorm.DB) mintcashback.TransactionManager {
 			return gormtx.NewTransactionManager(db)
 		},
 	)

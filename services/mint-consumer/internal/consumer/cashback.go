@@ -3,77 +3,89 @@ package consumer
 import (
 	"context"
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/cashback-platform/kit/logger"
-	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/usecase/processcashbackapproved"
-	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/usecase/retryfailedmints"
+	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/usecase/retrymints"
+	"github.com/cashback-platform/services/mint-consumer/internal/consumer/cashbackapproved"
 	"github.com/cashback-platform/services/mint-consumer/internal/infra/nats"
 	natsgo "github.com/nats-io/nats.go"
 	"go.uber.org/fx"
 )
 
-// CashbackConsumer subscribes to cashback.approved events and drives mint operations.
 type CashbackConsumer struct {
-	processUseCase processcashbackapproved.UseCase
-	retryUseCase   retryfailedmints.UseCase
-	natsClient     *nats.NATSClient
-	done           chan struct{}
-	sub            *natsgo.Subscription
+	approvedHandler cashbackapproved.Handler
+	retryUseCase    retrymints.UseCase
+	natsClient      *nats.NATSClient
+	sub             *natsgo.Subscription
+	wg              sync.WaitGroup
 }
 
-// NewCashback creates a CashbackConsumer wired with its use cases and NATS client.
 func NewCashback(
-	processUseCase processcashbackapproved.UseCase,
-	retryUseCase retryfailedmints.UseCase,
+	approvedHandler cashbackapproved.Handler,
+	retryUseCase retrymints.UseCase,
 	natsClient *nats.NATSClient,
 ) *CashbackConsumer {
 	return &CashbackConsumer{
-		processUseCase: processUseCase,
-		retryUseCase:   retryUseCase,
-		natsClient:     natsClient,
-		done:           make(chan struct{}),
+		approvedHandler: approvedHandler,
+		retryUseCase:    retryUseCase,
+		natsClient:      natsClient,
 	}
 }
 
-// Start subscribes to cashback.approved and begins processing and retry loops.
-func (c *CashbackConsumer) Start(ctx context.Context) error {
+func (c *CashbackConsumer) start(ctx context.Context) error {
 	js := c.natsClient.JetStream()
 
-	consumerConfig := &natsgo.ConsumerConfig{
+	if _, err := js.AddConsumer("CASHBACK_EVENTS", &natsgo.ConsumerConfig{
 		Durable:       "mint-consumer",
 		FilterSubject: "cashback.approved",
 		DeliverPolicy: natsgo.DeliverAllPolicy,
 		AckPolicy:     natsgo.AckExplicitPolicy,
 		MaxDeliver:    5,
 		AckWait:       30 * time.Second,
-	}
-
-	_, err := js.AddConsumer("CASHBACK_EVENTS", consumerConfig)
-	if err != nil && !errors.Is(err, natsgo.ErrConsumerNameAlreadyInUse) {
+	}); err != nil && !errors.Is(err, natsgo.ErrConsumerNameAlreadyInUse) {
 		logger.Warn("failed to create NATS consumer", "error", err)
 	}
 
-	sub, err := js.PullSubscribe("cashback.approved", "mint-consumer")
+	var err error
+	c.sub, err = js.PullSubscribe("cashback.approved", "mint-consumer")
 	if err != nil {
 		return err
 	}
-	c.sub = sub
+
+	c.safeGo(func() { c.processMessages(ctx) })
+	c.safeGo(func() { c.retryLoop(ctx) })
 
 	logger.Info("cashback consumer started")
-
-	go c.processMessages(ctx)
-	go c.retryLoop(ctx)
-
 	return nil
+}
+
+// safeGo runs fn in a goroutine tracked by wg, recovering from panics to prevent silent goroutine death.
+func (c *CashbackConsumer) safeGo(fn func()) {
+	c.wg.Go(func() {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Error("panic in consumer goroutine", "recover", r)
+			}
+		}()
+		fn()
+	})
+}
+
+func (c *CashbackConsumer) stop() {
+	c.wg.Wait()
+	if c.sub != nil {
+		if err := c.sub.Unsubscribe(); err != nil {
+			logger.Error("error unsubscribing from NATS", "error", err)
+		}
+	}
 }
 
 func (c *CashbackConsumer) processMessages(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			return
-		case <-c.done:
 			return
 		default:
 			msgs, err := c.sub.Fetch(10, natsgo.MaxWait(time.Second))
@@ -83,23 +95,21 @@ func (c *CashbackConsumer) processMessages(ctx context.Context) {
 				}
 				continue
 			}
-			for _, msg := range msgs {
-				c.handleMessage(ctx, msg)
-			}
+			c.dispatch(ctx, msgs)
 		}
 	}
 }
 
-func (c *CashbackConsumer) handleMessage(ctx context.Context, msg *natsgo.Msg) {
-	if err := c.processUseCase.Execute(ctx, msg.Data); err != nil {
-		logger.Error("error processing cashback approved message", "error", err)
-		if nakErr := msg.Nak(); nakErr != nil {
-			logger.Error("error NAKing message", "error", nakErr)
+func (c *CashbackConsumer) dispatch(ctx context.Context, msgs []*natsgo.Msg) {
+	for _, msg := range msgs {
+		if err := c.approvedHandler.Handle(ctx, msg); err != nil {
+			logger.Error("error handling cashback.approved message", "error", err)
+			nak(msg)
+			continue
 		}
-		return
-	}
-	if ackErr := msg.Ack(); ackErr != nil {
-		logger.Error("error ACKing message", "error", ackErr)
+		if err := msg.Ack(); err != nil {
+			logger.Error("error ACKing message", "error", err)
+		}
 	}
 }
 
@@ -111,8 +121,6 @@ func (c *CashbackConsumer) retryLoop(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case <-c.done:
-			return
 		case <-ticker.C:
 			if err := c.retryUseCase.Execute(ctx); err != nil {
 				logger.Error("error retrying failed mints", "error", err)
@@ -121,31 +129,26 @@ func (c *CashbackConsumer) retryLoop(ctx context.Context) {
 	}
 }
 
-// Stop closes the done channel and unsubscribes from NATS.
-func (c *CashbackConsumer) Stop() {
-	close(c.done)
-	if c.sub != nil {
-		if err := c.sub.Unsubscribe(); err != nil {
-			logger.Error("error unsubscribing from NATS", "error", err)
-		}
+func nak(msg *natsgo.Msg) {
+	if err := msg.Nak(); err != nil {
+		logger.Error("error NAKing message", "error", err)
 	}
 }
 
-// StartConsumer registers Start/Stop hooks with the fx lifecycle.
 func StartConsumer(lc fx.Lifecycle, c *CashbackConsumer) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	lc.Append(fx.Hook{
 		OnStart: func(_ context.Context) error {
-			if err := c.Start(ctx); err != nil {
+			if err := c.start(ctx); err != nil {
+				cancel()
 				return err
 			}
-			logger.Info("cashback consumer started via fx lifecycle")
 			return nil
 		},
 		OnStop: func(_ context.Context) error {
 			cancel()
-			c.Stop()
+			c.stop()
 			logger.Info("cashback consumer stopped")
 			return nil
 		},
