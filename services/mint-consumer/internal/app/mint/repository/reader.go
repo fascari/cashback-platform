@@ -28,7 +28,7 @@ func (r Repository) FindFailedRetryable(ctx context.Context, limit int) ([]domai
 }
 
 func (r Repository) ExistsProcessedEvent(ctx context.Context, eventID uuid.UUID) (bool, error) {
-	var count int64
-	err := r.conn(ctx).Model(&processedEventModel{}).Where("event_id = ?", eventID).Count(&count).Error
-	return count > 0, err
+	count := new(int64)
+	err := r.conn(ctx).Model(&processedEventModel{}).Where("event_id = ?", eventID).Count(count).Error
+	return *count > 0, err
 }
