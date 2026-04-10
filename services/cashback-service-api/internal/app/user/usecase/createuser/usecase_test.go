@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/cashback-platform/kit/apperror"
 	userdomain "github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/usecase/createuser"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/usecase/createuser/mocks"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/usecase/createuser/testdata"
-	"github.com/cashback-platform/kit/apperror"
 )
 
 func TestCreateUser_ShouldCreateUserWhenValid(t *testing.T) {

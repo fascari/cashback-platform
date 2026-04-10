@@ -14,7 +14,7 @@ import (
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/handler/finduser/testdata"
 	finduseruc "github.com/cashback-platform/services/cashback-service-api/internal/app/user/usecase/finduser"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/usecase/finduser/mocks"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/testsuite/handler"
+	"github.com/cashback-platform/kit/testsuite/handler"
 )
 
 type FindUserSuite struct {

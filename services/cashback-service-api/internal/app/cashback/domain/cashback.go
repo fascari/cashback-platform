@@ -44,7 +44,6 @@ type (
 	}
 )
 
-// NewCashback creates a validated Cashback. Amount is derived from purchaseAmount × cashbackPercent/100.
 func NewCashback(userID, purchaseID int64, purchaseAmount, cashbackPercent float64) (Cashback, error) {
 	if userID == 0 {
 		return Cashback{}, ErrInvalidUserID

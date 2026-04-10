@@ -5,16 +5,12 @@ import (
 	"net/http"
 
 	"github.com/cashback-platform/kit/apperror"
+	"github.com/cashback-platform/kit/httpjson"
 	"github.com/cashback-platform/kit/logger"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/httpjson"
 )
 
-// ErrorMapping maps apperror codes to HTTP status codes.
 type ErrorMapping map[string]int
 
-// Render resolves the HTTP status code from err via the provided ErrorMapping,
-// logs the error at the appropriate severity, and writes a JSON error response.
-// mapping is optional — omit it to fall back to 500 for all errors.
 func Render(w http.ResponseWriter, err error, mapping ...ErrorMapping) {
 	var m ErrorMapping
 	if len(mapping) > 0 {
@@ -25,7 +21,6 @@ func Render(w http.ResponseWriter, err error, mapping ...ErrorMapping) {
 	httpjson.Error(w, httpCode, err)
 }
 
-// RenderWithCode writes a plain-text error response with an explicit status code.
 func RenderWithCode(w http.ResponseWriter, code int, message string) {
 	http.Error(w, message, code)
 }

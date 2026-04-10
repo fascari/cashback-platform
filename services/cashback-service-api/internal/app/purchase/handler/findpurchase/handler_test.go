@@ -14,7 +14,7 @@ import (
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/handler/findpurchase/testdata"
 	findpurchaseuc "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/usecase/findpurchase"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/usecase/findpurchase/mocks"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/testsuite/handler"
+	"github.com/cashback-platform/kit/testsuite/handler"
 )
 
 type FindPurchaseSuite struct {

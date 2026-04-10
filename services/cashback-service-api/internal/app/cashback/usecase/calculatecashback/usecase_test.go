@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/cashback-platform/kit/apperror"
 	cashdomain "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback/mocks"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback/testdata"
-	"github.com/cashback-platform/kit/apperror"
 )
 
 func txManagerPassthrough(t *testing.T) *mocks.TransactionManager {

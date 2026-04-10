@@ -6,8 +6,8 @@ import (
 
 	cashbackhandler "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/handler"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/findusercashback"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/errorhandler"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/httpjson"
+	"github.com/cashback-platform/kit/errorhandler"
+	"github.com/cashback-platform/kit/httpjson"
 	"github.com/go-chi/chi/v5"
 )
 

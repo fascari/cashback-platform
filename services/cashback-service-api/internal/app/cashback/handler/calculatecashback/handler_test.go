@@ -15,7 +15,7 @@ import (
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/handler/calculatecashback/testdata"
 	calculatecashbackuc "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback/mocks"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/testsuite/handler"
+	"github.com/cashback-platform/kit/testsuite/handler"
 )
 
 type (

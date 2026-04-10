@@ -7,8 +7,8 @@ import (
 
 	userhandler "github.com/cashback-platform/services/cashback-service-api/internal/app/user/handler"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/usecase/createuser"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/errorhandler"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/httpjson"
+	"github.com/cashback-platform/kit/errorhandler"
+	"github.com/cashback-platform/kit/httpjson"
 )
 
 const Path = "/users"

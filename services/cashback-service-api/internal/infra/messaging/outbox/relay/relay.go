@@ -11,7 +11,6 @@ import (
 	"go.uber.org/fx"
 )
 
-// Relay polls the outbox repository and publishes pending events to NATS.
 type Relay struct {
 	repo     repository.Repository
 	nats     *nats.NATSClient
@@ -28,7 +27,6 @@ func New(repo repository.Repository, natsClient *nats.NATSClient, interval time.
 	}
 }
 
-// Run starts the polling loop. Blocks until ctx is cancelled or Stop is called.
 func (r Relay) Run(ctx context.Context) {
 	ticker := time.NewTicker(r.interval)
 	defer ticker.Stop()
@@ -86,7 +84,6 @@ func (r Relay) handleError(ctx context.Context, event outboxdomain.Event, publis
 	}
 }
 
-// Start registers the relay lifecycle with fx.
 func Start(lc fx.Lifecycle, r Relay) {
 	ctx, cancel := context.WithCancel(context.Background())
 

@@ -6,8 +6,8 @@ import (
 
 	purchasehandler "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/handler"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/usecase/createpurchase"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/errorhandler"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/httpjson"
+	"github.com/cashback-platform/kit/errorhandler"
+	"github.com/cashback-platform/kit/httpjson"
 
 	"github.com/go-chi/chi/v5"
 )

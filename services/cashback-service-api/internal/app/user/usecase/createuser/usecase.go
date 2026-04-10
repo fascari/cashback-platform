@@ -6,8 +6,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
 	"github.com/cashback-platform/kit/apperror"
+	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
 )
 
 type (

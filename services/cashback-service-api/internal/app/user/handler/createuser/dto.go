@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
-	"github.com/cashback-platform/services/cashback-service-api/pkg/validator"
+	"github.com/cashback-platform/kit/validator"
 )
 
 type (
