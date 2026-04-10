@@ -1,4 +1,4 @@
-package consumer
+package handler
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/cashback-platform/kit/logger"
+	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/handler/cashbackapproved"
 	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/usecase/retrymints"
-	"github.com/cashback-platform/services/mint-consumer/internal/consumer/cashbackapproved"
 	"github.com/cashback-platform/services/mint-consumer/internal/infra/nats"
 	natsgo "github.com/nats-io/nats.go"
 	"go.uber.org/fx"

@@ -18,20 +18,10 @@ func LoadGRPC() GRPC {
 }
 
 func readDatabase() (Database, error) {
-	viper.SetDefault("DATABASE_HOST", "localhost")
-	viper.SetDefault("DATABASE_PORT", "5432")
-	viper.SetDefault("DATABASE_USER", "postgres")
-	viper.SetDefault("DATABASE_PASSWORD", "postgres")
-	viper.SetDefault("DATABASE_NAME", "mint_consumer_db")
-	viper.SetDefault("DATABASE_SSLMODE", "disable")
+	viper.SetDefault("POSTGRES_DSN_MINT", "postgres://cashback_app:cashback_app@localhost:15432/mint_consumer_db?sslmode=disable&search_path=mint")
 	viper.AutomaticEnv()
 	return Database{
-		Host:     viper.GetString("DATABASE_HOST"),
-		Port:     viper.GetString("DATABASE_PORT"),
-		User:     viper.GetString("DATABASE_USER"),
-		Password: viper.GetString("DATABASE_PASSWORD"),
-		Name:     viper.GetString("DATABASE_NAME"),
-		SSLMode:  viper.GetString("DATABASE_SSLMODE"),
+		DSN: viper.GetString("POSTGRES_DSN_MINT"),
 	}, nil
 }
 

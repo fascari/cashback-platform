@@ -2,11 +2,11 @@ package modules
 
 import (
 	"github.com/cashback-platform/kit/gormtx"
+	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/handler"
+	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/handler/cashbackapproved"
 	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/repository"
 	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/usecase/mintcashback"
 	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/usecase/retrymints"
-	"github.com/cashback-platform/services/mint-consumer/internal/consumer"
-	"github.com/cashback-platform/services/mint-consumer/internal/consumer/cashbackapproved"
 	infragrpc "github.com/cashback-platform/services/mint-consumer/internal/infra/grpc"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
@@ -18,7 +18,7 @@ var (
 		mintcashback.NewUseCase,
 		retrymints.NewUseCase,
 		cashbackapproved.New,
-		consumer.NewCashback,
+		handler.NewCashback,
 	)
 
 	mintDependencies = fx.Provide(
@@ -31,7 +31,7 @@ var (
 		},
 	)
 
-	mintInvokes = fx.Invoke(consumer.StartConsumer)
+	mintInvokes = fx.Invoke(handler.StartConsumer)
 
 	Mint = fx.Options(
 		mintFactories,
