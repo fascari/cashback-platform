@@ -1,0 +1,395 @@
+openapi: 3.1.0
+info:
+  title: Cashback Service API
+  description: >
+    Core service responsible for user management, purchase handling, and
+    cashback calculation. Publishes cashback.approved events via NATS JetStream
+    to trigger token minting on the blockchain.
+  version: 1.0.0
+  contact: {}
+
+servers:
+  - url: http://localhost:8080
+    description: Local development
+
+tags:
+  - name: health
+    description: Service health
+  - name: users
+    description: User management
+  - name: purchases
+    description: Purchase records
+  - name: cashback
+    description: Cashback calculation and query
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Health check
+      operationId: getHealth
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /api/v1/users:
+    post:
+      tags: [users]
+      summary: Create user
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /api/v1/users/{id}:
+    get:
+      tags: [users]
+      summary: Find user by ID
+      operationId: findUser
+      parameters:
+        - $ref: "#/components/parameters/IDPath"
+      responses:
+        "200":
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/users/{user_id}/cashback:
+    get:
+      tags: [cashback]
+      summary: Find cashback entries for a user
+      operationId: findUserCashback
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: User ID
+      responses:
+        "200":
+          description: Cashback summary returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserCashbackResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/purchases:
+    post:
+      tags: [purchases]
+      summary: Create purchase
+      operationId: createPurchase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePurchaseRequest"
+      responses:
+        "201":
+          description: Purchase created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /api/v1/purchases/{id}:
+    get:
+      tags: [purchases]
+      summary: Find purchase by ID
+      operationId: findPurchase
+      parameters:
+        - $ref: "#/components/parameters/IDPath"
+      responses:
+        "200":
+          description: Purchase found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/cashback/calculate:
+    post:
+      tags: [cashback]
+      summary: Calculate and approve cashback for a purchase
+      description: >
+        Calculates the cashback for a purchase and publishes a cashback.approved
+        event. If event publishing fails, the cashback is still persisted and
+        the response returns 201 with the cashback payload.
+      operationId: calculateCashback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalculateCashbackRequest"
+      responses:
+        "201":
+          description: Cashback calculated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CashbackResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+components:
+  parameters:
+    IDPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+      description: Resource ID
+
+  schemas:
+    CreateUserRequest:
+      type: object
+      required: [external_id, email, wallet_address]
+      properties:
+        external_id:
+          type: string
+          example: ext-user-001
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        wallet_address:
+          type: string
+          minLength: 20
+          example: "0xAbCd1234567890abcdef1234567890abcdef1234"
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1"
+        external_id:
+          type: string
+          example: ext-user-001
+        email:
+          type: string
+          example: user@example.com
+        wallet_address:
+          type: string
+          example: "0xAbCd1234567890abcdef1234567890abcdef1234"
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-04-10T19:00:00Z"
+
+    CreatePurchaseRequest:
+      type: object
+      required: [user_id, amount, merchant]
+      properties:
+        user_id:
+          type: string
+          description: Numeric user ID as string
+          example: "1"
+        amount:
+          type: number
+          format: float
+          exclusiveMinimum: 0
+          example: 250.00
+        merchant:
+          type: string
+          example: Acme Store
+
+    PurchaseResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1"
+        user_id:
+          type: string
+          example: "1"
+        amount:
+          type: number
+          example: 250.00
+        merchant_id:
+          type: string
+          example: Acme Store
+        status:
+          type: string
+          example: pending
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-04-10T19:00:00Z"
+
+    CalculateCashbackRequest:
+      type: object
+      required: [purchase_id]
+      properties:
+        purchase_id:
+          type: string
+          description: Numeric purchase ID as string
+          example: "1"
+
+    CashbackResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1"
+        user_id:
+          type: string
+          example: "1"
+        purchase_id:
+          type: string
+          example: "1"
+        amount:
+          type: number
+          example: 25.00
+        cashback_percent:
+          type: number
+          example: 10.0
+        status:
+          type: string
+          enum: [pending, approved, minting, minted, failed]
+          example: approved
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-04-10T19:00:00Z"
+
+    UserCashbackResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          example: "1"
+        cashbacks:
+          type: array
+          items:
+            $ref: "#/components/schemas/CashbackItem"
+        total_minted:
+          type: number
+          example: 75.00
+        total_cashbacks:
+          type: integer
+          example: 3
+
+    CashbackItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1"
+        purchase_id:
+          type: string
+          example: "1"
+        amount:
+          type: number
+          example: 25.00
+        cashback_percent:
+          type: number
+          example: 10.0
+        status:
+          type: string
+          enum: [pending, approved, minting, minted, failed]
+          example: minted
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-04-10T19:00:00Z"
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: error_user_not_found
+        message:
+          type: string
+          example: user not found
+
+  responses:
+    BadRequest:
+      description: Invalid request payload or parameter format
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            code: error_bad_request
+            message: invalid payload
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            code: error_user_not_found
+            message: user not found
+
+    Conflict:
+      description: Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            code: error_user_already_exists
+            message: user already exists
+
+    UnprocessableEntity:
+      description: Validation or business rule error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            code: error_createpurchase_invalid_amount
+            message: invalid purchase amount

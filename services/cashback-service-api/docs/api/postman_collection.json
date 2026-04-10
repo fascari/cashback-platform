@@ -1,0 +1,383 @@
+{
+  "info": {
+    "name": "Cashback Service API",
+    "description": "Collection for testing the cashback-service-api endpoints locally.\n\nStart the service with `mise run run:api` (default port 8080).\n\nThe happy-path flow is:\n1. Create User\n2. Find User\n3. Create Purchase\n4. Find Purchase\n5. Calculate Cashback\n6. Find User Cashback",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "purchase_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cashback_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('user_id', body.id);",
+                  "  pm.test('user_id captured', () => pm.expect(body.id).to.not.be.empty);",
+                  "}",
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_id\": \"ext-user-001\",\n  \"email\": \"user@example.com\",\n  \"wallet_address\": \"0xAbCd1234567890abcdef1234567890abcdef1234\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Find User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('has wallet_address', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.wallet_address).to.not.be.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "{{user_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Purchases",
+      "item": [
+        {
+          "name": "Create Purchase",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('purchase_id', body.id);",
+                  "  pm.test('purchase_id captured', () => pm.expect(body.id).to.not.be.empty);",
+                  "}",
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/purchases",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "purchases"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"amount\": 250.00,\n  \"merchant\": \"Acme Store\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Find Purchase",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('has amount', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.amount).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/purchases/{{purchase_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "purchases", "{{purchase_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cashback",
+      "item": [
+        {
+          "name": "Calculate Cashback",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('cashback_id', body.id);",
+                  "  pm.test('cashback_id captured', () => pm.expect(body.id).to.not.be.empty);",
+                  "  pm.test('status is approved or pending', () => {",
+                  "    pm.expect(['approved', 'pending']).to.include(body.status);",
+                  "  });",
+                  "}",
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cashback/calculate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cashback", "calculate"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"purchase_id\": \"{{purchase_id}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Find User Cashback",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('has cashbacks array', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.cashbacks).to.be.an('array');",
+                  "  pm.expect(body.total_cashbacks).to.be.at.least(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/{{user_id}}/cashback",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "{{user_id}}", "cashback"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Error Cases",
+      "item": [
+        {
+          "name": "Get Non-Existent User (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 404', () => pm.response.to.have.status(404));",
+                  "pm.test('has error code', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.code).to.not.be.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/999999",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "999999"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Purchase - Invalid Amount (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 422 or 400', () => {",
+                  "  pm.expect([400, 422]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/purchases",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "purchases"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"amount\": -10,\n  \"merchant\": \"Bad Store\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Duplicate Cashback (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 409', () => pm.response.to.have.status(409));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cashback/calculate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cashback", "calculate"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"purchase_id\": \"{{purchase_id}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create User - Duplicate (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status is 409', () => pm.response.to.have.status(409));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_id\": \"ext-user-001\",\n  \"email\": \"user@example.com\",\n  \"wallet_address\": \"0xAbCd1234567890abcdef1234567890abcdef1234\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
