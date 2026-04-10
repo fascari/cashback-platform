@@ -85,8 +85,8 @@ See [docs/local-development.md](docs/local-development.md) for the full setup gu
 
 ## Documentation
 
-- [architecture.md](docs/architecture.md) - components, database schema, communication patterns
-- [events.md](docs/events.md) - domain events, NATS JetStream configuration, Outbox Pattern
-- [decisions.md](docs/decisions.md) - technology choices, design trade-offs, fault tolerance
+- [architecture.md](docs/architecture.md) - system components and database schema
+- [events.md](docs/events.md) - NATS JetStream events and Outbox Pattern
+- [decisions.md](docs/decisions.md) - technology choices and design trade-offs
 - [local-development.md](docs/local-development.md) - full local setup including Hardhat and Sepolia
-- [diagrams/](docs/diagrams/) - Mermaid diagrams, one file per diagram
+- [diagrams/](docs/diagrams/) - Mermaid diagrams

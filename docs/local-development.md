@@ -1,14 +1,15 @@
 # Local Development
 
-This guide covers running the full cashback platform stack on a local machine.
-No external accounts or testnets are required.
+Runs the full stack on a local machine. No external accounts or testnets required.
 
 ## Prerequisites
 
-- Docker and Docker Compose
-- Node.js 18+
-- Go 1.26.1+
 - [mise](https://mise.jdx.dev/) task runner
+- Go 1.26.1+
+- Docker and Docker Compose
+- Node.js 18+ (for Hardhat)
+
+---
 
 ## 1. Start infrastructure
 
@@ -16,14 +17,16 @@ No external accounts or testnets are required.
 mise run up
 ```
 
-Starts PostgreSQL (port 15432), NATS with JetStream, and Redis via Docker Compose.
-Run `mise run db:setup` on first start to create the databases and apply schemas.
+Starts PostgreSQL on port 15432, NATS with JetStream, and Redis. On first run, create the databases and apply schemas:
+
+```bash
+mise run db:setup
+```
 
 ## 2. Compile the smart contract
 
 ```bash
-cd contracts
-npm install
+cd contracts && npm install
 mise run compile
 ```
 
@@ -35,30 +38,26 @@ Compiles `CashbackToken.sol` and writes artifacts to `contracts/artifacts/`.
 mise run evm
 ```
 
-Starts a local EVM blockchain at `localhost:8545`.
-The terminal prints 20 pre-funded accounts with their private keys. Keep this terminal open.
+Starts a local EVM chain at `localhost:8545` and prints 20 pre-funded accounts with private keys. Keep this terminal open.
 
 ## 4. Deploy the contract
 
-Open a second terminal in `contracts/`:
+In a second terminal, from the `contracts/` directory:
 
 ```bash
 mise run deploy
 ```
 
-Output:
+The output prints the deployed contract address. Copy it for the next step.
 
 ```text
 Deploying with account: 0xf39Fd6e51...
 CashbackToken deployed to: 0x5FbDB231...
-Set CONTRACT_ADDRESS=0x5FbDB231... in your .env
 ```
-
-Copy the printed contract address.
 
 ## 5. Configure environment variables
 
-Copy `.env.example` to `.env` in `services/blockchain-adapter/` and set:
+Copy `.env.example` to `.env` in `services/blockchain-adapter/` and fill in:
 
 ```dotenv
 ETHEREUM_RPC_URL=http://localhost:8545
@@ -66,52 +65,47 @@ CONTRACT_ADDRESS=0x<address from step 4>
 WALLET_MNEMONIC=test test test test test test test test test test test junk
 ```
 
-The mnemonic `test test...junk` is the Hardhat default. It corresponds to the
-wallet that deployed the contract and holds owner permissions.
+The mnemonic above is the Hardhat default. It matches the wallet that deployed the contract and holds owner permissions.
 
 ## 6. Generate Go bindings
 
+From the repo root:
+
 ```bash
-# from repo root
 mise run contracts:bindings
 ```
 
-Writes `services/blockchain-adapter/internal/contracts/cashbacktoken.go` from
-the compiled ABI. Re-run after any change to `CashbackToken.sol`.
+Writes `services/blockchain-adapter/internal/contracts/cashbacktoken.go` from the compiled ABI. Re-run after any change to `CashbackToken.sol`.
 
 ## 7. Run the services
 
 Each service runs in its own terminal:
 
 ```bash
-mise run run:api       # cashback-service-api
+mise run run:api       # cashback-service-api  :8080
 mise run run:consumer  # mint-consumer
-mise run run:adapter   # blockchain-adapter
+mise run run:adapter   # blockchain-adapter    :50051
 ```
+
+---
 
 ## Full cashback flow
 
-```text
-User purchase recorded
-  -> cashback-service-api calculates amount
-  -> publishes event to NATS
-  -> mint-consumer consumes event
-  -> calls blockchain-adapter via gRPC (MintToken)
-  -> blockchain-adapter calls CashbackToken.mint() on the local node
-  -> CBK tokens credited to the user wallet
-```
+1. Purchase recorded via cashback-service-api
+2. Cashback calculated and event published to NATS
+3. mint-consumer picks up the event and calls blockchain-adapter via gRPC
+4. blockchain-adapter signs and submits `CashbackToken.mint()` on the local node
+5. CBK tokens credited to the user wallet
 
-## About Sepolia
+---
 
-Sepolia is a public Ethereum testnet. It is not required for local development.
-Use Sepolia only when testing against a shared network before production.
+## Deploying to Sepolia
 
-To deploy to Sepolia:
+Sepolia is a public Ethereum testnet and is not required for local development. Use it only when testing against a shared network.
 
-1. Create a wallet in MetaMask.
-2. Get test ETH from a Sepolia faucet (free).
-3. Create an API key on [Infura](https://infura.io) or [Alchemy](https://alchemy.com).
-4. Set the env vars and deploy:
+1. Create a wallet in MetaMask and fund it from a Sepolia faucet.
+2. Create an API key on [Infura](https://infura.io) or [Alchemy](https://alchemy.com).
+3. Set the environment variables and deploy:
 
 ```bash
 export ETHEREUM_RPC_URL=https://sepolia.infura.io/v3/<your-key>
