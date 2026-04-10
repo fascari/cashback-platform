@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/cashback-platform/kit/logger"
 	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/domain"
 )
 
@@ -68,8 +69,11 @@ func (u UseCase) Execute(ctx context.Context, input Input) error {
 
 	// mintReq.ID == 0: event was a duplicate — already processed.
 	if mintReq.ID == 0 {
+		logger.Info("mint skipped: duplicate event", "event_id", input.EventID)
 		return nil
 	}
+
+	logger.Info("minting cashback", "cashback_id", input.CashbackID, "wallet", input.WalletAddress, "amount", input.TokenAmount)
 
 	result, err := u.blockchainClient.MintToken(ctx, domain.MintTokenRequest{
 		IdempotencyKey: idempotencyKey.String(),
@@ -127,6 +131,7 @@ func applyResult(ctx context.Context, repo Repository, mintReqID int64, result d
 		if err := repo.MarkCompleted(ctx, mintReqID, result.TransactionHash, result.BlockNumber); err != nil {
 			return fmt.Errorf("mark mint request completed: %w", err)
 		}
+		logger.Info("mint completed", "mint_id", mintReqID, "tx_hash", result.TransactionHash, "block", result.BlockNumber)
 		return nil
 	}
 

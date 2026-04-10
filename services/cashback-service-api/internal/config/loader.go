@@ -97,7 +97,7 @@ func loadServerConfig() (Server, error) {
 
 func loadOutboxConfig() (OutboxConfig, error) {
 	viper.SetDefault("OUTBOX_MAX_RETRIES", 5)
-	viper.SetDefault("OUTBOX_POLL_INTERVAL_MS", 100)
+	viper.SetDefault("OUTBOX_POLL_INTERVAL_MS", 5000)
 	viper.AutomaticEnv()
 	return OutboxConfig{
 		MaxRetries:   viper.GetInt("OUTBOX_MAX_RETRIES"),
