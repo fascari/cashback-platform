@@ -89,4 +89,5 @@ See [docs/local-development.md](docs/local-development.md) for the full setup gu
 - [events.md](docs/events.md) - NATS JetStream events and Outbox Pattern
 - [decisions.md](docs/decisions.md) - technology choices and design trade-offs
 - [local-development.md](docs/local-development.md) - full local setup including Hardhat and Sepolia
+- [running-locally.md](docs/running-locally.md) - step-by-step guide to run and test the full flow
 - [diagrams/](docs/diagrams/) - Mermaid diagrams
