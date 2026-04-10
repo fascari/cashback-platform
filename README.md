@@ -79,8 +79,6 @@ mise run run:consumer
 mise run run:adapter
 ```
 
-See [docs/local-development.md](docs/local-development.md) for the full setup guide including Sepolia testnet configuration.
-
 ---
 
 ## Documentation
