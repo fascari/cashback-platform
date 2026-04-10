@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 
 	tokenpb "github.com/cashback-platform/proto/token"
 	"github.com/cashback-platform/services/cashback-service-api/internal/config"
@@ -25,7 +25,7 @@ func NewBlockchainAdapterClient(cfg config.GRPC) (*BlockchainAdapterClient, erro
 		return nil, fmt.Errorf("failed to connect to blockchain adapter: %w", err)
 	}
 
-	log.Printf("Connected to blockchain adapter at %s", cfg.BlockchainAdapterAddress)
+	slog.Info("Connected to blockchain adapter", "address", cfg.BlockchainAdapterAddress)
 	return &BlockchainAdapterClient{
 		conn:        conn,
 		tokenClient: tokenpb.NewTokenServiceClient(conn),
@@ -34,6 +34,10 @@ func NewBlockchainAdapterClient(cfg config.GRPC) (*BlockchainAdapterClient, erro
 
 func (c *BlockchainAdapterClient) MintToken(ctx context.Context, req *tokenpb.MintTokenRequest) (*tokenpb.MintTokenResponse, error) {
 	return c.tokenClient.MintToken(ctx, req)
+}
+
+func (c *BlockchainAdapterClient) Balance(ctx context.Context, walletAddress string) (*tokenpb.GetBalanceResponse, error) {
+	return c.tokenClient.GetBalance(ctx, &tokenpb.GetBalanceRequest{WalletAddress: walletAddress})
 }
 
 func (c *BlockchainAdapterClient) Close() error {

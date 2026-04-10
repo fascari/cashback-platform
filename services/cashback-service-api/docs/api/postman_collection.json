@@ -36,8 +36,12 @@
             "method": "GET",
             "url": {
               "raw": "{{base_url}}/health",
-              "host": ["{{base_url}}"],
-              "path": ["health"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
             }
           },
           "response": []
@@ -68,17 +72,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/users",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "users"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users"
+              ]
             },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"external_id\": \"ext-user-001\",\n  \"email\": \"user@example.com\",\n  \"wallet_address\": \"0xAbCd1234567890abcdef1234567890abcdef1234\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -104,9 +121,38 @@
             "method": "GET",
             "url": {
               "raw": "{{base_url}}/api/v1/users/{{user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "users", "{{user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "{{user_id}}"
+              ]
             }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/{{user_id}}/balance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "{{user_id}}",
+                "balance"
+              ]
+            },
+            "description": "Returns the on-chain token balance for a user."
           },
           "response": []
         }
@@ -136,17 +182,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/purchases",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "purchases"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "purchases"
+              ]
             },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"amount\": 250.00,\n  \"merchant\": \"Acme Store\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -172,8 +231,15 @@
             "method": "GET",
             "url": {
               "raw": "{{base_url}}/api/v1/purchases/{{purchase_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "purchases", "{{purchase_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "purchases",
+                "{{purchase_id}}"
+              ]
             }
           },
           "response": []
@@ -207,17 +273,31 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/cashback/calculate",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "cashback", "calculate"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cashback",
+                "calculate"
+              ]
             },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"purchase_id\": \"{{purchase_id}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -244,8 +324,16 @@
             "method": "GET",
             "url": {
               "raw": "{{base_url}}/api/v1/users/{{user_id}}/cashback",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "users", "{{user_id}}", "cashback"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "{{user_id}}",
+                "cashback"
+              ]
             }
           },
           "response": []
@@ -276,8 +364,15 @@
             "method": "GET",
             "url": {
               "raw": "{{base_url}}/api/v1/users/999999",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "users", "999999"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "999999"
+              ]
             }
           },
           "response": []
@@ -300,17 +395,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/purchases",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "purchases"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "purchases"
+              ]
             },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"amount\": -10,\n  \"merchant\": \"Bad Store\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -331,17 +439,31 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/cashback/calculate",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "cashback", "calculate"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cashback",
+                "calculate"
+              ]
             },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"purchase_id\": \"{{purchase_id}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -362,17 +484,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/users",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "users"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users"
+              ]
             },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"external_id\": \"ext-user-001\",\n  \"email\": \"user@example.com\",\n  \"wallet_address\": \"0xAbCd1234567890abcdef1234567890abcdef1234\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
