@@ -1,8 +1,6 @@
 package bootstrap
 
 import (
-	"os"
-
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 
@@ -13,9 +11,9 @@ func init() {
 	logger.Init()
 }
 
-// Logger returns an Fx option that configures the FX event logger to write to stderr.
+// Logger returns an Fx option that suppresses Fx internal event logs.
 func Logger() fx.Option {
 	return fx.WithLogger(func() fxevent.Logger {
-		return &fxevent.ConsoleLogger{W: os.Stderr}
+		return fxevent.NopLogger
 	})
 }

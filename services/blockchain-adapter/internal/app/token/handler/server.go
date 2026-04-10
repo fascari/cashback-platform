@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net"
 
 	tokenpb "github.com/cashback-platform/proto/token"
@@ -88,16 +88,16 @@ func StartServer(lc fx.Lifecycle, tokenServer *TokenServer, cfg *config.Config) 
 			}
 
 			go func() {
-				log.Printf("gRPC server starting on port %s", cfg.GRPC.Port)
+				slog.Info("gRPC server starting", "port", cfg.GRPC.Port)
 				if err := server.Serve(listener); err != nil {
-					log.Printf("gRPC server error: %v", err)
+					slog.Error("gRPC server error", "error", err)
 				}
 			}()
 
 			return nil
 		},
 		OnStop: func(_ context.Context) error {
-			log.Println("Shutting down gRPC server...")
+			slog.Info("Shutting down gRPC server...")
 			server.GracefulStop()
 			return nil
 		},
