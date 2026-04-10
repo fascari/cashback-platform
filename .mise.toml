@@ -2,7 +2,8 @@
 go = "1.26.1"
 
 [env]
-GOFLAGS = "-mod=mod"
+GOWORK = "off"
+_.file = ".env"
 
 [tasks.up]
 description = "Start all infrastructure services"
@@ -12,29 +13,54 @@ run = "docker-compose up -d"
 description = "Stop all infrastructure services"
 run = "docker-compose down"
 
-[tasks."db:setup"]
-description = "Wait for PostgreSQL and apply all pending migrations (run after 'mise run up')"
+[tasks."db:migrate"]
+description = "Apply all pending migrations"
+run = [
+  "./scripts/migrate.sh cashback-service up",
+  "./scripts/migrate.sh blockchain-adapter up",
+  "./scripts/migrate.sh mint-consumer up",
+]
+
+[tasks."wait:postgres"]
+description = "Wait for PostgreSQL to accept connections"
 run = """
-until docker-compose exec -T postgres pg_isready -U cashback; do
+until docker-compose exec -T postgres pg_isready -U cashback_app 2>/dev/null; do
   echo "Waiting for PostgreSQL..."
   sleep 2
 done
-./scripts/migrate.sh cashback-service up
-./scripts/migrate.sh blockchain-adapter up
-./scripts/migrate.sh mint-consumer up
 """
 
-[tasks."db:reset"]
-description = "Destroy volumes, restart PostgreSQL and re-apply all migrations from scratch"
+[tasks."wait:nats"]
+description = "Wait for NATS to be ready"
 run = """
-docker-compose down -v
-docker-compose up -d postgres
-until docker-compose exec -T postgres pg_isready -U cashback; do
+until curl -sf http://localhost:8222/healthz >/dev/null 2>&1; do
+  echo "Waiting for NATS..."
   sleep 2
 done
-./scripts/migrate.sh cashback-service up
-./scripts/migrate.sh blockchain-adapter up
-./scripts/migrate.sh mint-consumer up
+"""
+
+[tasks."wait:api"]
+description = "Wait for cashback-service-api to be ready"
+run = """
+until curl -sf http://localhost:8080/health >/dev/null 2>&1; do
+  echo "Waiting for API..."
+  sleep 2
+done
+"""
+
+[tasks."db:setup"]
+description = "Apply all pending migrations (waits for PostgreSQL)"
+depends = ["wait:postgres"]
+run = "mise run db:migrate"
+
+[tasks."db:reset"]
+description = "Drop and recreate PostgreSQL data, then re-apply all migrations"
+run = """
+docker-compose stop postgres
+docker-compose rm -f postgres
+docker volume rm cashback-platform_postgres_data 2>/dev/null || true
+docker-compose up -d postgres
+mise run db:setup
 """
 
 [tasks.deps]
@@ -45,49 +71,29 @@ run = [
   "cd services/blockchain-adapter && go mod tidy",
 ]
 
-[tasks."run:api"]
-description = "Run cashback-service-api"
-run = "cd services/cashback-service-api && go run ./cmd/api/main.go"
-
 [tasks."run:adapter"]
 description = "Run blockchain-adapter"
+depends = ["wait:postgres"]
 run = "cd services/blockchain-adapter && go run ./cmd/main.go"
+
+[tasks."run:api"]
+description = "Run cashback-service-api"
+depends = ["wait:postgres", "wait:nats"]
+run = "cd services/cashback-service-api && go run ./cmd/api/main.go"
 
 [tasks."run:consumer"]
 description = "Run mint-consumer"
+depends = ["wait:postgres", "wait:nats", "wait:api"]
 run = "cd services/mint-consumer && go run ./cmd/main.go"
 
-[tasks."unit:api"]
-description = "Unit test cashback-service-api"
-run = "cd services/cashback-service-api && go test -v -race -coverprofile=coverage.out ./..."
-
-[tasks."unit:adapter"]
-description = "Unit test blockchain-adapter"
-run = "cd services/blockchain-adapter && go test -v -race -coverprofile=coverage.out ./..."
-
-[tasks."unit:consumer"]
-description = "Unit test mint-consumer"
-run = "cd services/mint-consumer && go test -v -race -coverprofile=coverage.out ./..."
-
-[tasks.unit]
-description = "Unit test all modules"
-run = [
-  "cd services/cashback-service-api && go test -v -race -coverprofile=coverage.out ./...",
-  "cd services/mint-consumer && go test -v -race -coverprofile=coverage.out ./...",
-  "cd services/blockchain-adapter && go test -v -race -coverprofile=coverage.out ./...",
-]
-
-[tasks."test:integration"]
-description = "Run integration tests for all services (requires Docker)"
-run = [
-  "cd services/cashback-service-api && GOWORK=off go test -v -race -tags=integration ./...",
-  "cd services/mint-consumer && GOWORK=off go test -v -race -tags=integration ./...",
-  "cd services/blockchain-adapter && GOWORK=off go test -v -race -tags=integration ./...",
-]
-
-[tasks.test]
-description = "Run unit and integration tests for all modules"
-depends = ["unit", "test:integration"]
+[tasks.dev]
+description = "Fresh start: bring up infrastructure, run migrations, then start all 3 services"
+depends = ["up", "db:setup"]
+run = """
+mise run run:adapter &
+mise run run:api &
+mise run run:consumer
+"""
 
 [tasks.lint]
 description = "Lint all modules"
