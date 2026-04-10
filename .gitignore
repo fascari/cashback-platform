@@ -25,3 +25,8 @@ coverage.out
 Thumbs.db
 
 .github/plans
+
+# Environment secrets
+.env
+.env.*
+!.env.example
