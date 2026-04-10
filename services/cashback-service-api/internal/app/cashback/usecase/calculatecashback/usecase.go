@@ -9,6 +9,7 @@ import (
 
 	"github.com/cashback-platform/kit/apperror"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
+	"github.com/google/uuid"
 )
 
 const (
@@ -22,16 +23,6 @@ type (
 	Repository interface {
 		Create(ctx context.Context, cashback domain.Cashback) (domain.Cashback, error)
 		FindByPurchaseID(ctx context.Context, purchaseID int64) (domain.Cashback, error)
-	}
-
-	Purchase struct {
-		ID     int64
-		UserID int64
-		Amount float64
-	}
-
-	User struct {
-		WalletAddress string
 	}
 
 	PurchaseRepository interface {
@@ -56,16 +47,6 @@ type (
 		userRepository     UserRepository
 		eventPublisher     EventPublisher
 		transactionManager TransactionManager
-	}
-
-	CashbackApprovedEvent struct {
-		EventID       string `json:"event_id"`
-		CashbackID    string `json:"cashback_id"`
-		UserID        string `json:"user_id"`
-		WalletAddress string `json:"wallet_address"`
-		PurchaseID    string `json:"purchase_id"`
-		TokenAmount   string `json:"token_amount"`
-		ChainID       string `json:"chain_id"`
 	}
 )
 
@@ -125,7 +106,7 @@ func (u UseCase) Execute(ctx context.Context, purchaseID int64) (domain.Cashback
 		}
 
 		event := CashbackApprovedEvent{
-			EventID:       strconv.FormatInt(created.ID, 10),
+			EventID:       uuid.New().String(),
 			CashbackID:    strconv.FormatInt(created.ID, 10),
 			UserID:        strconv.FormatInt(created.UserID, 10),
 			WalletAddress: user.WalletAddress,

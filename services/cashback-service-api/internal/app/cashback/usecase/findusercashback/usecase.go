@@ -17,13 +17,6 @@ type (
 	UseCase struct {
 		repository Repository
 	}
-
-	UserCashbackSummary struct {
-		UserID         int64
-		Cashbacks      []domain.Cashback
-		TotalMinted    float64
-		TotalCashbacks int
-	}
 )
 
 func New(repository Repository) UseCase {
