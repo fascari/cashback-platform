@@ -2,7 +2,7 @@
 
 Backend system that issues cashback as **crypto tokens minted on a blockchain** (Sepolia testnet). Monorepo with three Go services, event-driven architecture, and clean separation between off-chain and on-chain responsibilities.
 
-Users earn cashback when making purchases. Instead of storing it only in a centralized database, the cashback value is represented as an **ERC-20 token on Ethereum**, enabling transparent ownership, on-chain auditability, and clear separation of concerns. Off-chain systems decide what should happen; on-chain systems guarantee the final state.
+Users earn cashback when making purchases. Instead of storing it only in a centralized database, the cashback value is represented as an **ERC-20 token on Ethereum**, enabling transparent ownership, on-chain auditability, and clear separation of concerns. Off-chain systems decide what should happen. On-chain systems guarantee the final state.
 
 This repository is a **reference implementation** for exploring Web3, blockchain, and crypto concepts through a production-oriented Go backend.
 

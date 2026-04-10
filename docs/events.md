@@ -136,5 +136,5 @@ The cashback-service-api uses the Outbox Pattern for reliable event publishing:
 3. Events are published to NATS JetStream.
 4. Successfully published events are marked as `published`.
 
-This guarantees **at-least-once delivery**: events are never lost even if NATS is temporarily unavailable.
+This guarantees **at-least-once delivery**, meaning events are never lost even if NATS is temporarily unavailable.
 

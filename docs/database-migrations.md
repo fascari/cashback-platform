@@ -76,7 +76,7 @@ db/migrations/cashback-service/
   002_add_cashback_tier.down.sql
 ```
 
-2. The up file applies the change; the down file reverts it exactly.
+2. The up file applies the change and the down file reverts it exactly.
 
 3. Never modify existing migration files once they have been applied to any environment.
 

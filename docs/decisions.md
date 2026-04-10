@@ -46,7 +46,7 @@
 - Event-driven flow increases complexity but improves resilience and decoupling.
 - Off-chain ledger is a read cache, not the source of truth.
 - gRPC simplifies internal communication but limits direct browser access.
-- `ChainClient` abstraction adds an indirection layer — worth the complexity for multi-chain support.
+- `ChainClient` abstraction adds an indirection layer, but the complexity is justified for multi-chain support.
 - Polling-based deposit monitor adds infrastructure overhead vs event subscriptions, but avoids WebSocket fragility.
 
 ---

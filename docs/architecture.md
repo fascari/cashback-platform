@@ -1,4 +1,4 @@
-# Web3 Cashback Platform — Architecture
+# Web3 Cashback Platform - Architecture
 
 ## 1. Overview
 
@@ -104,7 +104,7 @@ Each service owns its own PostgreSQL database. There is **no shared database**.
 | Table | Purpose |
 |---|---|
 | `blockchain_transactions` | On-chain tx lifecycle with `idempotency_key`, `transaction_hash`, `block_number`, `chain_id` |
-| `wallet_nonces` | Per-wallet nonce counter; concurrency controlled by **Redis distributed lock + fencing token** (not SELECT FOR UPDATE — works correctly with multiple service replicas) |
+| `wallet_nonces` | Per-wallet nonce counter; concurrency controlled by **Redis distributed lock + fencing token** (Redis works correctly with multiple service replicas, unlike SELECT FOR UPDATE) |
 | `detected_deposits` | Inbound deposits detected by the monitor: `chain_id`, `wallet_address`, `transaction_hash`, `amount`, `block_reference`, `status` |
 
 Full schema: [`db/schema.sql`](../db/schema.sql)
