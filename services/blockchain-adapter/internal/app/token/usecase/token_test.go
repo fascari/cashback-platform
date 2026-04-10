@@ -138,4 +138,3 @@ func TestMintToken_ShouldReturnSubmittedOnSuccess(t *testing.T) {
 	require.Equal(t, tx.Hash().Hex(), result.TransactionHash)
 	require.Equal(t, string(domain.TransactionStatusSubmitted), result.Status)
 }
-

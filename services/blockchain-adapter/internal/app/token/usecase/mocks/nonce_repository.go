@@ -21,6 +21,63 @@ func (_m *NonceRepository) EXPECT() *NonceRepository_Expecter {
 	return &NonceRepository_Expecter{mock: &_m.Mock}
 }
 
+// CurrentNonce provides a mock function with given fields: ctx, walletAddress
+func (_m *NonceRepository) CurrentNonce(ctx context.Context, walletAddress string) (int64, error) {
+	ret := _m.Called(ctx, walletAddress)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CurrentNonce")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (int64, error)); ok {
+		return rf(ctx, walletAddress)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) int64); ok {
+		r0 = rf(ctx, walletAddress)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, walletAddress)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// NonceRepository_CurrentNonce_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CurrentNonce'
+type NonceRepository_CurrentNonce_Call struct {
+	*mock.Call
+}
+
+// CurrentNonce is a helper method to define mock.On call
+//   - ctx context.Context
+//   - walletAddress string
+func (_e *NonceRepository_Expecter) CurrentNonce(ctx interface{}, walletAddress interface{}) *NonceRepository_CurrentNonce_Call {
+	return &NonceRepository_CurrentNonce_Call{Call: _e.mock.On("CurrentNonce", ctx, walletAddress)}
+}
+
+func (_c *NonceRepository_CurrentNonce_Call) Run(run func(ctx context.Context, walletAddress string)) *NonceRepository_CurrentNonce_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *NonceRepository_CurrentNonce_Call) Return(_a0 int64, _a1 error) *NonceRepository_CurrentNonce_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *NonceRepository_CurrentNonce_Call) RunAndReturn(run func(context.Context, string) (int64, error)) *NonceRepository_CurrentNonce_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Increment provides a mock function with given fields: ctx, walletAddress
 func (_m *NonceRepository) Increment(ctx context.Context, walletAddress string) (int64, error) {
 	ret := _m.Called(ctx, walletAddress)

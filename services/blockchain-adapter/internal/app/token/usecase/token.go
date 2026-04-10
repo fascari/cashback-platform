@@ -28,6 +28,7 @@ var (
 
 type (
 	NonceRepository interface {
+		CurrentNonce(ctx context.Context, walletAddress string) (int64, error)
 		Increment(ctx context.Context, walletAddress string) (int64, error)
 		SyncFromChain(ctx context.Context, walletAddress string, nonce int64) error
 	}
@@ -115,7 +116,13 @@ func (u TokenUsecase) MintToken(ctx context.Context, idempotencyKeyStr, walletAd
 		return early, err
 	}
 
-	nonce, err := u.nonceRepo.Increment(ctx, walletAddress)
+	signerAddress := u.wallet.Address().Hex()
+
+	if err := u.ensureNonceBootstrapped(ctx, signerAddress); err != nil {
+		return nil, fmt.Errorf("bootstrap nonce: %w", err)
+	}
+
+	nonce, err := u.nonceRepo.Increment(ctx, signerAddress)
 	if err != nil {
 		return &MintResult{Success: false, Retryable: true}, fmt.Errorf("%w: %w", ErrLockUnavailable, err)
 	}
@@ -128,11 +135,11 @@ func (u TokenUsecase) MintToken(ctx context.Context, idempotencyKeyStr, walletAd
 
 	recordID, err := u.persistPending(ctx, key, existing, walletAddress, tokenAmount, txHash, nonce)
 	if err != nil {
-		_ = u.nonceRepo.SyncFromChain(ctx, walletAddress, nonce)
+		_ = u.nonceRepo.SyncFromChain(ctx, signerAddress, nonce)
 		return nil, err
 	}
 
-	if err := u.sendWithRetry(ctx, signedTx, recordID, walletAddress, nonce); err != nil {
+	if err := u.sendWithRetry(ctx, signedTx, recordID, signerAddress, nonce); err != nil {
 		return &MintResult{
 			Success:      false,
 			Retryable:    true,
@@ -216,7 +223,7 @@ func (u TokenUsecase) checkIdempotency(ctx context.Context, key uuid.UUID) (*dom
 	return tx, nil, nil
 }
 
-func (u TokenUsecase) sendWithRetry(ctx context.Context, tx *types.Transaction, recordID int64, walletAddress string, nonce int64) error {
+func (u TokenUsecase) sendWithRetry(ctx context.Context, tx *types.Transaction, recordID int64, signerAddress string, nonce int64) error {
 	const maxRetries = 3
 	var lastErr error
 	for i := range maxRetries {
@@ -233,10 +240,31 @@ func (u TokenUsecase) sendWithRetry(ctx context.Context, tx *types.Transaction, 
 	if onChain, err := u.ethClient.PendingNonceAt(ctx, u.wallet.Address()); err == nil {
 		syncNonce = int64(onChain)
 	}
-	_ = u.nonceRepo.SyncFromChain(ctx, walletAddress, syncNonce)
+	_ = u.nonceRepo.SyncFromChain(ctx, signerAddress, syncNonce)
 	_ = u.transactionRepo.MarkFailed(ctx, recordID, errCodeSendFailed, lastErr.Error())
 
 	return lastErr
+}
+
+// ensureNonceBootstrapped seeds the nonce from the chain when no record exists for the
+// signer wallet. This handles the case where the DB was reset but the chain already has
+// prior transactions (e.g. contract deployment used nonce 0).
+func (u TokenUsecase) ensureNonceBootstrapped(ctx context.Context, signerAddress string) error {
+	current, err := u.nonceRepo.CurrentNonce(ctx, signerAddress)
+	if err != nil {
+		return err
+	}
+	if current > 0 {
+		return nil
+	}
+	onChain, err := u.ethClient.PendingNonceAt(ctx, u.wallet.Address())
+	if err != nil {
+		return fmt.Errorf("fetch on-chain nonce: %w", err)
+	}
+	if onChain == 0 {
+		return nil
+	}
+	return u.nonceRepo.SyncFromChain(ctx, signerAddress, int64(onChain))
 }
 
 func (u TokenUsecase) Balance(ctx context.Context, walletAddress string) (*BalanceResult, error) {

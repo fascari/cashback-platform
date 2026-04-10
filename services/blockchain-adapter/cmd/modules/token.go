@@ -10,20 +10,22 @@ import (
 	"github.com/cashback-platform/services/blockchain-adapter/internal/contracts"
 )
 
-var Token = fx.Options(
-	tokenFactories,
-	tokenDependencies,
-)
+var (
+	Token = fx.Options(
+		tokenFactories,
+		tokenDependencies,
+	)
 
-var tokenFactories = fx.Provide(
-	repoTransaction.NewRepository,
-	repoNonce.NewRepository,
-	usecaseToken.NewToken,
-)
+	tokenFactories = fx.Provide(
+		repoTransaction.NewRepository,
+		repoNonce.NewRepository,
+		usecaseToken.NewToken,
+	)
 
-var tokenDependencies = fx.Provide(
-	func(r repoNonce.Repository) usecaseToken.NonceRepository { return r },
-	func(r repoTransaction.Repository) usecaseToken.TransactionRepository { return r },
-	func(c *ethereumpkg.Client) usecaseToken.EthereumClient { return c },
-	func(t *contracts.CashbackToken) usecaseToken.TokenContract { return t },
+	tokenDependencies = fx.Provide(
+		func(r repoNonce.Repository) usecaseToken.NonceRepository { return r },
+		func(r repoTransaction.Repository) usecaseToken.TransactionRepository { return r },
+		func(c *ethereumpkg.Client) usecaseToken.EthereumClient { return c },
+		func(t *contracts.CashbackToken) usecaseToken.TokenContract { return t },
+	)
 )
