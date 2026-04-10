@@ -1,10 +1,10 @@
 # Reference — Web3 Concepts
 
-**Index**: [Ethereum vs Solana](#24-ethereum-vs-solana--quick-comparison) · [Glossary](#25-glossary)
+**Index**: [Ethereum vs Solana](#24-ethereum-vs-solana---quick-comparison) · [Glossary](#25-glossary)
 
 ---
 
-## 24. Ethereum vs Solana — Quick Comparison
+## 24. Ethereum vs Solana - Quick Comparison
 
 | Aspect | Ethereum | Solana |
 |---|---|---|

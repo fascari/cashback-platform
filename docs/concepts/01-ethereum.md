@@ -1,6 +1,6 @@
 # Ethereum — Web3 Concepts
 
-**Index**: [Blockchain](#1-blockchain) · [Ethereum](#2-ethereum) · [Wallet](#3-wallet-and-key-management) · [Gas](#4-gas) · [Nonce](#5-nonce) · [TX Lifecycle 🎯](#6-ethereum-transaction-lifecycle-) · [Smart Contract](#7-smart-contract) · [Solidity](#8-solidity) · [ERC-20](#9-erc-20) · [ABI & abigen](#10-abi-and-abigen) · [Sepolia](#11-sepolia-testnet) · [RPC Providers](#12-rpc-providers-infura--alchemy) · [Hardhat](#13-hardhat)
+**Index**: [Blockchain](#1-blockchain) · [Ethereum](#2-ethereum) · [Wallet](#3-wallet-and-key-management) · [Gas](#4-gas) · [Nonce](#5-nonce) · [TX Lifecycle](#6-ethereum-transaction-lifecycle) · [Smart Contract](#7-smart-contract) · [Solidity](#8-solidity) · [ERC-20](#9-erc-20) · [ABI & abigen](#10-abi-and-abigen) · [Sepolia](#11-sepolia-testnet) · [RPC Providers](#12-rpc-providers-infura--alchemy) · [Hardhat](#13-hardhat)
 
 ---
 
@@ -68,7 +68,7 @@ user gets a unique deposit address derived from the same master key.
 
 **Production key management**: in production, private keys are never stored in environment
 variables or code. They live in **custody providers** (Fireblocks, BitGo) or HSMs
-(Hardware Security Modules). See [Custody Providers](03-production-patterns.md#21-custody-providers--fireblocks-and-bitgo-).
+(Hardware Security Modules). See [Custody Providers](03-production-patterns.md#21-custody-providers-fireblocks-and-bitgo).
 
 **Where it appears**: `internal/infra/ethereum/wallet.go` in `blockchain-adapter`.
 The service derives the wallet from a development mnemonic to sign mint transactions.
@@ -113,7 +113,7 @@ Fix: call `SyncFromChain()` after any `SendTransaction` failure.
 
 ---
 
-## 6. Ethereum Transaction Lifecycle 🎯
+## 6. Ethereum Transaction Lifecycle
 
 A transaction is a signed instruction sent to the network. Main fields:
 

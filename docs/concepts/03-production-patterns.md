@@ -1,10 +1,10 @@
 # Production Blockchain Engineering — Web3 Concepts
 
-**Index**: [Chain Reorganization 🎯](#18-chain-reorganization-) · [Deposit Processing & Monitoring 🎯](#19-deposit-processing-and-monitoring-) · [Confirmation Tracking 🎯](#20-transaction-confirmation-tracking-) · [Custody Providers 🎯](#21-custody-providers--fireblocks-and-bitgo-) · [Multi-Chain Architecture 🎯](#22-multi-chain-architecture-patterns-) · [Distributed Locking 🎯](#23-distributed-locking-in-blockchain-services-)
+**Index**: [Chain Reorganization](#18-chain-reorganization) · [Deposit Processing & Monitoring](#19-deposit-processing-and-monitoring) · [Confirmation Tracking](#20-transaction-confirmation-tracking) · [Custody Providers](#21-custody-providers-fireblocks-and-bitgo) · [Multi-Chain Architecture](#22-multi-chain-architecture-patterns) · [Distributed Locking](#23-distributed-locking-in-blockchain-services)
 
 ---
 
-## 18. Chain Reorganization 🎯
+## 18. Chain Reorganization
 
 **What it is**: a chain reorganization (reorg) occurs when a block that was part of the
 "longest chain" is replaced by a competing chain with more accumulated work (PoW) or stake (PoS).
@@ -50,7 +50,7 @@ can be reused. Safe re-submission relies on idempotency via `idempotency_key`.
 
 ---
 
-## 19. Deposit Processing and Monitoring 🎯
+## 19. Deposit Processing and Monitoring
 
 **What it is**: detecting when an external address sends tokens or native currency to a wallet
 your system controls. This is core to any exchange, wallet, or payment processor.
@@ -111,7 +111,7 @@ for _, sig := range sigs {
 
 ---
 
-## 20. Transaction Confirmation Tracking 🎯
+## 20. Transaction Confirmation Tracking
 
 **The problem**: after submitting a transaction, you need to know when it is safe to act on
 (credit a user, release a withdrawal, update an order). "Safe" is defined by the confirmation
@@ -164,7 +164,7 @@ expected (e.g., `submitted_at < NOW() - INTERVAL '10 minutes'`). Causes include:
 
 ---
 
-## 21. Custody Providers — Fireblocks and BitGo 🎯
+## 21. Custody Providers: Fireblocks and BitGo
 
 **What they are**: custody providers manage private keys and transaction signing on behalf
 of your system. Instead of your code holding private keys (even in HSMs), the key never
@@ -220,7 +220,7 @@ logic layer.
 
 ---
 
-## 22. Multi-Chain Architecture Patterns 🎯
+## 22. Multi-Chain Architecture Patterns
 
 **The challenge**: each blockchain has different APIs, transaction models, finality mechanisms,
 and token standards. A naive implementation creates a separate, duplicated service per chain.
@@ -275,7 +275,7 @@ Zero changes to the gRPC server, use cases, or business logic.
 
 ---
 
-## 23. Distributed Locking in Blockchain Services 🎯
+## 23. Distributed Locking in Blockchain Services
 
 Blockchain services have a specific concurrency problem: the **nonce** (Ethereum) must be
 issued sequentially without gaps. If two goroutines — or two service replicas — both read

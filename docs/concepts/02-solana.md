@@ -1,6 +1,6 @@
 # Solana — Web3 Concepts
 
-**Index**: [Solana](#14-solana) · [SPL Token Program](#15-spl-token-program) · [Transaction & Commitment Levels 🎯](#16-solana-transaction-and-commitment-levels-) · [Devnet](#17-solana-devnet)
+**Index**: [Solana](#14-solana) · [SPL Token Program](#15-spl-token-program) · [Transaction & Commitment Levels](#16-solana-transaction-and-commitment-levels) · [Devnet](#17-solana-devnet)
 
 ---
 
@@ -75,7 +75,7 @@ Both instructions execute atomically in one transaction.
 
 ---
 
-## 16. Solana Transaction and Commitment Levels 🎯
+## 16. Solana Transaction and Commitment Levels
 
 **No nonce — Recent Blockhash instead**: Solana transactions do not use a sequential nonce.
 Instead, every transaction must include a `recentBlockhash` — the hash of a recent slot.
