@@ -21,10 +21,7 @@ CREATE TABLE purchases (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id),
     amount DECIMAL(18, 2) NOT NULL,
-    currency VARCHAR(3) NOT NULL DEFAULT 'USD',
-    merchant_id VARCHAR(255),
-    merchant_name VARCHAR(255),
-    description TEXT,
+    merchant_id VARCHAR(255) NOT NULL,
     status purchase_status NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -37,11 +34,10 @@ CREATE INDEX idx_purchases_created_at ON purchases(created_at);
 CREATE TABLE cashback_ledger (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id),
-    purchase_id BIGINT NOT NULL REFERENCES purchases(id),
+    purchase_id BIGINT NOT NULL UNIQUE REFERENCES purchases(id),
     amount DECIMAL(18, 8) NOT NULL,
-    token_amount VARCHAR(78) NOT NULL,
+    cashback_percent DECIMAL(5, 2) NOT NULL DEFAULT 0,
     status cashback_status NOT NULL DEFAULT 'pending',
-    calculation_basis JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

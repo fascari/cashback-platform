@@ -5,8 +5,16 @@ node = "22"
 [tasks.run]
 run = "go run ./cmd/main.go"
 
-[tasks.test]
+[tasks.unit]
 run = "go test -v -race -coverprofile=coverage.out ./..."
+
+[tasks."test:integration"]
+description = "Run integration tests (requires Docker)"
+run = "GOWORK=off go test -v -race -tags=integration ./..."
+
+[tasks.test]
+description = "Run unit and integration tests"
+depends = ["unit", "test:integration"]
 
 [tasks.lint]
 run = "golangci-lint run"
@@ -32,3 +40,7 @@ run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh blockchain-adapter down 1"
 [tasks."db:version"]
 description = "Show current migration version for blockchain-adapter"
 run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh blockchain-adapter version"
+
+[tasks."test:integration"]
+description = "Run integration tests (requires Docker)"
+run = "GOWORK=off go test -v -race -tags=integration ./..."

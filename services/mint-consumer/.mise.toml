@@ -4,8 +4,16 @@ go = "1.26"
 [tasks.run]
 run = "go run ./cmd/main.go"
 
-[tasks.test]
+[tasks.unit]
 run = "go test -v -race ./..."
+
+[tasks."test:integration"]
+description = "Run integration tests (requires Docker)"
+run = "GOWORK=off go test -v -race -tags=integration ./..."
+
+[tasks.test]
+description = "Run unit and integration tests"
+depends = ["unit", "test:integration"]
 
 [tasks.lint]
 run = "golangci-lint run"
@@ -21,3 +29,7 @@ run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh mint-consumer down 1"
 [tasks."db:version"]
 description = "Show current migration version for mint-consumer"
 run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh mint-consumer version"
+
+[tasks."test:integration"]
+description = "Run integration tests (requires Docker)"
+run = "GOWORK=off go test -v -race -tags=integration ./..."

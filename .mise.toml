@@ -57,25 +57,37 @@ run = "cd services/blockchain-adapter && go run ./cmd/main.go"
 description = "Run mint-consumer"
 run = "cd services/mint-consumer && go run ./cmd/main.go"
 
-[tasks."test:api"]
-description = "Test cashback-service-api"
+[tasks."unit:api"]
+description = "Unit test cashback-service-api"
 run = "cd services/cashback-service-api && go test -v -race -coverprofile=coverage.out ./..."
 
-[tasks."test:adapter"]
-description = "Test blockchain-adapter"
+[tasks."unit:adapter"]
+description = "Unit test blockchain-adapter"
 run = "cd services/blockchain-adapter && go test -v -race -coverprofile=coverage.out ./..."
 
-[tasks."test:consumer"]
-description = "Test mint-consumer"
+[tasks."unit:consumer"]
+description = "Unit test mint-consumer"
 run = "cd services/mint-consumer && go test -v -race -coverprofile=coverage.out ./..."
 
-[tasks.test]
-description = "Test all modules"
+[tasks.unit]
+description = "Unit test all modules"
 run = [
   "cd services/cashback-service-api && go test -v -race -coverprofile=coverage.out ./...",
   "cd services/mint-consumer && go test -v -race -coverprofile=coverage.out ./...",
   "cd services/blockchain-adapter && go test -v -race -coverprofile=coverage.out ./...",
 ]
+
+[tasks."test:integration"]
+description = "Run integration tests for all services (requires Docker)"
+run = [
+  "cd services/cashback-service-api && GOWORK=off go test -v -race -tags=integration ./...",
+  "cd services/mint-consumer && GOWORK=off go test -v -race -tags=integration ./...",
+  "cd services/blockchain-adapter && GOWORK=off go test -v -race -tags=integration ./...",
+]
+
+[tasks.test]
+description = "Run unit and integration tests for all modules"
+depends = ["unit", "test:integration"]
 
 [tasks.lint]
 description = "Lint all modules"
