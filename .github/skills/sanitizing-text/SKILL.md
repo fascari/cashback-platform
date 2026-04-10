@@ -47,7 +47,7 @@ When a `.md` or `.txt` file under `docs/` or `.github/` is written directly (not
 
 ## Rules
 
-Apply all rules in order. Each rule is independent — do not skip any.
+Apply all rules in order. Each rule is independent - do not skip any.
 
 ### Rule 1 — Remove forbidden AI-sounding words and phrases
 
@@ -136,7 +136,23 @@ Replace or remove any of the following. The list is not exhaustive; apply the sa
 - Keep sentences short. If a sentence exceeds 30 words, split it.
 - Use active voice. Passive constructions such as `it was decided that` must be rewritten (`the team decided`).
 
-### Rule 5 — Normalize formatting
+### Rule 5 — Avoid colons and semicolons as connectors in prose
+
+Colons and semicolons in prose create a list-like, mechanical tone. Prefer natural connectors.
+
+- Replace `: ` used to introduce an explanation with `because`, `so`, `which means`, or rewrite as a new sentence.
+- Replace `;` joining two clauses with `. ` and start a new sentence, or use `and`, `but`, `so` as appropriate.
+- Do not replace `:` inside code blocks, inline code spans, table cells, or in headings that introduce a section (e.g. `Rule 1:`).
+- Do not replace `:` that is part of a key-value pair in a definition list or table.
+- Do not replace `:` in URLs, file paths, or time expressions.
+
+Before: `The service failed: the database was unreachable.`
+After: `The service failed because the database was unreachable.`
+
+Before: `Retry on timeout; skip on validation errors.`
+After: `Retry on timeout and skip on validation errors.`
+
+### Rule 6 — Normalize formatting
 
 - Use plain `-` for unordered list items. Do not use `*`, `+`, or `•`.
 - Do not mix heading levels arbitrarily. `##` for major sections, `###` for subsections, `####` only if strictly necessary.
