@@ -1,70 +1,88 @@
-# Blockchain Adapter
+# blockchain-adapter
 
-Isolated service that abstracts blockchain interaction and exposes a gRPC interface.
+gRPC service that abstracts Ethereum blockchain interaction. Exposes token operations to internal services and handles nonce management, transaction submission, and idempotent retry logic.
 
 ## Responsibilities
 
-- Expose gRPC interface for token operations
-- Abstract blockchain interaction
-- Handle transaction submission and tracking
-- Provide idempotent mint operations
+- Expose a gRPC interface for token minting operations
+- Submit and track transactions on the Ethereum network
+- Manage wallet nonces with Redis-backed distributed locking
+- Provide idempotent operations via idempotency keys
 
 ## gRPC Services
 
-- `MintToken` - Mint tokens to a wallet address
-- `GetBalance` - Get token balance for a wallet
-- `GetTransaction` - Get transaction status
+| RPC | Description |
+|-----|-------------|
+| `MintToken` | Mint tokens to a wallet address |
+| `GetBalance` | Get token balance for a wallet |
+| `GetTransaction` | Get transaction status by ID |
+
+## Architecture
+
+```text
+cmd/
+├── main.go
+└── modules/
+    └── token.go
+
+internal/
+├── bootstrap/
+├── config/
+├── contracts/
+│   └── cashbacktoken.go
+├── domain/
+├── grpc/
+│   └── server.go
+├── infra/
+│   ├── database/
+│   └── redis/
+├── repository/
+│   ├── nonce/
+│   └── transaction/
+└── usecase/
+```
 
 ## Configuration
 
-Environment variables:
-
-```
+```env
 APP_NAME=blockchain-adapter
 APP_ENV=development
 GRPC_PORT=50051
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-DATABASE_USER=postgres
-DATABASE_PASSWORD=postgres
-DATABASE_NAME=blockchain_adapter_db
+
+POSTGRES_DSN_BLOCKCHAIN=postgres://cashback_app:cashback_app@localhost:15432/blockchain_adapter_db?sslmode=disable&search_path=blockchain
+
+ETHEREUM_RPC_URL=https://sepolia.infura.io/v3/YOUR_PROJECT_ID
+ETHEREUM_CHAIN_ID=11155111
+CONTRACT_ADDRESS=0x...
+
+WALLET_MNEMONIC=word1 word2 ... word12
+WALLET_DERIVATION_PATH=m/44'/60'/0'/0/0
+
+REDIS_URL=redis://localhost:6379
 ```
 
 ## Running
 
 ```bash
+mise run run
+# or
 go run cmd/main.go
 ```
 
-## Project Structure
+Apply database migrations:
 
-```
-blockchain-adapter/
-├── cmd/
-│   └── main.go
-├── internal/
-│   ├── config/
-│   │   └── config.go
-│   ├── domain/
-│   │   ├── blockchain_transaction.go
-│   │   └── wallet_nonce.go
-│   ├── repository/
-│   │   ├── transaction_repository.go
-│   │   └── nonce_repository.go
-│   ├── service/
-│   │   └── token_service.go
-│   ├── grpc/
-│   │   └── server.go
-│   └── infrastructure/
-│       └── database/
-│           └── postgres.go
-├── go.mod
-└── README.md
+```bash
+mise run db:migrate
 ```
 
-## Notes
+Regenerate Go contract bindings after ABI changes:
 
-- Blockchain calls are mocked/simulated in this implementation
-- The adapter provides idempotency via idempotency keys
-- Transaction status is tracked in the local database
+```bash
+mise run contracts:bindings
+```
 
+## Testing
+
+```bash
+go test ./...
+```

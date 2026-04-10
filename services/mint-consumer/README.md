@@ -1,36 +1,59 @@
-# Mint Consumer
+# mint-consumer
 
-Asynchronous event consumer that processes cashback events and triggers token minting.
+Asynchronous event consumer that processes `cashback.approved` events and triggers token minting via the blockchain adapter.
 
 ## Responsibilities
 
-- Consume events from NATS JetStream
-- Ensure idempotent processing
-- Trigger token minting via gRPC to Blockchain Adapter
-- Publish result events (success/failure)
+- Consume `cashback.approved` events from NATS JetStream
+- Trigger token minting via gRPC to the blockchain-adapter service
+- Track minting requests and their outcomes in a local database
+- Retry failed mint operations via a scheduled job
 
 ## Events Consumed
 
-- `cashback.approved` - Triggers token minting
+| Subject | Description |
+|---------|-------------|
+| `cashback.approved` | Triggers token minting for the associated wallet |
 
-## Events Produced
+## Architecture
 
-- `token.mint.requested` - When minting is initiated
-- `token.minted` - When minting succeeds
-- `token.mint.failed` - When minting fails
+```text
+cmd/
+├── main.go
+└── modules/
+    └── mint.go
+
+internal/
+├── app/
+│   └── mint/
+│       ├── domain/
+│       ├── repository/
+│       └── usecase/
+│           ├── mintcashback/
+│           └── retrymints/
+├── bootstrap/
+├── config/
+├── consumer/
+│   └── cashbackapproved/
+└── infra/
+    ├── database/
+    ├── grpc/
+    └── nats/
+```
 
 ## Configuration
 
-Environment variables:
-
-```
+```env
 APP_NAME=mint-consumer
 APP_ENV=development
+
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
 DATABASE_USER=postgres
 DATABASE_PASSWORD=postgres
 DATABASE_NAME=mint_consumer_db
+DATABASE_SSLMODE=disable
+
 NATS_URL=nats://localhost:4222
 BLOCKCHAIN_ADAPTER_GRPC_ADDRESS=localhost:50051
 ```
@@ -38,36 +61,19 @@ BLOCKCHAIN_ADAPTER_GRPC_ADDRESS=localhost:50051
 ## Running
 
 ```bash
+mise run run
+# or
 go run cmd/main.go
 ```
 
-## Project Structure
+Apply database migrations:
 
-```
-mint-consumer/
-├── cmd/
-│   └── main.go
-├── internal/
-│   ├── config/
-│   │   └── config.go
-│   ├── domain/
-│   │   ├── mint_request.go
-│   │   └── processed_event.go
-│   ├── repository/
-│   │   ├── mint_request_repository.go
-│   │   └── processed_event_repository.go
-│   ├── service/
-│   │   └── mint_service.go
-│   ├── consumer/
-│   │   └── cashback_consumer.go
-│   └── infrastructure/
-│       ├── database/
-│       │   └── postgres.go
-│       ├── nats/
-│       │   └── client.go
-│       └── grpc/
-│           └── blockchain_client.go
-├── go.mod
-└── README.md
+```bash
+mise run db:migrate
 ```
 
+## Testing
+
+```bash
+go test ./...
+```
