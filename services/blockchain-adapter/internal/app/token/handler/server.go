@@ -1,4 +1,4 @@
-package grpc
+package handler
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"net"
 
 	tokenpb "github.com/cashback-platform/proto/token"
+	"github.com/cashback-platform/services/blockchain-adapter/internal/app/token/usecase"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/config"
-	"github.com/cashback-platform/services/blockchain-adapter/internal/usecase"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"

@@ -10,18 +10,15 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	bip32 "github.com/tyler-smith/go-bip32"
-	bip39 "github.com/tyler-smith/go-bip39"
+	"github.com/tyler-smith/go-bip32"
+	"github.com/tyler-smith/go-bip39"
 )
 
-// Wallet holds an Ethereum private key and its derived address.
 type Wallet struct {
 	privateKey *ecdsa.PrivateKey
 	address    common.Address
 }
 
-// NewFromMnemonic derives an Ethereum wallet from a BIP-39 mnemonic using the given
-// derivation path (e.g. "m/44'/60'/0'/0/0").
 func NewFromMnemonic(mnemonic, derivationPath string) (*Wallet, error) {
 	if !bip39.IsMnemonicValid(mnemonic) {
 		return nil, errors.New("invalid mnemonic")
@@ -48,12 +45,10 @@ func NewFromMnemonic(mnemonic, derivationPath string) (*Wallet, error) {
 	return &Wallet{privateKey: privateKey, address: address}, nil
 }
 
-// Address returns the Ethereum address derived from the private key.
 func (w *Wallet) Address() common.Address {
 	return w.address
 }
 
-// SignTransaction signs a transaction with the wallet's private key.
 func (w *Wallet) SignTransaction(tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
 	signer := types.NewLondonSigner(chainID)
 	signed, err := types.SignTx(tx, signer, w.privateKey)
@@ -63,12 +58,10 @@ func (w *Wallet) SignTransaction(tx *types.Transaction, chainID *big.Int) (*type
 	return signed, nil
 }
 
-// PrivateKey returns the raw ECDSA private key (handle with care).
 func (w *Wallet) PrivateKey() *ecdsa.PrivateKey {
 	return w.privateKey
 }
 
-// deriveKey traverses the BIP-32 path from the master key.
 func deriveKey(master *bip32.Key, path string) (*bip32.Key, error) {
 	// path format: m/44'/60'/0'/0/0
 	key := master

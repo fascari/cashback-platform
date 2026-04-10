@@ -2,81 +2,64 @@ package config
 
 import "github.com/spf13/viper"
 
-type (
-	Config struct {
-		App      AppConfig
-		GRPC     GRPCConfig
-		Database DatabaseConfig
-		Ethereum EthereumConfig
-		Wallet   WalletConfig
-		Redis    RedisConfig
-	}
+const (
+	envAppName        = "APP_NAME"
+	envAppEnv         = "APP_ENV"
+	envGRPCPort       = "GRPC_PORT"
+	envPostgresDSN    = "POSTGRES_DSN_BLOCKCHAIN"
+	envEthereumRPCURL = "ETHEREUM_RPC_URL"
+	envEthereumChain  = "ETHEREUM_CHAIN_ID"
+	envContractAddr   = "CONTRACT_ADDRESS"
+	envWalletMnemonic = "WALLET_MNEMONIC"
+	envDerivationPath = "WALLET_DERIVATION_PATH"
+	envRedisURL       = "REDIS_URL"
 
-	AppConfig struct {
-		Name string
-		Env  string
-	}
-
-	GRPCConfig struct {
-		Port string
-	}
-
-	DatabaseConfig struct {
-		DSN string
-	}
-
-	EthereumConfig struct {
-		RPCURL          string
-		ChainID         int64
-		ContractAddress string
-	}
-
-	WalletConfig struct {
-		Mnemonic       string
-		DerivationPath string
-	}
-
-	RedisConfig struct {
-		URL string
-	}
+	defaultAppName        = "blockchain-adapter"
+	defaultAppEnv         = "development"
+	defaultGRPCPort       = "50051"
+	defaultPostgresDSN    = "postgres://cashback_app:cashback_app@localhost:15432/blockchain_adapter_db?sslmode=disable&search_path=blockchain"
+	defaultEthereumRPCURL = "https://sepolia.infura.io/v3/YOUR_PROJECT_ID"
+	defaultSepoliaChainID = 11155111
+	defaultDerivationPath = "m/44'/60'/0'/0/0"
+	defaultRedisURL       = "redis://localhost:6379"
 )
 
 func NewConfig() (*Config, error) {
 	viper.AutomaticEnv()
 
-	viper.SetDefault("APP_NAME", "blockchain-adapter")
-	viper.SetDefault("APP_ENV", "development")
-	viper.SetDefault("GRPC_PORT", "50051")
-	viper.SetDefault("POSTGRES_DSN_BLOCKCHAIN", "postgres://cashback_app:cashback_app@localhost:15432/blockchain_adapter_db?sslmode=disable&search_path=blockchain")
-	viper.SetDefault("ETHEREUM_RPC_URL", "https://sepolia.infura.io/v3/YOUR_PROJECT_ID")
-	viper.SetDefault("ETHEREUM_CHAIN_ID", 11155111) // Sepolia
-	viper.SetDefault("WALLET_DERIVATION_PATH", "m/44'/60'/0'/0/0")
-	viper.SetDefault("REDIS_URL", "redis://localhost:6379")
+	viper.SetDefault(envAppName, defaultAppName)
+	viper.SetDefault(envAppEnv, defaultAppEnv)
+	viper.SetDefault(envGRPCPort, defaultGRPCPort)
+	viper.SetDefault(envPostgresDSN, defaultPostgresDSN)
+	viper.SetDefault(envEthereumRPCURL, defaultEthereumRPCURL)
+	viper.SetDefault(envEthereumChain, defaultSepoliaChainID)
+	viper.SetDefault(envDerivationPath, defaultDerivationPath)
+	viper.SetDefault(envRedisURL, defaultRedisURL)
 
 	_ = viper.ReadInConfig()
 
 	return &Config{
 		App: AppConfig{
-			Name: viper.GetString("APP_NAME"),
-			Env:  viper.GetString("APP_ENV"),
+			Name: viper.GetString(envAppName),
+			Env:  viper.GetString(envAppEnv),
 		},
 		GRPC: GRPCConfig{
-			Port: viper.GetString("GRPC_PORT"),
+			Port: viper.GetString(envGRPCPort),
 		},
 		Database: DatabaseConfig{
-			DSN: viper.GetString("POSTGRES_DSN_BLOCKCHAIN"),
+			DSN: viper.GetString(envPostgresDSN),
 		},
 		Ethereum: EthereumConfig{
-			RPCURL:          viper.GetString("ETHEREUM_RPC_URL"),
-			ChainID:         viper.GetInt64("ETHEREUM_CHAIN_ID"),
-			ContractAddress: viper.GetString("CONTRACT_ADDRESS"),
+			RPCURL:          viper.GetString(envEthereumRPCURL),
+			ChainID:         viper.GetInt64(envEthereumChain),
+			ContractAddress: viper.GetString(envContractAddr),
 		},
 		Wallet: WalletConfig{
-			Mnemonic:       viper.GetString("WALLET_MNEMONIC"),
-			DerivationPath: viper.GetString("WALLET_DERIVATION_PATH"),
+			Mnemonic:       viper.GetString(envWalletMnemonic),
+			DerivationPath: viper.GetString(envDerivationPath),
 		},
 		Redis: RedisConfig{
-			URL: viper.GetString("REDIS_URL"),
+			URL: viper.GetString(envRedisURL),
 		},
 	}, nil
 }

@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/cashback-platform/services/blockchain-adapter/internal/domain"
+	"github.com/cashback-platform/services/blockchain-adapter/internal/app/token/domain"
 )
 
 type transactionModel struct {

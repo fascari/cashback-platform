@@ -10,7 +10,6 @@ import (
 func TestNewFromMnemonic_ShouldDeriveDeterministicAddress(t *testing.T) {
 	const mnemonic = "test test test test test test test test test test test junk"
 	const path = "m/44'/60'/0'/0/0"
-	// Known deterministic address for this mnemonic+path
 	const wantAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 
 	wallet, err := ethereum.NewFromMnemonic(mnemonic, path)

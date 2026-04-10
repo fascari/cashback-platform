@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	domain "github.com/cashback-platform/services/blockchain-adapter/internal/domain"
+	domain "github.com/cashback-platform/services/blockchain-adapter/internal/app/token/domain"
 	mock "github.com/stretchr/testify/mock"
 
 	uuid "github.com/google/uuid"

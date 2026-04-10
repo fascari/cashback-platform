@@ -1,6 +1,6 @@
 package usecase
 
-//go:generate mockery --all
+//go:generate mockery --all --case=snake --disable-version-string --with-expecter
 
 import (
 	"context"
@@ -15,9 +15,8 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/cashback-platform/kit/ethereum"
+	"github.com/cashback-platform/services/blockchain-adapter/internal/app/token/domain"
 	"github.com/cashback-platform/services/blockchain-adapter/internal/config"
-	"github.com/cashback-platform/services/blockchain-adapter/internal/contracts"
-	"github.com/cashback-platform/services/blockchain-adapter/internal/domain"
 )
 
 const errCodeSendFailed = "send_failed"
@@ -47,12 +46,17 @@ type (
 		PendingNonceAt(ctx context.Context, addr common.Address) (uint64, error)
 	}
 
+	TokenContract interface {
+		Mint(opts *bind.TransactOpts, to common.Address, amount *big.Int) (*types.Transaction, error)
+		BalanceOf(opts *bind.CallOpts, account common.Address) (*big.Int, error)
+	}
+
 	TokenUsecase struct {
 		nonceRepo       NonceRepository
 		transactionRepo TransactionRepository
 		ethClient       EthereumClient
 		wallet          *ethereum.Wallet
-		token           *contracts.CashbackToken
+		token           TokenContract
 		cfg             *config.Config
 	}
 
@@ -87,7 +91,7 @@ func NewToken(
 	transactionRepo TransactionRepository,
 	ethClient EthereumClient,
 	wallet *ethereum.Wallet,
-	token *contracts.CashbackToken,
+	token TokenContract,
 	cfg *config.Config,
 ) TokenUsecase {
 	return TokenUsecase{
