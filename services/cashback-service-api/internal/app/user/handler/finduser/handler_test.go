@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/cashback-platform/kit/testsuite/handler"
 	userdomain "github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
 	finduserhandler "github.com/cashback-platform/services/cashback-service-api/internal/app/user/handler/finduser"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/handler/finduser/testdata"
 	finduseruc "github.com/cashback-platform/services/cashback-service-api/internal/app/user/usecase/finduser"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/usecase/finduser/mocks"
-	"github.com/cashback-platform/kit/testsuite/handler"
 )
 
 type FindUserSuite struct {

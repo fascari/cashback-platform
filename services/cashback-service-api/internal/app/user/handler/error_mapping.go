@@ -3,8 +3,8 @@ package handler
 import (
 	"net/http"
 
-	userdomain "github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
 	"github.com/cashback-platform/kit/errorhandler"
+	userdomain "github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
 )
 
 var ErrorMapping = errorhandler.ErrorMapping{

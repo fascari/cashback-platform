@@ -3,8 +3,8 @@ package createuser
 import (
 	"strconv"
 
-	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
 	"github.com/cashback-platform/kit/validator"
+	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
 )
 
 type (

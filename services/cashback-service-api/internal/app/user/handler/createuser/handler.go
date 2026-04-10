@@ -5,10 +5,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	userhandler "github.com/cashback-platform/services/cashback-service-api/internal/app/user/handler"
-	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/usecase/createuser"
 	"github.com/cashback-platform/kit/errorhandler"
 	"github.com/cashback-platform/kit/httpjson"
+	userhandler "github.com/cashback-platform/services/cashback-service-api/internal/app/user/handler"
+	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/usecase/createuser"
 )
 
 const Path = "/users"

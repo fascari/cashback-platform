@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/cashback-platform/kit/testsuite/handler"
 	purchasedomain "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/domain"
 	createpurchasehandler "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/handler/createpurchase"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/handler/createpurchase/testdata"
 	createpurchaseuc "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/usecase/createpurchase"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/usecase/createpurchase/mocks"
-	"github.com/cashback-platform/kit/testsuite/handler"
 )
 
 type CreatePurchaseSuite struct {

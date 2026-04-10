@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
-	cashbackhandler "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/handler"
-	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/findusercashback"
 	"github.com/cashback-platform/kit/errorhandler"
 	"github.com/cashback-platform/kit/httpjson"
+	cashbackhandler "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/handler"
+	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/findusercashback"
 	"github.com/go-chi/chi/v5"
 )
 
