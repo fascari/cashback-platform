@@ -6,7 +6,6 @@ import (
 	"go.uber.org/fx"
 )
 
-// GRPCClients provides gRPC clients as an fx module.
 var GRPCClients = fx.Module("grpc-clients",
 	fx.Provide(grpc.NewBlockchainAdapterClient),
 )

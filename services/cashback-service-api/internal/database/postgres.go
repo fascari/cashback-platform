@@ -3,8 +3,8 @@ package database
 import (
 	"fmt"
 
-	"github.com/cashback-platform/services/cashback-service-api/internal/config"
 	"github.com/cashback-platform/kit/logger"
+	"github.com/cashback-platform/services/cashback-service-api/internal/config"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

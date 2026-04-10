@@ -16,16 +16,16 @@ type BlockchainAdapterClient struct {
 	tokenClient tokenpb.TokenServiceClient
 }
 
-func NewBlockchainAdapterClient(cfg *config.Config) (*BlockchainAdapterClient, error) {
+func NewBlockchainAdapterClient(cfg config.GRPC) (*BlockchainAdapterClient, error) {
 	conn, err := grpc.NewClient(
-		cfg.GRPC.BlockchainAdapterAddress,
+		cfg.BlockchainAdapterAddress,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to blockchain adapter: %w", err)
 	}
 
-	log.Printf("Connected to blockchain adapter at %s", cfg.GRPC.BlockchainAdapterAddress)
+	log.Printf("Connected to blockchain adapter at %s", cfg.BlockchainAdapterAddress)
 	return &BlockchainAdapterClient{
 		conn:        conn,
 		tokenClient: tokenpb.NewTokenServiceClient(conn),

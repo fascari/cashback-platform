@@ -6,13 +6,11 @@ import (
 	natsgo "github.com/nats-io/nats.go"
 )
 
-// Client wraps a NATS JetStream connection.
 type Client struct {
 	conn *natsgo.Conn
 	js   natsgo.JetStreamContext
 }
 
-// New connects to NATS at url and returns a JetStream-enabled client.
 func New(url string) (*Client, error) {
 	conn, err := natsgo.Connect(url)
 	if err != nil {

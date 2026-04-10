@@ -11,7 +11,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// Outbox wires the transactional outbox pattern: repository, publisher, relay, and relay startup.
 var Outbox = fx.Module("outbox",
 	fx.Provide(
 		newOutboxRepository,
