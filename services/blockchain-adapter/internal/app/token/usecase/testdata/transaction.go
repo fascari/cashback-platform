@@ -11,6 +11,8 @@ import (
 
 const (
 	WalletAddress = "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
+	// SignerAddress is the address derived from the test mnemonic (m/44'/60'/0'/0/0).
+	SignerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 	TokenAmount   = "1000000000000000000"
 	TxHash        = "0xabc123"
 	RecordID      = int64(1)
