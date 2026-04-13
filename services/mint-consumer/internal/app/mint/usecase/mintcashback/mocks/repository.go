@@ -26,164 +26,68 @@ func (_m *Repository) EXPECT() *Repository_Expecter {
 	return &Repository_Expecter{mock: &_m.Mock}
 }
 
-// CreateMintRequest provides a mock function with given fields: ctx, req
-func (_m *Repository) CreateMintRequest(ctx context.Context, req domain.MintRequest) (domain.MintRequest, error) {
-	ret := _m.Called(ctx, req)
+// CreateMintRequestIdempotent provides a mock function with given fields: ctx, req, eventID, eventType
+func (_m *Repository) CreateMintRequestIdempotent(ctx context.Context, req domain.MintRequest, eventID uuid.UUID, eventType string) (domain.MintRequest, bool, error) {
+	ret := _m.Called(ctx, req, eventID, eventType)
 
 	if len(ret) == 0 {
-		panic("no return value specified for CreateMintRequest")
+		panic("no return value specified for CreateMintRequestIdempotent")
 	}
 
 	var r0 domain.MintRequest
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, domain.MintRequest) (domain.MintRequest, error)); ok {
-		return rf(ctx, req)
+	var r1 bool
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, domain.MintRequest, uuid.UUID, string) (domain.MintRequest, bool, error)); ok {
+		return rf(ctx, req, eventID, eventType)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, domain.MintRequest) domain.MintRequest); ok {
-		r0 = rf(ctx, req)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.MintRequest, uuid.UUID, string) domain.MintRequest); ok {
+		r0 = rf(ctx, req, eventID, eventType)
 	} else {
 		r0 = ret.Get(0).(domain.MintRequest)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, domain.MintRequest) error); ok {
-		r1 = rf(ctx, req)
+	if rf, ok := ret.Get(1).(func(context.Context, domain.MintRequest, uuid.UUID, string) bool); ok {
+		r1 = rf(ctx, req, eventID, eventType)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(bool)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, domain.MintRequest, uuid.UUID, string) error); ok {
+		r2 = rf(ctx, req, eventID, eventType)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
-// Repository_CreateMintRequest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateMintRequest'
-type Repository_CreateMintRequest_Call struct {
+// Repository_CreateMintRequestIdempotent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateMintRequestIdempotent'
+type Repository_CreateMintRequestIdempotent_Call struct {
 	*mock.Call
 }
 
-// CreateMintRequest is a helper method to define mock.On call
+// CreateMintRequestIdempotent is a helper method to define mock.On call
 //   - ctx context.Context
 //   - req domain.MintRequest
-func (_e *Repository_Expecter) CreateMintRequest(ctx interface{}, req interface{}) *Repository_CreateMintRequest_Call {
-	return &Repository_CreateMintRequest_Call{Call: _e.mock.On("CreateMintRequest", ctx, req)}
-}
-
-func (_c *Repository_CreateMintRequest_Call) Run(run func(ctx context.Context, req domain.MintRequest)) *Repository_CreateMintRequest_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(domain.MintRequest))
-	})
-	return _c
-}
-
-func (_c *Repository_CreateMintRequest_Call) Return(_a0 domain.MintRequest, _a1 error) *Repository_CreateMintRequest_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Repository_CreateMintRequest_Call) RunAndReturn(run func(context.Context, domain.MintRequest) (domain.MintRequest, error)) *Repository_CreateMintRequest_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// CreateProcessedEvent provides a mock function with given fields: ctx, eventID, eventType
-func (_m *Repository) CreateProcessedEvent(ctx context.Context, eventID uuid.UUID, eventType string) error {
-	ret := _m.Called(ctx, eventID, eventType)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CreateProcessedEvent")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, string) error); ok {
-		r0 = rf(ctx, eventID, eventType)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// Repository_CreateProcessedEvent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateProcessedEvent'
-type Repository_CreateProcessedEvent_Call struct {
-	*mock.Call
-}
-
-// CreateProcessedEvent is a helper method to define mock.On call
-//   - ctx context.Context
 //   - eventID uuid.UUID
 //   - eventType string
-func (_e *Repository_Expecter) CreateProcessedEvent(ctx interface{}, eventID interface{}, eventType interface{}) *Repository_CreateProcessedEvent_Call {
-	return &Repository_CreateProcessedEvent_Call{Call: _e.mock.On("CreateProcessedEvent", ctx, eventID, eventType)}
+func (_e *Repository_Expecter) CreateMintRequestIdempotent(ctx interface{}, req interface{}, eventID interface{}, eventType interface{}) *Repository_CreateMintRequestIdempotent_Call {
+	return &Repository_CreateMintRequestIdempotent_Call{Call: _e.mock.On("CreateMintRequestIdempotent", ctx, req, eventID, eventType)}
 }
 
-func (_c *Repository_CreateProcessedEvent_Call) Run(run func(ctx context.Context, eventID uuid.UUID, eventType string)) *Repository_CreateProcessedEvent_Call {
+func (_c *Repository_CreateMintRequestIdempotent_Call) Run(run func(ctx context.Context, req domain.MintRequest, eventID uuid.UUID, eventType string)) *Repository_CreateMintRequestIdempotent_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(string))
+		run(args[0].(context.Context), args[1].(domain.MintRequest), args[2].(uuid.UUID), args[3].(string))
 	})
 	return _c
 }
 
-func (_c *Repository_CreateProcessedEvent_Call) Return(_a0 error) *Repository_CreateProcessedEvent_Call {
-	_c.Call.Return(_a0)
+func (_c *Repository_CreateMintRequestIdempotent_Call) Return(_a0 domain.MintRequest, _a1 bool, _a2 error) *Repository_CreateMintRequestIdempotent_Call {
+	_c.Call.Return(_a0, _a1, _a2)
 	return _c
 }
 
-func (_c *Repository_CreateProcessedEvent_Call) RunAndReturn(run func(context.Context, uuid.UUID, string) error) *Repository_CreateProcessedEvent_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// ExistsProcessedEvent provides a mock function with given fields: ctx, eventID
-func (_m *Repository) ExistsProcessedEvent(ctx context.Context, eventID uuid.UUID) (bool, error) {
-	ret := _m.Called(ctx, eventID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ExistsProcessedEvent")
-	}
-
-	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (bool, error)); ok {
-		return rf(ctx, eventID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) bool); ok {
-		r0 = rf(ctx, eventID)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, eventID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Repository_ExistsProcessedEvent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ExistsProcessedEvent'
-type Repository_ExistsProcessedEvent_Call struct {
-	*mock.Call
-}
-
-// ExistsProcessedEvent is a helper method to define mock.On call
-//   - ctx context.Context
-//   - eventID uuid.UUID
-func (_e *Repository_Expecter) ExistsProcessedEvent(ctx interface{}, eventID interface{}) *Repository_ExistsProcessedEvent_Call {
-	return &Repository_ExistsProcessedEvent_Call{Call: _e.mock.On("ExistsProcessedEvent", ctx, eventID)}
-}
-
-func (_c *Repository_ExistsProcessedEvent_Call) Run(run func(ctx context.Context, eventID uuid.UUID)) *Repository_ExistsProcessedEvent_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID))
-	})
-	return _c
-}
-
-func (_c *Repository_ExistsProcessedEvent_Call) Return(_a0 bool, _a1 error) *Repository_ExistsProcessedEvent_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Repository_ExistsProcessedEvent_Call) RunAndReturn(run func(context.Context, uuid.UUID) (bool, error)) *Repository_ExistsProcessedEvent_Call {
+func (_c *Repository_CreateMintRequestIdempotent_Call) RunAndReturn(run func(context.Context, domain.MintRequest, uuid.UUID, string) (domain.MintRequest, bool, error)) *Repository_CreateMintRequestIdempotent_Call {
 	_c.Call.Return(run)
 	return _c
 }

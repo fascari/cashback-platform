@@ -11,7 +11,7 @@ import (
 func (r Repository) FindFailedRetryable(ctx context.Context, limit int) ([]domain.MintRequest, error) {
 	var models []mintRequestModel
 	now := time.Now().UTC()
-	err := r.conn(ctx).
+	err := r.db.WithContext(ctx).
 		Where("status = ? AND next_retry_at <= ? AND retry_count < max_retries",
 			domain.MintRequestStatusFailed, now).
 		Order("next_retry_at ASC").
@@ -29,6 +29,6 @@ func (r Repository) FindFailedRetryable(ctx context.Context, limit int) ([]domai
 
 func (r Repository) ExistsProcessedEvent(ctx context.Context, eventID uuid.UUID) (bool, error) {
 	count := new(int64)
-	err := r.conn(ctx).Model(&processedEventModel{}).Where("event_id = ?", eventID).Count(count).Error
+	err := r.db.WithContext(ctx).Model(&processedEventModel{}).Where("event_id = ?", eventID).Count(count).Error
 	return *count > 0, err
 }

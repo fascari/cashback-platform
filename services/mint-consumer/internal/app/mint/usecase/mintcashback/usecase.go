@@ -9,56 +9,50 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/cashback-platform/kit/events"
 	"github.com/cashback-platform/kit/logger"
 	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/domain"
 )
 
 type (
 	Repository interface {
-		CreateMintRequest(ctx context.Context, req domain.MintRequest) (domain.MintRequest, error)
+		CreateMintRequestIdempotent(ctx context.Context, req domain.MintRequest, eventID uuid.UUID, eventType string) (domain.MintRequest, bool, error)
 		MarkCompleted(ctx context.Context, id int64, txHash string, blockNumber int64) error
 		MarkFailed(ctx context.Context, id int64, errorCode, errorMessage string, nextRetryAt *time.Time) error
-		ExistsProcessedEvent(ctx context.Context, eventID uuid.UUID) (bool, error)
-		CreateProcessedEvent(ctx context.Context, eventID uuid.UUID, eventType string) error
 	}
 
 	BlockchainClient interface {
 		MintToken(ctx context.Context, req domain.MintTokenRequest) (domain.MintResult, error)
 	}
 
-	TransactionManager interface {
-		WithTransaction(ctx context.Context, fn func(context.Context) error) error
-	}
-
 	UseCase struct {
-		repository         Repository
-		blockchainClient   BlockchainClient
-		transactionManager TransactionManager
+		repository       Repository
+		blockchainClient BlockchainClient
 	}
 )
 
-func NewUseCase(
-	repository Repository,
-	blockchainClient BlockchainClient,
-	transactionManager TransactionManager,
-) UseCase {
-	return UseCase{
-		repository:         repository,
-		blockchainClient:   blockchainClient,
-		transactionManager: transactionManager,
-	}
+func NewUseCase(repository Repository, blockchainClient BlockchainClient) UseCase {
+	return UseCase{repository: repository, blockchainClient: blockchainClient}
 }
 
 func (u UseCase) Execute(ctx context.Context, input Input) error {
 	idempotencyKey := uuid.NewSHA1(uuid.NameSpaceOID, []byte(input.EventID.String()))
 
-	mintReq, err := u.createInTX(ctx, input, idempotencyKey)
+	mintReq, isNew, err := u.repository.CreateMintRequestIdempotent(ctx, domain.MintRequest{
+		CashbackID:     input.CashbackID,
+		UserID:         input.UserID,
+		WalletAddress:  input.WalletAddress,
+		TokenAmount:    input.TokenAmount,
+		IdempotencyKey: idempotencyKey,
+		Status:         domain.MintRequestStatusPending,
+		MaxRetries:     5,
+	}, input.EventID, events.CashbackApproved)
 	if err != nil {
-		return err
+		return fmt.Errorf("create mint request idempotent: %w", err)
 	}
 
 	// mintReq.ID == 0: event was a duplicate — already processed.
-	if mintReq.ID == 0 {
+	if !isNew {
 		logger.Info("mint skipped: duplicate event", "event_id", input.EventID)
 		return nil
 	}
@@ -79,41 +73,6 @@ func (u UseCase) Execute(ctx context.Context, input Input) error {
 	}
 
 	return applyResult(ctx, u.repository, mintReq.ID, result, 0)
-}
-
-func (u UseCase) createInTX(ctx context.Context, input Input, idempotencyKey uuid.UUID) (domain.MintRequest, error) {
-	var mintReq domain.MintRequest
-
-	err := u.transactionManager.WithTransaction(ctx, func(txCtx context.Context) error {
-		exists, err := u.repository.ExistsProcessedEvent(txCtx, input.EventID)
-		if err != nil {
-			return fmt.Errorf("check processed event: %w", err)
-		}
-		if exists {
-			return nil
-		}
-
-		mintReq, err = u.repository.CreateMintRequest(txCtx, domain.MintRequest{
-			CashbackID:     input.CashbackID,
-			UserID:         input.UserID,
-			WalletAddress:  input.WalletAddress,
-			TokenAmount:    input.TokenAmount,
-			IdempotencyKey: idempotencyKey,
-			Status:         domain.MintRequestStatusPending,
-			MaxRetries:     5,
-		})
-		if err != nil {
-			return fmt.Errorf("create mint request: %w", err)
-		}
-
-		if err := u.repository.CreateProcessedEvent(txCtx, input.EventID, "cashback.approved"); err != nil {
-			return fmt.Errorf("record processed event: %w", err)
-		}
-
-		return nil
-	})
-
-	return mintReq, err
 }
 
 func applyResult(ctx context.Context, repo Repository, mintReqID int64, result domain.MintResult, retryCount int) error {

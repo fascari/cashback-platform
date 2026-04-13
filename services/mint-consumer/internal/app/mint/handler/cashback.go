@@ -3,9 +3,11 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
+	"github.com/cashback-platform/kit/events"
 	"github.com/cashback-platform/kit/logger"
 	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/handler/cashbackapproved"
 	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/usecase/retrymints"
@@ -37,19 +39,19 @@ func NewCashback(
 func (c *CashbackConsumer) start(ctx context.Context) error {
 	js := c.natsClient.JetStream()
 
-	if _, err := js.AddConsumer("CASHBACK_EVENTS", &natsgo.ConsumerConfig{
+	if _, err := js.AddConsumer(events.StreamCashbackEvents, &natsgo.ConsumerConfig{
 		Durable:       "mint-consumer",
-		FilterSubject: "cashback.approved",
+		FilterSubject: events.CashbackApproved,
 		DeliverPolicy: natsgo.DeliverAllPolicy,
 		AckPolicy:     natsgo.AckExplicitPolicy,
 		MaxDeliver:    5,
 		AckWait:       30 * time.Second,
 	}); err != nil && !errors.Is(err, natsgo.ErrConsumerNameAlreadyInUse) {
-		logger.Warn("failed to create NATS consumer", "error", err)
+		return fmt.Errorf("add NATS consumer: %w", err)
 	}
 
 	var err error
-	c.sub, err = js.PullSubscribe("cashback.approved", "mint-consumer")
+	c.sub, err = js.PullSubscribe(events.CashbackApproved, "mint-consumer")
 	if err != nil {
 		return err
 	}

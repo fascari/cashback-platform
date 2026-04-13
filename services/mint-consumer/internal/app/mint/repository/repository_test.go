@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	"github.com/cashback-platform/kit/events"
 	"github.com/cashback-platform/kit/testsuite"
 	"github.com/cashback-platform/services/mint-consumer/db/migrations"
 	"github.com/cashback-platform/services/mint-consumer/internal/app/mint/domain"
@@ -61,7 +62,7 @@ func (s *RepositorySuite) TestExistsProcessedEvent_NotFound() {
 func (s *RepositorySuite) TestCreateProcessedEvent() {
 	ctx := context.Background()
 
-	err := s.repo.CreateProcessedEvent(ctx, testdata.EventID, "cashback.approved")
+	err := s.repo.CreateProcessedEvent(ctx, testdata.EventID, events.CashbackApproved)
 	s.Require().NoError(err)
 
 	exists, err := s.repo.ExistsProcessedEvent(ctx, testdata.EventID)
@@ -72,10 +73,10 @@ func (s *RepositorySuite) TestCreateProcessedEvent() {
 func (s *RepositorySuite) TestCreateProcessedEvent_Duplicate() {
 	ctx := context.Background()
 
-	err := s.repo.CreateProcessedEvent(ctx, testdata.EventID, "cashback.approved")
+	err := s.repo.CreateProcessedEvent(ctx, testdata.EventID, events.CashbackApproved)
 	s.Require().NoError(err)
 
-	err = s.repo.CreateProcessedEvent(ctx, testdata.EventID, "cashback.approved")
+	err = s.repo.CreateProcessedEvent(ctx, testdata.EventID, events.CashbackApproved)
 	s.Require().Error(err)
 }
 
