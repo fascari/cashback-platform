@@ -17,7 +17,7 @@ type purchaseModel struct {
 }
 
 func (purchaseModel) TableName() string {
-	return "purchases"
+	return "cashback.purchases"
 }
 
 func (m purchaseModel) toDomain() domain.Purchase {
@@ -27,8 +27,8 @@ func (m purchaseModel) toDomain() domain.Purchase {
 		Amount:     m.Amount,
 		MerchantID: m.MerchantID,
 		Status:     m.Status,
-		CreatedAt:  m.CreatedAt,
-		UpdatedAt:  m.UpdatedAt,
+		CreatedAt:  m.CreatedAt.UTC(),
+		UpdatedAt:  m.UpdatedAt.UTC(),
 	}
 }
 

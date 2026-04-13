@@ -1,0 +1,13 @@
+- id: 1
+  external_id: "ext-001"
+  email: "user@example.com"
+  wallet_address: "RAW='0xABCDEF1234567890ABCD'"
+  created_at: "2024-01-01T00:00:00Z"
+  updated_at: "2024-01-01T00:00:00Z"
+
+- id: 2
+  external_id: "ext-002"
+  email: "other@example.com"
+  wallet_address: "RAW='0x1234567890ABCDEF1234'"
+  created_at: "2024-01-01T00:00:00Z"
+  updated_at: "2024-01-01T00:00:00Z"

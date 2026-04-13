@@ -1,0 +1,15 @@
+- id: 1
+  user_id: 1
+  amount: 150.00
+  merchant_id: "merchant-abc"
+  status: "pending"
+  created_at: "2024-01-01T00:00:00Z"
+  updated_at: "2024-01-01T00:00:00Z"
+
+- id: 2
+  user_id: 1
+  amount: 75.50
+  merchant_id: "merchant-xyz"
+  status: "pending"
+  created_at: "2024-01-01T00:00:00Z"
+  updated_at: "2024-01-01T00:00:00Z"
