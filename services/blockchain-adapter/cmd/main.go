@@ -16,5 +16,6 @@ func main() {
 		bootstrap.Ethereum,
 		bootstrap.Server,
 		modules.Token,
+		bootstrap.Chain,
 	).Run()
 }
