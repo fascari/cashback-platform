@@ -16,7 +16,7 @@ type userModel struct {
 }
 
 func (userModel) TableName() string {
-	return "users"
+	return "cashback.users"
 }
 
 func (m userModel) toDomain() domain.User {
@@ -25,8 +25,8 @@ func (m userModel) toDomain() domain.User {
 		ExternalID:    m.ExternalID,
 		Email:         m.Email,
 		WalletAddress: m.WalletAddress,
-		CreatedAt:     m.CreatedAt,
-		UpdatedAt:     m.UpdatedAt,
+		CreatedAt:     m.CreatedAt.UTC(),
+		UpdatedAt:     m.UpdatedAt.UTC(),
 	}
 }
 
