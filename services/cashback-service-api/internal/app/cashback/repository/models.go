@@ -18,7 +18,7 @@ type cashbackModel struct {
 }
 
 func (cashbackModel) TableName() string {
-	return "cashback_ledger"
+	return "cashback.cashback_ledger"
 }
 
 func (m cashbackModel) toDomain() domain.Cashback {
@@ -29,8 +29,8 @@ func (m cashbackModel) toDomain() domain.Cashback {
 		Amount:          m.Amount,
 		CashbackPercent: m.CashbackPercent,
 		Status:          m.Status,
-		CreatedAt:       m.CreatedAt,
-		UpdatedAt:       m.UpdatedAt,
+		CreatedAt:       m.CreatedAt.UTC(),
+		UpdatedAt:       m.UpdatedAt.UTC(),
 	}
 }
 
