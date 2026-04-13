@@ -73,3 +73,19 @@ func (s *Suite) TearDownSuite() {
 		_ = s.db.Close()
 	}
 }
+
+// BlockchainAvailable reports whether an EVM node is reachable.
+// Falls back to http://127.0.0.1:8545 when ETHEREUM_RPC_URL is unset.
+func BlockchainAvailable() bool {
+	rpcURL := os.Getenv("ETHEREUM_RPC_URL")
+	if rpcURL == "" {
+		rpcURL = "http://127.0.0.1:8545"
+	}
+	c := &http.Client{Timeout: 2 * time.Second}
+	resp, err := c.Post(rpcURL, "application/json", nil)
+	if err != nil {
+		return false
+	}
+	resp.Body.Close()
+	return true
+}

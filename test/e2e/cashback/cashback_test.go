@@ -5,7 +5,6 @@ package cashback_test
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"testing"
 	"time"
 
@@ -30,8 +29,8 @@ func (s *CashbackSuite) SetupSuite() {
 }
 
 func (s *CashbackSuite) TestCashbackFlow_ShouldIncrementBalanceAfterMint() {
-	if os.Getenv("E2E_BLOCKCHAIN") != "true" {
-		s.T().Skip("skipping blockchain flow test: set E2E_BLOCKCHAIN=true with a running Hardhat node")
+	if !e2esuite.BlockchainAvailable() {
+		s.T().Skip("skipping blockchain flow test: no EVM node reachable at ETHEREUM_RPC_URL")
 	}
 
 	s.E.POST("/cashback/calculate").WithJSON(map[string]any{

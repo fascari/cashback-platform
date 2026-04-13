@@ -29,4 +29,6 @@ Thumbs.db
 # Environment secrets
 .env
 .env.*
+.*.env
 !.env.example
+.bin/

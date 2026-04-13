@@ -1,3 +1,5 @@
+name: cashback-platform-e2e
+
 services:
   postgres-e2e:
     image: postgres:16-alpine
