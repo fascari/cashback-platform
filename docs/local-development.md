@@ -17,7 +17,7 @@ Runs the full stack on a local machine. No external accounts or testnets require
 mise run up
 ```
 
-Starts PostgreSQL on port 15432, NATS with JetStream, and Redis. On first run, create the databases and apply schemas:
+Starts PostgreSQL on port 15432, NATS with JetStream, Redis, Jaeger, and the OTel Collector. On first run, create the databases and apply migrations:
 
 ```bash
 mise run db:setup
@@ -29,7 +29,7 @@ mise run db:setup
 mise run nats:setup
 ```
 
-Creates the three JetStream streams (`PURCHASE_EVENTS`, `CASHBACK_EVENTS`, `TOKEN_EVENTS`). The command is idempotent and exits immediately. `run:api` and `run:consumer` depend on this task, so running them directly via mise handles it automatically.
+Creates the three JetStream streams (`PURCHASE_EVENTS`, `CASHBACK_EVENTS`, `TOKEN_EVENTS`). The command is idempotent. Running `run:api` or `run:consumer` via mise runs this step automatically.
 
 ## 3. Compile the smart contract
 
@@ -69,11 +69,11 @@ Copy `.env.example` to `.env` in `services/blockchain-adapter/` and fill in:
 
 ```dotenv
 ETHEREUM_RPC_URL=http://localhost:8545
-CONTRACT_ADDRESS=0x<address from step 4>
+CONTRACT_ADDRESS=0x<address from step 5>
 WALLET_MNEMONIC=test test test test test test test test test test test junk
 ```
 
-The mnemonic above is the Hardhat default. It matches the wallet that deployed the contract and holds owner permissions.
+The mnemonic is the Hardhat default. It matches the wallet that deployed the contract and holds owner permissions.
 
 ## 7. Generate Go bindings
 
@@ -107,6 +107,44 @@ mise run run:adapter   # blockchain-adapter    :50051
 
 ---
 
+## Observability
+
+Jaeger and the OpenTelemetry Collector start with the default stack — no extra step needed.
+
+Tracing is enabled by default via `OTEL_ENABLED=true` in `.env.example`. To disable it for a run:
+
+```bash
+OTEL_ENABLED=false mise run run:api
+```
+
+### Viewing traces
+
+Open [http://localhost:16686](http://localhost:16686). After making any HTTP request to `cashback-service-api`, select the service from the dropdown and click **Find Traces**.
+
+### Pipeline
+
+```
+cashback-service-api
+      | OTLP/gRPC :4317
+      v
+otel-collector  -->  Jaeger :4317 (internal)
+                           |
+                     UI :16686
+```
+
+The collector receives spans from the service, batches them, and forwards to Jaeger over OTLP.
+
+### Verifying
+
+```bash
+docker compose ps jaeger otel-collector
+curl http://localhost:16686/api/services
+```
+
+After the API starts with tracing enabled, `cashback-service-api` appears in the service list.
+
+---
+
 ## E2E Tests
 
 The e2e suite runs the three services against a dedicated isolated stack (separate Postgres on port 25432, NATS on port 4322, Redis on port 6479) and exercises the full cashback flow through real HTTP calls.
@@ -123,14 +161,14 @@ The script `scripts/run-e2e.sh` handles the full lifecycle:
 2. Waits for Postgres and NATS
 3. Creates NATS streams via `cmd/nats-setup`
 4. Applies DB migrations against the e2e databases
-5. Starts the three services natively with `go run`
+5. Starts the three services with `go run`
 6. Waits for the API to be healthy on port 18080
 7. Runs the test suite with `-tags=e2e`
 8. Tears down all infrastructure
 
 ### Blockchain test
 
-The test `TestCashbackFlow_ShouldIncrementBalanceAfterMint` requires a running Hardhat node. It is skipped by default. To include it:
+The test `TestCashbackFlow_ShouldIncrementBalanceAfterMint` requires a running Hardhat node and is skipped by default. To include it:
 
 ```bash
 # In one terminal
@@ -144,7 +182,7 @@ E2E_BLOCKCHAIN=true mise run test:e2e
 
 ## Deploying to Sepolia
 
-Sepolia is a public Ethereum testnet and is not required for local development. Use it only when testing against a shared network.
+Sepolia is a public Ethereum testnet, not required for local development. Use it only when testing against a shared network.
 
 1. Create a wallet in MetaMask and fund it from a Sepolia faucet.
 2. Create an API key on [Infura](https://infura.io) or [Alchemy](https://alchemy.com).

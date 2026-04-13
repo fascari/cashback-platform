@@ -128,4 +128,3 @@ Full schema: [`db/schema.sql`](../db/schema.sql)
 ## Further Reading
 
 - [events.md](events.md): Domain events, NATS JetStream configuration, Outbox Pattern
-- [decisions.md](decisions.md): Technology stack, design decisions, trade-offs, fault tolerance
