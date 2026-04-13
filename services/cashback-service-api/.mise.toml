@@ -30,6 +30,3 @@ run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh cashback-service down 1"
 description = "Show current migration version for cashback-service"
 run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh cashback-service version"
 
-[tasks."test:integration"]
-description = "Run integration tests (requires Docker)"
-run = "GOWORK=off go test -v -race -tags=integration ./..."

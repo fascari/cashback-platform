@@ -14,12 +14,14 @@ description = "Stop all infrastructure services"
 run = "docker-compose down"
 
 [tasks."db:migrate"]
-description = "Apply all pending migrations"
-run = [
-  "./scripts/migrate.sh cashback-service up",
-  "./scripts/migrate.sh blockchain-adapter up",
-  "./scripts/migrate.sh mint-consumer up",
-]
+description = "Apply all pending migrations. Pass --e2e to target e2e databases (port 25432)"
+run = """
+FLAG=""
+[ "{{flag(name='e2e')}}" = "true" ] && FLAG="--e2e"
+./scripts/migrate.sh cashback-service up $FLAG
+./scripts/migrate.sh blockchain-adapter up $FLAG
+./scripts/migrate.sh mint-consumer up $FLAG
+"""
 
 [tasks."wait:postgres"]
 description = "Wait for PostgreSQL to accept connections"
@@ -76,24 +78,45 @@ description = "Run blockchain-adapter"
 depends = ["wait:postgres"]
 run = "cd services/blockchain-adapter && go run ./cmd/main.go"
 
+[tasks."nats:setup"]
+description = "Create JetStream streams (idempotent). Uses NATS_URL from env (default: nats://localhost:4222)"
+run = "cd cmd/nats-setup && go run ."
+
+[tasks."nats:up"]
+description = "Wait for NATS and provision JetStream streams. Use this instead of wait:nats + nats:setup."
+depends = ["wait:nats"]
+run = "mise run nats:setup"
+
 [tasks."run:api"]
 description = "Run cashback-service-api"
-depends = ["wait:postgres", "wait:nats"]
+depends = ["wait:postgres", "nats:up"]
 run = "cd services/cashback-service-api && go run ./cmd/api/main.go"
 
 [tasks."run:consumer"]
 description = "Run mint-consumer"
-depends = ["wait:postgres", "wait:nats", "wait:api"]
+depends = ["wait:postgres", "nats:up", "wait:api"]
 run = "cd services/mint-consumer && go run ./cmd/main.go"
 
 [tasks.dev]
-description = "Fresh start: bring up infrastructure, run migrations, then start all 3 services"
-depends = ["up", "db:setup"]
+description = "Fresh start: bring up infrastructure, run migrations and setup NATS, then start all 3 services"
+depends = ["up", "db:setup", "nats:up"]
 run = """
 mise run run:adapter &
 mise run run:api &
 mise run run:consumer
 """
+
+[tasks.test]
+description = "Run unit tests for all modules"
+run = [
+  "cd services/cashback-service-api && go test ./...",
+  "cd services/mint-consumer && go test ./...",
+  "cd services/blockchain-adapter && go test ./...",
+]
+
+[tasks."test:e2e"]
+description = "Run e2e tests against isolated infrastructure (manages its own stack)"
+run = "./scripts/run-e2e.sh"
 
 [tasks.lint]
 description = "Lint all modules"

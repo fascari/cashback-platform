@@ -41,6 +41,3 @@ run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh blockchain-adapter down 1"
 description = "Show current migration version for blockchain-adapter"
 run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh blockchain-adapter version"
 
-[tasks."test:integration"]
-description = "Run integration tests (requires Docker)"
-run = "GOWORK=off go test -v -race -tags=integration ./..."

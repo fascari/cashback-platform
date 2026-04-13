@@ -30,6 +30,3 @@ run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh mint-consumer down 1"
 description = "Show current migration version for mint-consumer"
 run = "${MISE_PROJECT_ROOT}/../../scripts/migrate.sh mint-consumer version"
 
-[tasks."test:integration"]
-description = "Run integration tests (requires Docker)"
-run = "GOWORK=off go test -v -race -tags=integration ./..."
