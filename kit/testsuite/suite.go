@@ -19,6 +19,8 @@ import (
 	gormpostgres "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+
+	"github.com/cashback-platform/kit/clock"
 )
 
 const (
@@ -69,7 +71,7 @@ func (s *Suite) ConfigureDB() string {
 	port, err := container.MappedPort(ctx, "5432")
 	s.Require().NoError(err)
 
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port.Port(), dbUser, dbPassword, dbName)
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=UTC", host, port.Port(), dbUser, dbPassword, dbName)
 	db, err := gorm.Open(gormpostgres.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
 	s.Require().NoError(err)
 	s.DB = db
@@ -114,7 +116,19 @@ func (s *Suite) TearDownSuite() {
 	}
 }
 
-// SetupTest reloads fixtures before each test.
+// SetupTest reloads fixtures and resets NowFunc before each test.
 func (s *Suite) SetupTest() {
+	s.DB.NowFunc = time.Now
 	s.Require().NoError(s.loader.Load())
+}
+
+// MockNowFunc freezes the GORM timestamp source to the given time for the current test.
+func (s *Suite) MockNowFunc(t time.Time) {
+	s.DB.NowFunc = func() time.Time { return t }
+}
+
+// MockClockNow freezes the application clock package to the given time.
+// The returned function restores the original clock — use with defer.
+func (*Suite) MockClockNow(t time.Time) func() {
+	return clock.With(func() time.Time { return t })
 }
