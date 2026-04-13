@@ -13,5 +13,6 @@ var Config = fx.Module("config",
 		config.LoadGRPC,
 		config.LoadServer,
 		config.LoadOutbox,
+		config.LoadTelemetry,
 	),
 )

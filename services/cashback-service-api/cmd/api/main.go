@@ -17,6 +17,7 @@ func main() {
 		bootstrap.Outbox,
 		bootstrap.Router,
 		bootstrap.Server,
+		bootstrap.Telemetry,
 		modules.User,
 		modules.Purchase,
 		modules.Cashback,

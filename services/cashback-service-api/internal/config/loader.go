@@ -3,8 +3,9 @@ package config
 import (
 	"time"
 
-	"github.com/cashback-platform/kit/logger"
 	"github.com/spf13/viper"
+
+	"github.com/cashback-platform/kit/logger"
 )
 
 type (
@@ -33,6 +34,11 @@ type (
 	OutboxConfig struct {
 		MaxRetries   int
 		PollInterval time.Duration
+	}
+
+	Telemetry struct {
+		Enabled      bool
+		OTLPEndpoint string
 	}
 )
 
@@ -102,6 +108,20 @@ func loadOutboxConfig() (OutboxConfig, error) {
 	return OutboxConfig{
 		MaxRetries:   viper.GetInt("OUTBOX_MAX_RETRIES"),
 		PollInterval: time.Duration(viper.GetInt("OUTBOX_POLL_INTERVAL_MS")) * time.Millisecond,
+	}, nil
+}
+
+func LoadTelemetry() Telemetry {
+	return loadConfigWithPanic(loadTelemetryConfig, "failed to load telemetry config")
+}
+
+func loadTelemetryConfig() (Telemetry, error) {
+	viper.SetDefault("OTEL_ENABLED", false)
+	viper.SetDefault("OTEL_EXPORTER_OTLP_ENDPOINT", "localhost:4317")
+	viper.AutomaticEnv()
+	return Telemetry{
+		Enabled:      viper.GetBool("OTEL_ENABLED"),
+		OTLPEndpoint: viper.GetString("OTEL_EXPORTER_OTLP_ENDPOINT"),
 	}, nil
 }
 
