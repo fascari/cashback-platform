@@ -1,9 +1,11 @@
 go 1.26.1
 
 use (
+	./cmd/nats-setup
 	./kit
 	./proto
 	./services/blockchain-adapter
 	./services/cashback-service-api
 	./services/mint-consumer
+	./test/e2e
 )
