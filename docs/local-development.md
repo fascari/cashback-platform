@@ -23,7 +23,15 @@ Starts PostgreSQL on port 15432, NATS with JetStream, and Redis. On first run, c
 mise run db:setup
 ```
 
-## 2. Compile the smart contract
+## 2. Provision NATS streams
+
+```bash
+mise run nats:setup
+```
+
+Creates the three JetStream streams (`PURCHASE_EVENTS`, `CASHBACK_EVENTS`, `TOKEN_EVENTS`). The command is idempotent and exits immediately. `run:api` and `run:consumer` depend on this task, so running them directly via mise handles it automatically.
+
+## 3. Compile the smart contract
 
 ```bash
 cd contracts && npm install
@@ -32,7 +40,7 @@ mise run compile
 
 Compiles `CashbackToken.sol` and writes artifacts to `contracts/artifacts/`.
 
-## 3. Start a local Ethereum node
+## 4. Start a local Ethereum node
 
 ```bash
 mise run evm
@@ -40,7 +48,7 @@ mise run evm
 
 Starts a local EVM chain at `localhost:8545` and prints 20 pre-funded accounts with private keys. Keep this terminal open.
 
-## 4. Deploy the contract
+## 5. Deploy the contract
 
 In a second terminal, from the `contracts/` directory:
 
@@ -55,7 +63,7 @@ Deploying with account: 0xf39Fd6e51...
 CashbackToken deployed to: 0x5FbDB231...
 ```
 
-## 5. Configure environment variables
+## 6. Configure environment variables
 
 Copy `.env.example` to `.env` in `services/blockchain-adapter/` and fill in:
 
@@ -67,7 +75,7 @@ WALLET_MNEMONIC=test test test test test test test test test test test junk
 
 The mnemonic above is the Hardhat default. It matches the wallet that deployed the contract and holds owner permissions.
 
-## 6. Generate Go bindings
+## 7. Generate Go bindings
 
 From the repo root:
 
@@ -77,7 +85,7 @@ mise run contracts:bindings
 
 Writes `services/blockchain-adapter/internal/contracts/cashbacktoken.go` from the compiled ABI. Re-run after any change to `CashbackToken.sol`.
 
-## 7. Run the services
+## 8. Run the services
 
 Each service runs in its own terminal:
 
@@ -99,6 +107,41 @@ mise run run:adapter   # blockchain-adapter    :50051
 
 ---
 
+## E2E Tests
+
+The e2e suite runs the three services against a dedicated isolated stack (separate Postgres on port 25432, NATS on port 4322, Redis on port 6479) and exercises the full cashback flow through real HTTP calls.
+
+### Running the full suite
+
+```bash
+mise run test:e2e
+```
+
+The script `scripts/run-e2e.sh` handles the full lifecycle:
+
+1. Starts isolated Docker Compose infrastructure (`docker-compose.e2e.yml`)
+2. Waits for Postgres and NATS
+3. Creates NATS streams via `cmd/nats-setup`
+4. Applies DB migrations against the e2e databases
+5. Starts the three services natively with `go run`
+6. Waits for the API to be healthy on port 18080
+7. Runs the test suite with `-tags=e2e`
+8. Tears down all infrastructure
+
+### Blockchain test
+
+The test `TestCashbackFlow_ShouldIncrementBalanceAfterMint` requires a running Hardhat node. It is skipped by default. To include it:
+
+```bash
+# In one terminal
+mise run evm
+
+# Then run the e2e suite with blockchain enabled
+E2E_BLOCKCHAIN=true mise run test:e2e
+```
+
+---
+
 ## Deploying to Sepolia
 
 Sepolia is a public Ethereum testnet and is not required for local development. Use it only when testing against a shared network.
@@ -112,3 +155,4 @@ export ETHEREUM_RPC_URL=https://sepolia.infura.io/v3/<your-key>
 export DEPLOYER_PRIVATE_KEY=0x<your-wallet-private-key>
 mise run deploy:sepolia
 ```
+
