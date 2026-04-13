@@ -22,27 +22,27 @@ func (_m *Repository) EXPECT() *Repository_Expecter {
 	return &Repository_Expecter{mock: &_m.Mock}
 }
 
-// Create provides a mock function with given fields: ctx, cashback
-func (_m *Repository) Create(ctx context.Context, cashback domain.Cashback) (domain.Cashback, error) {
-	ret := _m.Called(ctx, cashback)
+// CreateWithEvent provides a mock function with given fields: ctx, cashback, buildPayload
+func (_m *Repository) CreateWithEvent(ctx context.Context, cashback domain.Cashback, buildPayload func(domain.Cashback) interface{}) (domain.Cashback, error) {
+	ret := _m.Called(ctx, cashback, buildPayload)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Create")
+		panic("no return value specified for CreateWithEvent")
 	}
 
 	var r0 domain.Cashback
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, domain.Cashback) (domain.Cashback, error)); ok {
-		return rf(ctx, cashback)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.Cashback, func(domain.Cashback) interface{}) (domain.Cashback, error)); ok {
+		return rf(ctx, cashback, buildPayload)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, domain.Cashback) domain.Cashback); ok {
-		r0 = rf(ctx, cashback)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.Cashback, func(domain.Cashback) interface{}) domain.Cashback); ok {
+		r0 = rf(ctx, cashback, buildPayload)
 	} else {
 		r0 = ret.Get(0).(domain.Cashback)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, domain.Cashback) error); ok {
-		r1 = rf(ctx, cashback)
+	if rf, ok := ret.Get(1).(func(context.Context, domain.Cashback, func(domain.Cashback) interface{}) error); ok {
+		r1 = rf(ctx, cashback, buildPayload)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -50,31 +50,32 @@ func (_m *Repository) Create(ctx context.Context, cashback domain.Cashback) (dom
 	return r0, r1
 }
 
-// Repository_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
-type Repository_Create_Call struct {
+// Repository_CreateWithEvent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateWithEvent'
+type Repository_CreateWithEvent_Call struct {
 	*mock.Call
 }
 
-// Create is a helper method to define mock.On call
+// CreateWithEvent is a helper method to define mock.On call
 //   - ctx context.Context
 //   - cashback domain.Cashback
-func (_e *Repository_Expecter) Create(ctx interface{}, cashback interface{}) *Repository_Create_Call {
-	return &Repository_Create_Call{Call: _e.mock.On("Create", ctx, cashback)}
+//   - buildPayload func(domain.Cashback) interface{}
+func (_e *Repository_Expecter) CreateWithEvent(ctx interface{}, cashback interface{}, buildPayload interface{}) *Repository_CreateWithEvent_Call {
+	return &Repository_CreateWithEvent_Call{Call: _e.mock.On("CreateWithEvent", ctx, cashback, buildPayload)}
 }
 
-func (_c *Repository_Create_Call) Run(run func(ctx context.Context, cashback domain.Cashback)) *Repository_Create_Call {
+func (_c *Repository_CreateWithEvent_Call) Run(run func(ctx context.Context, cashback domain.Cashback, buildPayload func(domain.Cashback) interface{})) *Repository_CreateWithEvent_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(domain.Cashback))
+		run(args[0].(context.Context), args[1].(domain.Cashback), args[2].(func(domain.Cashback) interface{}))
 	})
 	return _c
 }
 
-func (_c *Repository_Create_Call) Return(_a0 domain.Cashback, _a1 error) *Repository_Create_Call {
+func (_c *Repository_CreateWithEvent_Call) Return(_a0 domain.Cashback, _a1 error) *Repository_CreateWithEvent_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *Repository_Create_Call) RunAndReturn(run func(context.Context, domain.Cashback) (domain.Cashback, error)) *Repository_Create_Call {
+func (_c *Repository_CreateWithEvent_Call) RunAndReturn(run func(context.Context, domain.Cashback, func(domain.Cashback) interface{}) (domain.Cashback, error)) *Repository_CreateWithEvent_Call {
 	_c.Call.Return(run)
 	return _c
 }

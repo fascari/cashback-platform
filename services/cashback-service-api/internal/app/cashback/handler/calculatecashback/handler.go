@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/cashback-platform/kit/apperror"
 	"github.com/cashback-platform/kit/errorhandler"
 	"github.com/cashback-platform/kit/httpjson"
 	cashbackhandler "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/handler"
@@ -48,11 +47,6 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 
 	cashback, err := h.useCase.Execute(r.Context(), purchaseID)
 	if err != nil {
-		if apperror.As(err, calculatecashback.ErrCodeFailedToPublishEvent) {
-			httpjson.Write(w, http.StatusCreated, ToOutputPayload(cashback))
-			return
-		}
-
 		errorhandler.Render(w, err, cashbackhandler.ErrorMapping)
 		return
 	}

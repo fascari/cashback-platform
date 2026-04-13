@@ -5,8 +5,7 @@ package mocks
 import (
 	context "context"
 
-	calculatecashback "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback"
-
+	domain "github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -24,22 +23,22 @@ func (_m *UserRepository) EXPECT() *UserRepository_Expecter {
 }
 
 // FindByID provides a mock function with given fields: ctx, id
-func (_m *UserRepository) FindByID(ctx context.Context, id int64) (calculatecashback.User, error) {
+func (_m *UserRepository) FindByID(ctx context.Context, id int64) (domain.User, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindByID")
 	}
 
-	var r0 calculatecashback.User
+	var r0 domain.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int64) (calculatecashback.User, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int64) (domain.User, error)); ok {
 		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int64) calculatecashback.User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int64) domain.User); ok {
 		r0 = rf(ctx, id)
 	} else {
-		r0 = ret.Get(0).(calculatecashback.User)
+		r0 = ret.Get(0).(domain.User)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
@@ -70,12 +69,12 @@ func (_c *UserRepository_FindByID_Call) Run(run func(ctx context.Context, id int
 	return _c
 }
 
-func (_c *UserRepository_FindByID_Call) Return(_a0 calculatecashback.User, _a1 error) *UserRepository_FindByID_Call {
+func (_c *UserRepository_FindByID_Call) Return(_a0 domain.User, _a1 error) *UserRepository_FindByID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *UserRepository_FindByID_Call) RunAndReturn(run func(context.Context, int64) (calculatecashback.User, error)) *UserRepository_FindByID_Call {
+func (_c *UserRepository_FindByID_Call) RunAndReturn(run func(context.Context, int64) (domain.User, error)) *UserRepository_FindByID_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -18,6 +18,17 @@ func New(db *gorm.DB, maxRetries int) Repository {
 	return Repository{db: db, maxRetries: maxRetries}
 }
 
+func (r Repository) CreateWithTx(tx *gorm.DB, eventType, aggregateType string, aggregateID int64, payload []byte) error {
+	return tx.Create(&outboxModel{
+		EventType:     eventType,
+		AggregateType: aggregateType,
+		AggregateID:   aggregateID,
+		Payload:       payload,
+		Status:        outboxdomain.StatusPending,
+		MaxRetries:    r.maxRetries,
+	}).Error
+}
+
 func (r Repository) Create(ctx context.Context, eventType, aggregateType string, aggregateID int64, payload []byte) error {
 	db := r.db.WithContext(ctx)
 	if tx := gormtx.ExtractTx(ctx); tx != nil {

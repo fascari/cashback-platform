@@ -5,8 +5,7 @@ package mocks
 import (
 	context "context"
 
-	calculatecashback "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback"
-
+	domain "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/domain"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -24,22 +23,22 @@ func (_m *PurchaseRepository) EXPECT() *PurchaseRepository_Expecter {
 }
 
 // FindByID provides a mock function with given fields: ctx, id
-func (_m *PurchaseRepository) FindByID(ctx context.Context, id int64) (calculatecashback.Purchase, error) {
+func (_m *PurchaseRepository) FindByID(ctx context.Context, id int64) (domain.Purchase, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindByID")
 	}
 
-	var r0 calculatecashback.Purchase
+	var r0 domain.Purchase
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int64) (calculatecashback.Purchase, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int64) (domain.Purchase, error)); ok {
 		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int64) calculatecashback.Purchase); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int64) domain.Purchase); ok {
 		r0 = rf(ctx, id)
 	} else {
-		r0 = ret.Get(0).(calculatecashback.Purchase)
+		r0 = ret.Get(0).(domain.Purchase)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
@@ -70,12 +69,12 @@ func (_c *PurchaseRepository_FindByID_Call) Run(run func(ctx context.Context, id
 	return _c
 }
 
-func (_c *PurchaseRepository_FindByID_Call) Return(_a0 calculatecashback.Purchase, _a1 error) *PurchaseRepository_FindByID_Call {
+func (_c *PurchaseRepository_FindByID_Call) Return(_a0 domain.Purchase, _a1 error) *PurchaseRepository_FindByID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *PurchaseRepository_FindByID_Call) RunAndReturn(run func(context.Context, int64) (calculatecashback.Purchase, error)) *PurchaseRepository_FindByID_Call {
+func (_c *PurchaseRepository_FindByID_Call) RunAndReturn(run func(context.Context, int64) (domain.Purchase, error)) *PurchaseRepository_FindByID_Call {
 	_c.Call.Return(run)
 	return _c
 }

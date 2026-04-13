@@ -1,7 +1,7 @@
 package testdata
 
-import "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback"
+import purchasedomain "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/domain"
 
-func NewPurchase() calculatecashback.Purchase {
-	return calculatecashback.Purchase{ID: PurchaseID, UserID: UserID, Amount: 100.0}
+func NewPurchase() purchasedomain.Purchase {
+	return purchasedomain.Purchase{ID: PurchaseID, UserID: UserID, Amount: 100.0}
 }

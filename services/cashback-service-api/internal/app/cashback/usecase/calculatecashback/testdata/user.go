@@ -1,7 +1,7 @@
 package testdata
 
-import "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback"
+import userdomain "github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
 
-func NewUser() calculatecashback.User {
-	return calculatecashback.User{WalletAddress: "0xABC"}
+func NewUser() userdomain.User {
+	return userdomain.User{WalletAddress: "0xABC"}
 }

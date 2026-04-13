@@ -1,9 +1,6 @@
 package modules
 
 import (
-	"context"
-
-	"github.com/cashback-platform/kit/gormtx"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/handler/calculatecashback"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/handler/findusercashback"
 	cashbackrepo "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/repository"
@@ -11,7 +8,7 @@ import (
 	findusercashbackuc "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/findusercashback"
 	purchaserepo "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/repository"
 	userrepo "github.com/cashback-platform/services/cashback-service-api/internal/app/user/repository"
-	"github.com/cashback-platform/services/cashback-service-api/internal/infra/messaging/outbox"
+	outboxrepo "github.com/cashback-platform/services/cashback-service-api/internal/infra/messaging/outbox/repository"
 
 	"go.uber.org/fx"
 	"gorm.io/gorm"
@@ -19,14 +16,13 @@ import (
 
 var (
 	cashbackFactories = fx.Provide(
-		cashbackrepo.New,
+		func(db *gorm.DB, outboxRepo outboxrepo.Repository) cashbackrepo.Repository {
+			return cashbackrepo.New(db, outboxRepo)
+		},
 		calculatecashbackuc.New,
 		findusercashbackuc.New,
 		calculatecashback.NewHandler,
 		findusercashback.NewHandler,
-		func(db *gorm.DB) calculatecashbackuc.TransactionManager {
-			return gormtx.NewTransactionManager(db)
-		},
 	)
 
 	cashbackDependencies = fx.Provide(
@@ -34,13 +30,10 @@ var (
 			return repo
 		},
 		func(repo purchaserepo.Repository) calculatecashbackuc.PurchaseRepository {
-			return purchaseRepoAdapter{repo: repo}
+			return repo
 		},
 		func(repo userrepo.Repository) calculatecashbackuc.UserRepository {
-			return userRepoAdapter{repo: repo}
-		},
-		func(pub outbox.Publisher) calculatecashbackuc.EventPublisher {
-			return pub
+			return repo
 		},
 		func(repo cashbackrepo.Repository) findusercashbackuc.Repository {
 			return repo
@@ -62,29 +55,3 @@ var (
 		cashbackInvokes,
 	)
 )
-
-type (
-	purchaseRepoAdapter struct {
-		repo purchaserepo.Repository
-	}
-
-	userRepoAdapter struct {
-		repo userrepo.Repository
-	}
-)
-
-func (a purchaseRepoAdapter) FindByID(ctx context.Context, id int64) (calculatecashbackuc.Purchase, error) {
-	p, err := a.repo.FindByID(ctx, id)
-	if err != nil {
-		return calculatecashbackuc.Purchase{}, err
-	}
-	return calculatecashbackuc.Purchase{ID: p.ID, UserID: p.UserID, Amount: p.Amount}, nil
-}
-
-func (a userRepoAdapter) FindByID(ctx context.Context, id int64) (calculatecashbackuc.User, error) {
-	u, err := a.repo.FindByID(ctx, id)
-	if err != nil {
-		return calculatecashbackuc.User{}, err
-	}
-	return calculatecashbackuc.User{WalletAddress: u.WalletAddress}, nil
-}

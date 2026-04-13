@@ -9,44 +9,35 @@ import (
 
 	"github.com/cashback-platform/kit/apperror"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/domain"
+	purchasedomain "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/domain"
+	userdomain "github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
 	"github.com/google/uuid"
 )
 
 const (
-	DefaultCashbackPercent    = 5.0
-	EventTypeCashbackApproved = "cashback.approved"
+	DefaultCashbackPercent = 5.0
 
 	defaultChainID = "ethereum"
 )
 
 type (
 	Repository interface {
-		Create(ctx context.Context, cashback domain.Cashback) (domain.Cashback, error)
 		FindByPurchaseID(ctx context.Context, purchaseID int64) (domain.Cashback, error)
+		CreateWithEvent(ctx context.Context, cashback domain.Cashback, buildPayload func(domain.Cashback) any) (domain.Cashback, error)
 	}
 
 	PurchaseRepository interface {
-		FindByID(ctx context.Context, id int64) (Purchase, error)
+		FindByID(ctx context.Context, id int64) (purchasedomain.Purchase, error)
 	}
 
 	UserRepository interface {
-		FindByID(ctx context.Context, id int64) (User, error)
-	}
-
-	EventPublisher interface {
-		Publish(ctx context.Context, eventType string, aggregateID int64, payload any) error
-	}
-
-	TransactionManager interface {
-		WithTransaction(ctx context.Context, fn func(ctx context.Context) error) error
+		FindByID(ctx context.Context, id int64) (userdomain.User, error)
 	}
 
 	UseCase struct {
 		repository         Repository
 		purchaseRepository PurchaseRepository
 		userRepository     UserRepository
-		eventPublisher     EventPublisher
-		transactionManager TransactionManager
 	}
 )
 
@@ -54,15 +45,11 @@ func New(
 	repository Repository,
 	purchaseRepository PurchaseRepository,
 	userRepository UserRepository,
-	eventPublisher EventPublisher,
-	transactionManager TransactionManager,
 ) UseCase {
 	return UseCase{
 		repository:         repository,
 		purchaseRepository: purchaseRepository,
 		userRepository:     userRepository,
-		eventPublisher:     eventPublisher,
-		transactionManager: transactionManager,
 	}
 }
 
@@ -97,15 +84,8 @@ func (u UseCase) Execute(ctx context.Context, purchaseID int64) (domain.Cashback
 
 	cashback = cashback.Approve()
 
-	var created domain.Cashback
-	if err := u.transactionManager.WithTransaction(ctx, func(txCtx context.Context) error {
-		var txErr error
-		created, txErr = u.repository.Create(txCtx, cashback)
-		if txErr != nil {
-			return txErr
-		}
-
-		event := CashbackApprovedEvent{
+	return u.repository.CreateWithEvent(ctx, cashback, func(created domain.Cashback) any {
+		return CashbackApprovedEvent{
 			EventID:       uuid.New().String(),
 			CashbackID:    strconv.FormatInt(created.ID, 10),
 			UserID:        strconv.FormatInt(created.UserID, 10),
@@ -114,14 +94,5 @@ func (u UseCase) Execute(ctx context.Context, purchaseID int64) (domain.Cashback
 			TokenAmount:   fmt.Sprintf("%.0f", created.Amount*1e18),
 			ChainID:       defaultChainID,
 		}
-
-		if err := u.eventPublisher.Publish(txCtx, EventTypeCashbackApproved, created.ID, event); err != nil {
-			return ErrFailedToPublishEvent
-		}
-		return nil
-	}); err != nil {
-		return created, err
-	}
-
-	return created, nil
+	})
 }

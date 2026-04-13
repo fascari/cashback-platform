@@ -1,7 +1,6 @@
 package calculatecashback_test
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"testing"
@@ -16,6 +15,8 @@ import (
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/handler/calculatecashback/testdata"
 	calculatecashbackuc "github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/cashback/usecase/calculatecashback/mocks"
+	purchasedomain "github.com/cashback-platform/services/cashback-service-api/internal/app/purchase/domain"
+	userdomain "github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
 )
 
 type (
@@ -27,27 +28,24 @@ type (
 		repo         *mocks.Repository
 		purchaseRepo *mocks.PurchaseRepository
 		userRepo     *mocks.UserRepository
-		publisher    *mocks.EventPublisher
-		tm           *mocks.TransactionManager
 	}
 )
 
 func TestCalculateCashback(t *testing.T) {
 	suite.Run(t, &CalculateCashbackSuite{})
 }
+
 func newCashbackMocks(t *testing.T) cashbackMocks {
 	return cashbackMocks{
 		repo:         mocks.NewRepository(t),
 		purchaseRepo: mocks.NewPurchaseRepository(t),
 		userRepo:     mocks.NewUserRepository(t),
-		publisher:    mocks.NewEventPublisher(t),
-		tm:           mocks.NewTransactionManager(t),
 	}
 }
 
 func (m cashbackMocks) newHandler() calculatecashbackhandler.Handler {
 	return calculatecashbackhandler.NewHandler(
-		calculatecashbackuc.New(m.repo, m.purchaseRepo, m.userRepo, m.publisher, m.tm),
+		calculatecashbackuc.New(m.repo, m.purchaseRepo, m.userRepo),
 	)
 }
 
@@ -56,15 +54,10 @@ func (s *CalculateCashbackSuite) TestSuccess() {
 		t := s.T()
 		m := newCashbackMocks(t)
 
-		m.tm.EXPECT().WithTransaction(mock.Anything, mock.Anything).
-			RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
-				return fn(ctx)
-			})
 		m.repo.EXPECT().FindByPurchaseID(mock.Anything, int64(1)).Return(cashdomain.Cashback{}, cashdomain.ErrCashbackNotFound)
-		m.purchaseRepo.EXPECT().FindByID(mock.Anything, int64(1)).Return(calculatecashbackuc.Purchase{ID: 1, UserID: 42, Amount: 100.0}, nil)
-		m.userRepo.EXPECT().FindByID(mock.Anything, int64(42)).Return(calculatecashbackuc.User{WalletAddress: "0xabc"}, nil)
-		m.repo.EXPECT().Create(mock.Anything, mock.Anything).Return(testdata.ExistingCashback(), nil)
-		m.publisher.EXPECT().Publish(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		m.purchaseRepo.EXPECT().FindByID(mock.Anything, int64(1)).Return(purchasedomain.Purchase{ID: 1, UserID: 42, Amount: 100.0}, nil)
+		m.userRepo.EXPECT().FindByID(mock.Anything, int64(42)).Return(userdomain.User{WalletAddress: "0xabc"}, nil)
+		m.repo.EXPECT().CreateWithEvent(mock.Anything, mock.Anything, mock.Anything).Return(testdata.ExistingCashback(), nil)
 
 		s.PrepareRouter(http.MethodPost, calculatecashbackhandler.Path, m.newHandler().Handle)
 		s.Serve(calculatecashbackhandler.Path, handler.WithJSONBodyStruct(testdata.ValidPayload()))
@@ -72,27 +65,6 @@ func (s *CalculateCashbackSuite) TestSuccess() {
 		resp := s.Response()
 		require.Equal(t, http.StatusCreated, resp.Code)
 		require.Contains(t, resp.Body, `"status":"approved"`)
-	})
-
-	s.Run("should return created when publish fails", func() {
-		t := s.T()
-		m := newCashbackMocks(t)
-
-		m.tm.EXPECT().WithTransaction(mock.Anything, mock.Anything).
-			RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
-				return fn(ctx)
-			})
-		m.repo.EXPECT().FindByPurchaseID(mock.Anything, int64(1)).Return(cashdomain.Cashback{}, cashdomain.ErrCashbackNotFound)
-		m.purchaseRepo.EXPECT().FindByID(mock.Anything, int64(1)).Return(calculatecashbackuc.Purchase{ID: 1, UserID: 42, Amount: 100.0}, nil)
-		m.userRepo.EXPECT().FindByID(mock.Anything, int64(42)).Return(calculatecashbackuc.User{WalletAddress: "0xabc"}, nil)
-		m.repo.EXPECT().Create(mock.Anything, mock.Anything).Return(testdata.ExistingCashback(), nil)
-		m.publisher.EXPECT().Publish(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("publish failed"))
-
-		s.PrepareRouter(http.MethodPost, calculatecashbackhandler.Path, m.newHandler().Handle)
-		s.Serve(calculatecashbackhandler.Path, handler.WithJSONBodyStruct(testdata.ValidPayload()))
-
-		resp := s.Response()
-		require.Equal(t, http.StatusCreated, resp.Code)
 	})
 }
 
