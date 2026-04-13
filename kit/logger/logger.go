@@ -1,38 +1,37 @@
 package logger
 
-import (
-	"log/slog"
-	"os"
-)
+import "go.uber.org/zap"
 
-var logger *slog.Logger
+var instance *zap.Logger
 
 func Init() {
-	logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	}))
+	instance = zap.Must(zap.NewDevelopment())
+}
+
+func Zap() *zap.Logger {
+	return instance
 }
 
 func Info(msg string, args ...any) {
-	if logger != nil {
-		logger.Info(msg, args...)
+	if instance != nil {
+		instance.Sugar().Infow(msg, args...)
 	}
 }
 
 func Error(msg string, args ...any) {
-	if logger != nil {
-		logger.Error(msg, args...)
+	if instance != nil {
+		instance.Sugar().Errorw(msg, args...)
 	}
 }
 
 func Debug(msg string, args ...any) {
-	if logger != nil {
-		logger.Debug(msg, args...)
+	if instance != nil {
+		instance.Sugar().Debugw(msg, args...)
 	}
 }
 
 func Warn(msg string, args ...any) {
-	if logger != nil {
-		logger.Warn(msg, args...)
+	if instance != nil {
+		instance.Sugar().Warnw(msg, args...)
 	}
 }
