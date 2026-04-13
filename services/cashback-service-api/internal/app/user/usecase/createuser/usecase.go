@@ -4,9 +4,9 @@ package createuser
 
 import (
 	"context"
-	"time"
 
 	"github.com/cashback-platform/kit/apperror"
+	"github.com/cashback-platform/kit/clock"
 	"github.com/cashback-platform/services/cashback-service-api/internal/app/user/domain"
 )
 
@@ -43,12 +43,13 @@ func (u UseCase) Execute(ctx context.Context, externalID, email, walletAddress s
 		return domain.User{}, err
 	}
 
+	now := clock.Now().UTC()
 	user := domain.User{
 		ExternalID:    externalID,
 		Email:         email,
 		WalletAddress: walletAddress,
-		CreatedAt:     time.Now().UTC(),
-		UpdatedAt:     time.Now().UTC(),
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}
 
 	return u.repository.Create(ctx, user)

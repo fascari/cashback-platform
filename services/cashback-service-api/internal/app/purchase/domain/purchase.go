@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cashback-platform/kit/apperror"
+	"github.com/cashback-platform/kit/clock"
 )
 
 const (
@@ -37,7 +38,7 @@ type (
 )
 
 func NewPurchase(userID int64, amount float64, merchant string) Purchase {
-	now := time.Now().UTC()
+	now := clock.Now().UTC()
 	return Purchase{
 		UserID:     userID,
 		Amount:     amount,

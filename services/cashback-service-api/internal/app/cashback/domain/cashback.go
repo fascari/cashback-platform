@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cashback-platform/kit/apperror"
+	"github.com/cashback-platform/kit/clock"
 )
 
 const (
@@ -58,7 +59,7 @@ func NewCashback(userID, purchaseID int64, purchaseAmount, cashbackPercent float
 		return Cashback{}, ErrInvalidPercentage
 	}
 
-	now := time.Now().UTC()
+	now := clock.Now().UTC()
 	return Cashback{
 		UserID:          userID,
 		PurchaseID:      purchaseID,
@@ -72,12 +73,12 @@ func NewCashback(userID, purchaseID int64, purchaseAmount, cashbackPercent float
 
 func (c Cashback) Approve() Cashback {
 	c.Status = StatusApproved
-	c.UpdatedAt = time.Now().UTC()
+	c.UpdatedAt = clock.Now().UTC()
 	return c
 }
 
 func (c Cashback) MarkAsFailed() Cashback {
 	c.Status = StatusFailed
-	c.UpdatedAt = time.Now().UTC()
+	c.UpdatedAt = clock.Now().UTC()
 	return c
 }
