@@ -1,0 +1,8 @@
+- id: 1
+  chain_id: "ethereum"
+  transaction_hash: "RAW='0xabc000'"
+  wallet_address: "RAW='0x1234'"
+  token_amount: "1000000000000000000"
+  block_number: 100
+  detected_at: "2026-01-01T00:00:00Z"
+  status: "pending"

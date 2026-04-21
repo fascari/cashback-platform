@@ -28,6 +28,10 @@ var streams = []stream{
 		name:    events.StreamTokenEvents,
 		subject: events.SubjectTokenAll,
 	},
+	{
+		name:    events.StreamDepositEvents,
+		subject: events.SubjectDepositAll,
+	},
 }
 
 func provision(js natsgo.JetStreamContext) error {
