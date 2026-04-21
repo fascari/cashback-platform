@@ -8,6 +8,7 @@ type (
 		Ethereum EthereumConfig
 		Wallet   WalletConfig
 		Redis    RedisConfig
+		NATS     NATSConfig
 	}
 
 	AppConfig struct {
@@ -35,6 +36,10 @@ type (
 	}
 
 	RedisConfig struct {
+		URL string
+	}
+
+	NATSConfig struct {
 		URL string
 	}
 )

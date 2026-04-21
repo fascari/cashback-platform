@@ -14,8 +14,10 @@ func main() {
 		bootstrap.Database,
 		bootstrap.Redis,
 		bootstrap.Ethereum,
+		bootstrap.NATS,
 		bootstrap.Server,
 		modules.Token,
 		bootstrap.Chain,
+		bootstrap.Deposit,
 	).Run()
 }

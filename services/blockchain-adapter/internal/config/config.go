@@ -13,6 +13,7 @@ const (
 	envWalletMnemonic = "WALLET_MNEMONIC"
 	envDerivationPath = "WALLET_DERIVATION_PATH"
 	envRedisURL       = "REDIS_URL"
+	envNATSURL        = "NATS_URL"
 
 	defaultAppName        = "blockchain-adapter"
 	defaultAppEnv         = "development"
@@ -22,6 +23,7 @@ const (
 	defaultSepoliaChainID = 11155111
 	defaultDerivationPath = "m/44'/60'/0'/0/0"
 	defaultRedisURL       = "redis://localhost:6379"
+	defaultNATSURL        = "nats://localhost:4222"
 )
 
 func NewConfig() (*Config, error) {
@@ -35,6 +37,7 @@ func NewConfig() (*Config, error) {
 	viper.SetDefault(envEthereumChain, defaultSepoliaChainID)
 	viper.SetDefault(envDerivationPath, defaultDerivationPath)
 	viper.SetDefault(envRedisURL, defaultRedisURL)
+	viper.SetDefault(envNATSURL, defaultNATSURL)
 
 	_ = viper.ReadInConfig()
 
@@ -60,6 +63,9 @@ func NewConfig() (*Config, error) {
 		},
 		Redis: RedisConfig{
 			URL: viper.GetString(envRedisURL),
+		},
+		NATS: NATSConfig{
+			URL: viper.GetString(envNATSURL),
 		},
 	}, nil
 }

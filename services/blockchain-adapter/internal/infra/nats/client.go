@@ -27,7 +27,7 @@ func NewNATSClient(cfg *config.Config) (*NATSClient, error) {
 		return nil, fmt.Errorf("create JetStream context: %w", err)
 	}
 
-	return &NATSClient{conn: conn, js: js}, nil
+	return new(NATSClient{conn: conn, js: js}), nil
 }
 
 // Publish sends a message to the given JetStream subject.

@@ -18,18 +18,18 @@ var Server = fx.Module("server",
 	fx.Invoke(startGRPCServer),
 )
 
-func newGRPCServer() *grpc.Server {
-	server := grpc.NewServer()
-	reflection.Register(server)
-	return server
-}
-
 type serverParams struct {
 	fx.In
 
 	LC     fx.Lifecycle
 	Server *grpc.Server
 	Cfg    *config.Config
+}
+
+func newGRPCServer() *grpc.Server {
+	server := grpc.NewServer()
+	reflection.Register(server)
+	return server
 }
 
 func startGRPCServer(p serverParams) {

@@ -15,7 +15,7 @@ func New(uc usecase.TokenUsecase) Client {
 	return Client{useCase: uc}
 }
 
-func (c Client) ChainID() chain.ID {
+func (Client) ChainID() chain.ID {
 	return chain.Ethereum
 }
 
