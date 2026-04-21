@@ -34,3 +34,26 @@ sequenceDiagram
     MC->>NATS: ACK
 ```
 
+---
+
+## Deposit Detection Flow
+
+```mermaid
+sequenceDiagram
+    participant Chain as Ethereum Node
+    participant BA as blockchain-adapter
+    participant DB as blockchain_adapter_db
+    participant NATS as NATS JetStream
+
+    loop every 12s
+        BA->>Chain: eth_getLogs (Transfer events, block range)
+        Chain-->>BA: Transfer events
+        BA->>BA: map events to Deposit structs
+        loop for each deposit
+            BA->>DB: INSERT INTO detected_deposits (ON CONFLICT DO NOTHING)
+            BA->>NATS: publish deposit.detected
+        end
+        BA->>BA: advance current block = latest + 1
+    end
+```
+

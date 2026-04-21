@@ -14,9 +14,11 @@ Users earn cashback on purchases. The cashback value is represented as a crypto 
 |---|---|---|
 | **cashback-service-api** | Purchases, cashback rules, Outbox Pattern | REST |
 | **mint-consumer** | Idempotent event processing, gRPC orchestration | NATS consumer |
-| **blockchain-adapter** | Wallet signing, nonce management, ERC-20 minting | gRPC server |
+| **blockchain-adapter** | Wallet signing, nonce management, ERC-20 minting, deposit monitoring | gRPC server |
 
-## Flow
+## Flows
+
+**Cashback mint**
 
 1. Purchase recorded
 2. cashback-service-api calculates the amount and publishes an event via the Outbox Pattern
@@ -24,6 +26,12 @@ Users earn cashback on purchases. The cashback value is represented as a crypto 
 4. mint-consumer calls blockchain-adapter via gRPC
 5. blockchain-adapter signs and submits `CashbackToken.mint()`
 6. CBK tokens credited to the user wallet on-chain
+
+**Deposit detection**
+
+1. blockchain-adapter polls the Ethereum node every 12 seconds for `Transfer` events
+2. Each detected transfer is saved to `detected_deposits` (idempotent, de-duplicated by tx hash)
+3. blockchain-adapter publishes `deposit.detected` to the `DEPOSIT_EVENTS` NATS stream
 
 ---
 
@@ -38,7 +46,7 @@ Users earn cashback on purchases. The cashback value is represented as a crypto 
 - gRPC
 - go-ethereum
 - Solidity
-- Hardhat
+- Hardhat + Anvil (Foundry)
 - OpenTelemetry + Jaeger
 - Mise
 
@@ -86,6 +94,5 @@ mise run run:adapter
 
 - [architecture.md](docs/architecture.md) - system components and database schema
 - [events.md](docs/events.md) - NATS JetStream events and Outbox Pattern
-- [local-development.md](docs/local-development.md) - full local setup including Hardhat and Sepolia
-- [running-locally.md](docs/running-locally.md) - step-by-step guide to run and test the full flow
+- [local-development.md](docs/local-development.md) - full local setup, flow walkthrough, e2e tests, and Sepolia deploy
 - [diagrams/](docs/diagrams/) - Mermaid diagrams

@@ -83,24 +83,17 @@
 
 ### deposit.detected
 
-Published by the blockchain-adapter deposit monitor when a confirmed inbound transfer is detected on-chain.
+Published by the blockchain-adapter deposit monitor when a `Transfer` event is detected on-chain. The payload reflects the `chain.Deposit` struct marshaled directly.
 
 ```json
 {
-  "event_id": "uuid",
-  "event_type": "deposit.detected",
-  "timestamp": "2024-01-15T10:45:00Z",
-  "data": {
-    "deposit_id": "uuid",
-    "chain_id": "ethereum-sepolia",
-    "wallet_address": "0x...",
-    "from_address": "0x...",
-    "transaction_hash": "0x...",
-    "token_amount": "1500000000000000000",
-    "block_reference": 12345690,
-    "confirmations": 12,
-    "detected_at": "2024-01-15T10:45:00Z"
-  }
+  "chain_id": "ethereum",
+  "transaction_hash": "0x...",
+  "from_address": "0x...",
+  "to_address": "0x...",
+  "token_amount": "1500000000000000000",
+  "block_number": 12345690,
+  "detected_at": "2024-01-15T10:45:00Z"
 }
 ```
 
