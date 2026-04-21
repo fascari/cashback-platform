@@ -47,6 +47,16 @@ until curl -sf http://localhost:8322/healthz >/dev/null 2>&1; do
   sleep 2
 done
 
+echo "Waiting for e2e Anvil..."
+until curl -sf http://localhost:8545 -X POST \
+    -H 'Content-Type: application/json' \
+    -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' >/dev/null 2>&1; do
+  sleep 2
+done
+
+echo "Deploying CashbackToken to Anvil..."
+(cd "$REPO_ROOT/contracts" && npm run deploy:local >/dev/null)
+
 echo "Setting up NATS streams..."
 (cd "$REPO_ROOT/cmd/nats-setup" && NATS_URL=nats://localhost:4322 go run .)
 

@@ -18,9 +18,11 @@ const BaseURL = "http://localhost:18080"
 
 type Suite struct {
 	suite.Suite
-	E      *httpexpect.Expect
-	db     *sql.DB
-	loader *testfixtures.Loader
+	E               *httpexpect.Expect
+	BlockchainDB    *sql.DB
+	EthereumRPCURL  string
+	db              *sql.DB
+	loader          *testfixtures.Loader
 }
 
 func (s *Suite) SetupSuite() {
@@ -38,6 +40,19 @@ func (s *Suite) SetupSuite() {
 	s.Require().NoError(err)
 	s.Require().NoError(db.Ping())
 	s.db = db
+
+	if dsn := os.Getenv("POSTGRES_DSN_BLOCKCHAIN"); dsn != "" {
+		bdb, err := sql.Open("postgres", dsn)
+		s.Require().NoError(err)
+		s.Require().NoError(bdb.Ping())
+		s.BlockchainDB = bdb
+	}
+
+	rpcURL := os.Getenv("ETHEREUM_RPC_URL")
+	if rpcURL == "" {
+		rpcURL = "http://127.0.0.1:8545"
+	}
+	s.EthereumRPCURL = rpcURL
 }
 
 // ConfigureFixtures sets up the fixture loader for the given directory.
@@ -67,10 +82,13 @@ func (s *Suite) SetupTest() {
 	})
 }
 
-// TearDownSuite closes the database connection.
+// TearDownSuite closes all database connections.
 func (s *Suite) TearDownSuite() {
 	if s.db != nil {
 		_ = s.db.Close()
+	}
+	if s.BlockchainDB != nil {
+		_ = s.BlockchainDB.Close()
 	}
 }
 
