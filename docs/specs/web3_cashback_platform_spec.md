@@ -90,7 +90,8 @@ Each service manages its own database schema.
 
 - **users**: users and associated wallet addresses
 - **purchases**: purchase records
-- **cashback_ledger**: off-chain representation of generated cashback (statuses: `pending`, `approved`, `minting`, `minted`, `failed`)
+- **cashback_ledger**: off-chain representation of generated cashback (statuses: `pending`, `approved`, `minting`, `minted`, `failed`), linked to either `purchase_id` or `deposit_receipt_id`
+- **deposit_receipts**: records on-chain inbound deposits with `tx_hash` (UNIQUE idempotency key), `user_id`, `from_address`, `amount` in wei, `chain_id`, `block_number`, and `detected_at`
 - **outbox_events**: pending events to be published via the Outbox Pattern
 
 ### mint-consumer (`mint` schema)
@@ -108,9 +109,10 @@ Each service manages its own database schema.
 
 ## 7. Domain Events
 
-The system publishes one domain event over NATS JetStream:
+The system publishes two domain events over NATS JetStream:
 
-- **cashback.approved**: cashback amount has been calculated and approved; consumed by the Mint Consumer to trigger minting
+- **cashback.approved**: cashback amount calculated and approved, consumed by mint-consumer to trigger minting
+- **deposit.detected**: on-chain inbound transfer detected by the blockchain-adapter deposit monitor, consumed by cashback-service-api to credit cashback from the deposit
 
 Downstream operations (gRPC call to Blockchain Adapter, transaction submission, confirmation) are tracked as internal state transitions, not as published events.
 
@@ -153,27 +155,13 @@ Downstream operations (gRPC call to Blockchain Adapter, transaction submission, 
 
 ---
 
-## 11. High-Level Flow Diagram
+## 11. High-Level Flow Diagrams
 
-```
-[ Client ]
-    |
-    | REST
-    v
-[ Cashback Service ]
-    |
-    | outbox -> NATS JetStream (cashback.approved)
-    v
-[ Mint Consumer ]
-    |
-    | gRPC
-    v
-[ Blockchain Adapter ]
-    |
-    | Ethereum JSON-RPC
-    v
-[ Blockchain / CashbackToken contract ]
-```
+The full architecture and event flows are illustrated in the diagrams directory:
+
+- [High-Level System Flow](../diagrams/01-high-level-system-flow.md): purchase and deposit paths, all components
+- [Domain Events Flow](../diagrams/03-domain-events-flow.md): purchase-based cashback and deposit-based cashback flows as sequence diagrams
+- [Off-chain vs On-chain Responsibilities](../diagrams/02-offchain-vs-onchain.md): boundary between PostgreSQL state and blockchain state
 
 ---
 

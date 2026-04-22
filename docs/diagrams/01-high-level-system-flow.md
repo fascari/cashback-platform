@@ -16,6 +16,8 @@ flowchart TD
     INFURA["Infura / Alchemy\nRPC provider"]
     CHAIN["Sepolia Testnet\nEthereum"]
     CONTRACT["CashbackToken.sol\nERC-20 smart contract"]
+    USER_WALLET["User Wallet\n(on-chain)"]
+    DEPOSIT_EVENTS["DEPOSIT_EVENTS\nNATS stream"]
 
     CLIENT -->|POST /purchases| API
     API --> DB1
@@ -28,6 +30,10 @@ flowchart TD
     ADAPTER -->|eth_sendRawTransaction| INFURA
     INFURA --> CHAIN
     CHAIN -->|executes| CONTRACT
+    USER_WALLET -->|Transfer tokens| CONTRACT
+    CONTRACT -->|Transfer event| ADAPTER
+    ADAPTER -->|deposit.detected| DEPOSIT_EVENTS
+    DEPOSIT_EVENTS -->|deposit.detected| API
 
     style CLIENT   fill:#312e81,color:#c7d2fe,stroke:#6366f1
     style API      fill:#1e3a5f,color:#bae6fd,stroke:#38bdf8
@@ -41,5 +47,7 @@ flowchart TD
     style INFURA   fill:#0c4a6e,color:#7dd3fc,stroke:#0284c7
     style CHAIN    fill:#064e3b,color:#6ee7b7,stroke:#10b981
     style CONTRACT fill:#065f46,color:#a7f3d0,stroke:#34d399
+    style USER_WALLET fill:#1c1917,color:#d6d3d1,stroke:#78716c
+    style DEPOSIT_EVENTS fill:#4a1d96,color:#ddd6fe,stroke:#a78bfa
 ```
 

@@ -94,5 +94,5 @@ mise run run:adapter
 
 - [architecture.md](docs/architecture.md) - system components and database schema
 - [events.md](docs/events.md) - NATS JetStream events and Outbox Pattern
-- [local-development.md](docs/local-development.md) - full local setup, flow walkthrough, e2e tests, and Sepolia deploy
+- [guide/](docs/guide/) - development guides (setup, flows, e2e, observability, Sepolia)
 - [diagrams/](docs/diagrams/) - Mermaid diagrams

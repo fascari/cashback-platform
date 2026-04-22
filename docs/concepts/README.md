@@ -1,4 +1,4 @@
-# Web3 Concepts — cashback-platform
+# Web3 Concepts - cashback-platform
 
 Reference for Web3, blockchain, and crypto concepts covered in this project.
 Each section maps to a concept implemented in one of the plan phases.

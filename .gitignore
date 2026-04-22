@@ -32,3 +32,4 @@ Thumbs.db
 .*.env
 !.env.example
 .bin/
+graphify-out/

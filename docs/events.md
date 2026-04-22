@@ -1,5 +1,6 @@
 # Domain Events
 
+
 ## Event Catalog
 
 | Event | Producer | Consumer | Trigger |
@@ -12,6 +13,7 @@
 | `deposit.detected` | blockchain-adapter (deposit monitor) | cashback-service-api (credit flow) | On-chain inbound transfer detected and confirmed |
 
 ---
+
 
 ## Event Payloads
 
@@ -37,6 +39,8 @@
   }
 }
 ```
+
+> For deposit-based cashbacks, `purchase_id` is omitted from the payload (set to empty string). The deposit is identified by the linked `deposit_receipt_id` in the off-chain ledger.
 
 ### token.minted
 
@@ -97,7 +101,20 @@ Published by the blockchain-adapter deposit monitor when a `Transfer` event is d
 }
 ```
 
+
+## Deposit-Based Cashback Flow
+
+When `deposit.detected` is received by cashback-service-api:
+
+1. The consumer resolves the user by matching `from_address` against `users.wallet_address`.
+2. A `deposit_receipts` row is created with `tx_hash` as the idempotency key.
+3. Cashback is calculated: `token_amount_wei / 1e18 * cashback_percent / 100`.
+4. A `cashback_ledger` row is inserted with `deposit_receipt_id` set and `purchase_id` null.
+5. The outbox publishes `cashback.approved`, the same event consumed by mint-consumer.
+6. mint-consumer mints tokens back to the user's wallet.
+
 ---
+
 
 ## NATS JetStream Configuration
 
@@ -119,6 +136,7 @@ Published by the blockchain-adapter deposit monitor when a `Transfer` event is d
 | `cashback-service-api-deposits` | DEPOSIT_EVENTS | `deposit.detected` | Explicit | 5 | 30s |
 
 ---
+
 
 ## Outbox Pattern
 

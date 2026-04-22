@@ -15,8 +15,8 @@ description = "Deploy to local Hardhat node (requires: mise run evm in another t
 run = "npm run deploy:local"
 
 [tasks."deploy:sepolia"]
-description = "Deploy to Sepolia testnet (requires ETHEREUM_RPC_URL and DEPLOYER_PRIVATE_KEY)"
-run = "npm run deploy:sepolia"
+description = "Deploy to Sepolia testnet (requires ETHEREUM_RPC_URL and DEPLOYER_PRIVATE_KEY). Updates CONTRACT_ADDRESS in root .env automatically."
+run = "./scripts/deploy-sepolia.sh"
 
 [tasks.bindings]
 description = "Generate Go bindings for blockchain-adapter from compiled ABI"

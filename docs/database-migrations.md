@@ -6,7 +6,7 @@ This project uses [golang-migrate](https://github.com/golang-migrate/migrate) fo
 
 Migrations live under `db/migrations/{service}/` and follow the naming convention:
 
-```
+```text
 {N}_{description}.up.sql    # applies the change
 {N}_{description}.down.sql  # reverts the change
 ```
@@ -70,7 +70,7 @@ mise run db:version    # print current version
 
 1. Create the next numbered pair in `db/migrations/{service}/`:
 
-```
+```text
 db/migrations/cashback-service/
   002_add_cashback_tier.up.sql
   002_add_cashback_tier.down.sql

@@ -1,5 +1,7 @@
 # Domain Events Flow
 
+In local development, the EVM node is Hardhat or Anvil. For live testing, it is Sepolia testnet. The flow is identical across environments.
+
 ```mermaid
 sequenceDiagram
     actor User
@@ -7,7 +9,7 @@ sequenceDiagram
     participant NATS as NATS JetStream
     participant MC as mint-consumer
     participant BA as blockchain-adapter
-    participant Chain as Sepolia EVM
+    participant Chain as Ethereum Node
 
     User->>API: POST /purchases
     API->>API: persist purchase
@@ -44,6 +46,8 @@ sequenceDiagram
     participant BA as blockchain-adapter
     participant DB as blockchain_adapter_db
     participant NATS as NATS JetStream
+    participant API as cashback-service-api
+    participant MC as mint-consumer
 
     loop every 12s
         BA->>Chain: eth_getLogs (Transfer events, block range)
@@ -52,6 +56,19 @@ sequenceDiagram
         loop for each deposit
             BA->>DB: INSERT INTO detected_deposits (ON CONFLICT DO NOTHING)
             BA->>NATS: publish deposit.detected
+            NATS->>API: deliver deposit.detected
+            API->>API: resolve user by from_address
+            API->>API: create deposit_receipt (idempotency: tx_hash)
+            API->>API: calculate cashback from token amount
+            API->>NATS: cashback.approved (via outbox)
+            NATS->>MC: deliver cashback.approved
+            MC->>MC: idempotency check
+            MC->>MC: create MintRequest
+            MC->>BA: gRPC MintToken
+            BA->>Chain: eth_sendRawTransaction (mint back to user)
+            Chain-->>BA: tx hash
+            BA-->>MC: MintResult
+            MC->>NATS: ACK
         end
         BA->>BA: advance current block = latest + 1
     end

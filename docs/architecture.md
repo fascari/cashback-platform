@@ -1,5 +1,6 @@
 # Web3 Cashback Platform - Architecture
 
+
 ## 1. Overview
 
 Backend system that issues cashback as **crypto tokens minted on a blockchain**. It integrates traditional backend components with Web3 concepts using an event-driven architecture and a clear separation between off-chain and on-chain responsibilities.
@@ -24,11 +25,12 @@ Users earn cashback when making purchases. Instead of storing cashback only in a
 
 ---
 
+
 ## 2. System Components
 
 ### cashback-service-api
 
-REST entry point for purchases and cashback rules. Persists off-chain state in its own PostgreSQL database and publishes domain events via the Outbox Pattern. Has **no** direct dependency on blockchain libraries.
+REST entry point for purchases and cashback rules. Persists off-chain state in its own PostgreSQL database, publishes domain events via the Outbox Pattern, and consumes `deposit.detected` from NATS to credit cashback from on-chain deposits. Has **no** direct dependency on blockchain libraries.
 
 | Concern | Technology |
 |---|---|
@@ -37,7 +39,7 @@ REST entry point for purchases and cashback rules. Persists off-chain state in i
 | DI | Uber Fx |
 | Config | Viper |
 
-**Database** (`cashback_service_db`): `users`, `purchases`, `cashback_ledger`, `outbox_events`
+**Database** (`cashback_service_db`): `users`, `purchases`, `cashback_ledger`, `deposit_receipts`, `outbox_events`
 
 ### mint-consumer
 
@@ -69,15 +71,18 @@ gRPC service that abstracts all blockchain interaction. Multi-chain adapter with
 
 ---
 
+
 ## 3. Communication Patterns
 
 | Boundary | Technology | Direction |
 |---|---|---|
 | External (client-facing) | REST | Client to cashback-service-api |
-| Async internal | NATS JetStream | cashback-service-api to mint-consumer |
+| Async internal | NATS JetStream | cashback-service-api to mint-consumer (`cashback.approved`) |
+| Async internal | NATS JetStream | blockchain-adapter to cashback-service-api (`deposit.detected`) |
 | Sync internal | gRPC | mint-consumer to blockchain-adapter |
 
 ---
+
 
 ## 4. Database Schema
 
@@ -89,7 +94,8 @@ Each service owns its own PostgreSQL database. There is **no shared database**.
 |---|---|
 | `users` | User accounts with `wallet_address` (VARCHAR 42) |
 | `purchases` | Purchase records with `amount`, `merchant_id`, `status` |
-| `cashback_ledger` | Off-chain cashback with `token_amount` (wei as VARCHAR 78) |
+| `cashback_ledger` | Off-chain cashback with `token_amount` (wei as VARCHAR 78), linked to either `purchase_id` or `deposit_receipt_id` |
+| `deposit_receipts` | On-chain inbound deposit records: `tx_hash` (UNIQUE), `user_id`, `from_address`, amount in wei, `chain_id`, `block_number`, `detected_at` |
 | `outbox_events` | Pending events with `status` (pending / published / failed) |
 
 ### mint_consumer_db
@@ -111,6 +117,7 @@ Full schema: [`db/schema.sql`](../db/schema.sql)
 
 ---
 
+
 ## 5. Diagrams
 
 | # | Diagram |
@@ -124,6 +131,7 @@ Full schema: [`db/schema.sql`](../db/schema.sql)
 
 
 ---
+
 
 ## Further Reading
 

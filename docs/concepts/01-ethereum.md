@@ -1,4 +1,4 @@
-# Ethereum — Web3 Concepts
+# Ethereum: Web3 Concepts
 
 **Index**: [Blockchain](#1-blockchain) · [Ethereum](#2-ethereum) · [Wallet](#3-wallet-and-key-management) · [Gas](#4-gas) · [Nonce](#5-nonce) · [TX Lifecycle](#6-ethereum-transaction-lifecycle) · [Smart Contract](#7-smart-contract) · [Solidity](#8-solidity) · [ERC-20](#9-erc-20) · [ABI & abigen](#10-abi-and-abigen) · [Sepolia](#11-sepolia-testnet) · [RPC Providers](#12-rpc-providers-infura--alchemy) · [Hardhat](#13-hardhat)
 
@@ -49,12 +49,12 @@ mnemonic (12 words) -> seed -> private key -> public key -> address (0x...)
 **HD Wallet (BIP-32/BIP-39/BIP-44)**: a single mnemonic can deterministically derive multiple
 addresses via a derivation path. The path encodes coin type, account, and index:
 
-```
+```text
 Ethereum: m/44'/60'/0'/0/0   (coin_type=60)
 Solana:   m/44'/501'/0'/0'   (coin_type=501)
 ```
 
-This allows managing many wallets from one seed — critical for exchange wallets where each
+This allows managing many wallets from one seed, which is critical for exchange wallets where each
 user gets a unique deposit address derived from the same master key.
 
 **Cryptographic algorithms by chain**:
@@ -138,7 +138,7 @@ pending -> submitted -> confirming (waiting N blocks) -> confirmed
 
 This project tracks this lifecycle in `blockchain_transactions.status`.
 
-**Transaction hash**: SHA3 hash of the signed transaction content. Deterministic — given the
+**Transaction hash**: SHA3 hash of the signed transaction content. It is deterministic. Given the
 same nonce and payload, the hash is always the same. This allows recovering a lost transaction
 without re-signing.
 

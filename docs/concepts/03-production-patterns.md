@@ -1,4 +1,4 @@
-# Production Blockchain Engineering — Web3 Concepts
+# Production Blockchain Engineering: Web3 Concepts
 
 **Index**: [Chain Reorganization](#18-chain-reorganization) · [Deposit Processing & Monitoring](#19-deposit-processing-and-monitoring) · [Confirmation Tracking](#20-transaction-confirmation-tracking) · [Custody Providers](#21-custody-providers-fireblocks-and-bitgo) · [Multi-Chain Architecture](#22-multi-chain-architecture-patterns) · [Distributed Locking](#23-distributed-locking-in-blockchain-services)
 
@@ -8,7 +8,7 @@
 
 **What it is**: a chain reorganization (reorg) occurs when a block that was part of the
 "longest chain" is replaced by a competing chain with more accumulated work (PoW) or stake (PoS).
-Transactions in the orphaned block are reverted to the mempool — they never happened.
+Transactions in the orphaned block are reverted to the mempool. They are treated as if they never happened.
 
 **Why it matters for payment/exchange systems**: if you credit a user's account after seeing
 a transaction in block N, and block N is later orphaned, you have credited funds that were never
@@ -88,7 +88,7 @@ for _, log := range logs {
 ```
 
 **Key production concern**: always persist `lastProcessedBlock` to the DB after processing.
-On service restart, resume from `lastProcessedBlock`, not from the current block — otherwise
+On service restart, resume from `lastProcessedBlock`, not from the current block. Otherwise,
 you miss blocks processed during the downtime.
 
 **Solana deposit detection**:
@@ -178,20 +178,18 @@ leaves the custody provider's infrastructure.
 
 **How integration works** (Fireblocks example):
 
-```
-Your code                         Fireblocks API
-    |                                   |
-    |-- POST /transactions -----------> |
-    |   { assetId: "ETH",              |
-    |     destination: "0xABC...",     |
-    |     amount: "1.5" }              |
-    |                                   |-- Signs with MPC key
-    |                                   |-- Broadcasts to network
-    |<-- { txId, status: "PENDING" } --|
-    |                                   |
-    |-- GET /transactions/{txId} -----> |
-    |<-- { status: "CONFIRMED",         |
-    |      txHash: "0x..." }           |
+```mermaid
+sequenceDiagram
+    participant Code as Your service
+    participant FB as Fireblocks API
+
+    Code->>FB: POST /transactions\n{ assetId, destination, amount }
+    FB->>FB: Sign with MPC key
+    FB->>FB: Broadcast to network
+    FB-->>Code: { txId, status: "PENDING" }
+
+    Code->>FB: GET /transactions/{txId}
+    FB-->>Code: { status: "CONFIRMED", txHash: "0x..." }
 ```
 
 **Key difference from self-custody**:
@@ -202,7 +200,7 @@ Your code                         Fireblocks API
 
 **MPC (Multi-Party Computation)**: Fireblocks uses MPC-CMP, a cryptographic protocol where
 the private key is split into shares across multiple parties. No single party ever has the
-full key. Signing requires a threshold of parties to cooperate — a leaked share is useless.
+full key. Signing requires a threshold of parties to cooperate. A leaked share is useless.
 
 **Comparison**:
 
@@ -215,7 +213,7 @@ full key. Signing requires a threshold of parties to cooperate — a leaked shar
 | Regulatory fit | PoC / low-value | Production / compliance |
 
 In production, replace the self-managed wallet with a Fireblocks integration. The `ChainClient`
-interface already abstracts signing — swapping the implementation does not touch the business
+interface already abstracts signing. Swapping the implementation does not touch the business
 logic layer.
 
 ---
@@ -278,7 +276,7 @@ Zero changes to the gRPC server, use cases, or business logic.
 ## 23. Distributed Locking in Blockchain Services
 
 Blockchain services have a specific concurrency problem: the **nonce** (Ethereum) must be
-issued sequentially without gaps. If two goroutines — or two service replicas — both read
+issued sequentially without gaps. If two goroutines, or two service replicas, both read
 nonce=5 and submit, one will fail with "nonce too low" and create a nonce gap.
 
 **The naive approach (wrong)**:
@@ -291,27 +289,36 @@ db.Unlock()
 ```
 
 This fails with multiple replicas because `SELECT FOR UPDATE` only serialises within one
-database connection — two instances each hold their own connection.
+database connection. Two instances each hold their own connection.
 
 **The correct approach: Redis distributed lock + fencing token**:
 
-```
-1. ServiceA: SET lock_wallet_0xABC {token=7} NX PX 5000  → OK
-2. ServiceA: nonce = db.GetAndIncrement(fence_token=7)
-3. ServiceA: eth.SendTransaction(nonce)
-4. ServiceA: DEL lock_wallet_0xABC
+```mermaid
+sequenceDiagram
+    participant A as ServiceA
+    participant B as ServiceB
+    participant Redis
+    participant DB
 
-If ServiceA crashes after step 2 but before step 3:
-  Lock expires
-5. ServiceB: SET lock_wallet_0xABC {token=8} NX PX 5000  → OK
-  ServiceB gets a fresh nonce (from DB, which already has the correct next value)
-  ServiceB's fence_token=8 > any stale token
-  If ServiceA wakes up and tries to write with token=7 → DB rejects (7 < 8)
+    A->>Redis: SET lock_wallet (token=7) NX TTL=5s
+    Redis-->>A: OK
+    A->>DB: GetAndIncrement(fence_token=7) → nonce=5
+    A->>A: eth_sendRawTransaction(nonce=5)
+    A->>Redis: DEL lock_wallet
+
+    Note over A: crash scenario: A crashes after DB write, before send
+
+    Redis-->>Redis: TTL expires
+    B->>Redis: SET lock_wallet (token=8) NX TTL=5s
+    Redis-->>B: OK
+    B->>DB: GetAndIncrement(fence_token=8) → nonce=6
+    Note over DB: rejects stale writes: token=7 < token=8
+    B->>B: eth_sendRawTransaction(nonce=6)
 ```
 
 **Why fencing tokens**: a process can resume after a GC pause or network partition even after
 its lock expired. Without fencing, it would overwrite the new lock holder's work. The fencing
-token — a monotonically increasing integer — makes the DB the arbiter: it rejects any write
+token, a monotonically increasing integer, makes the DB the arbiter: it rejects any write
 with a token lower than the last accepted token.
 
 **Implementation with Redis + PostgreSQL**:
