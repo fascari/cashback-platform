@@ -32,8 +32,6 @@ const (
 	dbTimeout  = 30 * time.Second
 )
 
-// Suite provides a reusable database container, GORM connection,
-// and fixture loader for repository integration tests.
 type Suite struct {
 	suite.Suite
 	DB        *gorm.DB
@@ -109,7 +107,6 @@ func (s *Suite) ConfigureFixtures(migrationsFS fs.FS, fixturesFS fs.FS) {
 	s.Require().NoError(err)
 }
 
-// TearDownSuite terminates the PostgreSQL container.
 func (s *Suite) TearDownSuite() {
 	if s.container != nil {
 		_ = s.container.Terminate(context.Background())

@@ -1,6 +1,5 @@
 package events
 
-// Subject constants used when publishing or subscribing to individual event types.
 const (
 	CashbackApproved = "cashback.approved"
 	DepositDetected  = "deposit.detected"
@@ -14,7 +13,6 @@ const (
 	StreamDepositEvents  = "DEPOSIT_EVENTS"
 )
 
-// Subject wildcard constants — used when declaring stream subject filters.
 const (
 	SubjectPurchaseAll = "purchase.>"
 	SubjectCashbackAll = "cashback.>"

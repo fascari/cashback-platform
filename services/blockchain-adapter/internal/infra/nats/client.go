@@ -8,7 +8,6 @@ import (
 	"github.com/cashback-platform/services/blockchain-adapter/internal/config"
 )
 
-// NATSClient wraps a NATS connection with JetStream publishing support.
 // Streams must exist before this client is created — run cmd/nats-setup during infra setup.
 type NATSClient struct {
 	conn *natsgo.Conn
@@ -30,13 +29,11 @@ func NewNATSClient(cfg *config.Config) (*NATSClient, error) {
 	return new(NATSClient{conn: conn, js: js}), nil
 }
 
-// Publish sends a message to the given JetStream subject.
 func (c *NATSClient) Publish(subject string, data []byte) error {
 	_, err := c.js.Publish(subject, data)
 	return err
 }
 
-// Close drains and closes the underlying NATS connection.
 func (c *NATSClient) Close() {
 	if c.conn != nil {
 		c.conn.Close()

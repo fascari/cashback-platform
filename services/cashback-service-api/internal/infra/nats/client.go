@@ -8,7 +8,6 @@ import (
 	natsgo "github.com/nats-io/nats.go"
 )
 
-// NATSClient wraps a NATS connection with JetStream publishing support.
 // Streams must exist before this client is created — run cmd/nats-setup during infra setup.
 type NATSClient struct {
 	conn *natsgo.Conn

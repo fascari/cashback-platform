@@ -23,7 +23,6 @@ func initialize() {
 	})
 }
 
-// Now returns the current time using the configured time source.
 func Now() time.Time {
 	initialize()
 	mu.RLock()

@@ -17,13 +17,11 @@ type (
 		FilterTransfers(ctx context.Context, fromBlock, toBlock uint64) ([]chain.Deposit, error)
 	}
 
-	// contractFilter implements TokenFilter using the generated CashbackToken bindings.
 	contractFilter struct {
 		token *contracts.CashbackToken
 	}
 )
 
-// NewContractFilter wraps the CashbackToken contract to satisfy TokenFilter.
 func NewContractFilter(token *contracts.CashbackToken) TokenFilter {
 	return contractFilter{token: token}
 }

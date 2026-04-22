@@ -30,7 +30,6 @@ func New(userRepository UserRepository, blockchainClient BlockchainClient) UseCa
 	}
 }
 
-// Execute returns the on-chain token balance for the given user.
 func (u UseCase) Execute(ctx context.Context, userID int64) (Output, error) {
 	user, err := u.userRepository.FindByID(ctx, userID)
 	if err != nil {
