@@ -21,5 +21,6 @@ func main() {
 		modules.User,
 		modules.Purchase,
 		modules.Cashback,
+		modules.Deposit,
 	).Run()
 }
