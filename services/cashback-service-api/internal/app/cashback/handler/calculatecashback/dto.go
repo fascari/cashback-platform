@@ -28,10 +28,14 @@ func (p InputPayload) Validate() error {
 }
 
 func ToOutputPayload(cashback domain.Cashback) OutputPayload {
+	purchaseID := ""
+	if cashback.PurchaseID != nil {
+		purchaseID = strconv.FormatInt(*cashback.PurchaseID, 10)
+	}
 	return OutputPayload{
 		ID:              strconv.FormatInt(cashback.ID, 10),
 		UserID:          strconv.FormatInt(cashback.UserID, 10),
-		PurchaseID:      strconv.FormatInt(cashback.PurchaseID, 10),
+		PurchaseID:      purchaseID,
 		Amount:          cashback.Amount,
 		CashbackPercent: cashback.CashbackPercent,
 		Status:          string(cashback.Status),

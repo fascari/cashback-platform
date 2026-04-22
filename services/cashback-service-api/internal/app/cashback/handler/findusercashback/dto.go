@@ -40,9 +40,13 @@ func ToOutputPayload(summary findusercashback.UserCashbackSummary) OutputPayload
 }
 
 func toCashbackItem(c domain.Cashback) CashbackItem {
+	purchaseID := ""
+	if c.PurchaseID != nil {
+		purchaseID = strconv.FormatInt(*c.PurchaseID, 10)
+	}
 	return CashbackItem{
 		ID:              strconv.FormatInt(c.ID, 10),
-		PurchaseID:      strconv.FormatInt(c.PurchaseID, 10),
+		PurchaseID:      purchaseID,
 		Amount:          c.Amount,
 		CashbackPercent: c.CashbackPercent,
 		Status:          string(c.Status),

@@ -85,12 +85,16 @@ func (u UseCase) Execute(ctx context.Context, purchaseID int64) (domain.Cashback
 	cashback = cashback.Approve()
 
 	return u.repository.CreateWithEvent(ctx, cashback, func(created domain.Cashback) any {
+		purchaseID := ""
+		if created.PurchaseID != nil {
+			purchaseID = strconv.FormatInt(*created.PurchaseID, 10)
+		}
 		return CashbackApprovedEvent{
 			EventID:       uuid.New().String(),
 			CashbackID:    strconv.FormatInt(created.ID, 10),
 			UserID:        strconv.FormatInt(created.UserID, 10),
 			WalletAddress: user.WalletAddress,
-			PurchaseID:    strconv.FormatInt(created.PurchaseID, 10),
+			PurchaseID:    purchaseID,
 			TokenAmount:   fmt.Sprintf("%.0f", created.Amount*1e18),
 			ChainID:       defaultChainID,
 		}

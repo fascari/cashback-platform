@@ -7,14 +7,15 @@ import (
 )
 
 type cashbackModel struct {
-	ID              int64         `gorm:"primaryKey;autoIncrement"`
-	UserID          int64         `gorm:"not null;index"`
-	PurchaseID      int64         `gorm:"not null;uniqueIndex"`
-	Amount          float64       `gorm:"not null"`
-	CashbackPercent float64       `gorm:"not null"`
-	Status          domain.Status `gorm:"not null;default:'pending';index"`
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	ID               int64         `gorm:"primaryKey;autoIncrement"`
+	UserID           int64         `gorm:"not null;index"`
+	PurchaseID       *int64        `gorm:"index"`
+	DepositReceiptID *int64        `gorm:"index"`
+	Amount           float64       `gorm:"not null"`
+	CashbackPercent  float64       `gorm:"not null"`
+	Status           domain.Status `gorm:"not null;default:'pending';index"`
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 func (cashbackModel) TableName() string {
@@ -23,26 +24,28 @@ func (cashbackModel) TableName() string {
 
 func (m cashbackModel) toDomain() domain.Cashback {
 	return domain.Cashback{
-		ID:              m.ID,
-		UserID:          m.UserID,
-		PurchaseID:      m.PurchaseID,
-		Amount:          m.Amount,
-		CashbackPercent: m.CashbackPercent,
-		Status:          m.Status,
-		CreatedAt:       m.CreatedAt.UTC(),
-		UpdatedAt:       m.UpdatedAt.UTC(),
+		ID:               m.ID,
+		UserID:           m.UserID,
+		PurchaseID:       m.PurchaseID,
+		DepositReceiptID: m.DepositReceiptID,
+		Amount:           m.Amount,
+		CashbackPercent:  m.CashbackPercent,
+		Status:           m.Status,
+		CreatedAt:        m.CreatedAt.UTC(),
+		UpdatedAt:        m.UpdatedAt.UTC(),
 	}
 }
 
 func fromDomain(c domain.Cashback) cashbackModel {
 	return cashbackModel{
-		ID:              c.ID,
-		UserID:          c.UserID,
-		PurchaseID:      c.PurchaseID,
-		Amount:          c.Amount,
-		CashbackPercent: c.CashbackPercent,
-		Status:          c.Status,
-		CreatedAt:       c.CreatedAt,
-		UpdatedAt:       c.UpdatedAt,
+		ID:               c.ID,
+		UserID:           c.UserID,
+		PurchaseID:       c.PurchaseID,
+		DepositReceiptID: c.DepositReceiptID,
+		Amount:           c.Amount,
+		CashbackPercent:  c.CashbackPercent,
+		Status:           c.Status,
+		CreatedAt:        c.CreatedAt,
+		UpdatedAt:        c.UpdatedAt,
 	}
 }

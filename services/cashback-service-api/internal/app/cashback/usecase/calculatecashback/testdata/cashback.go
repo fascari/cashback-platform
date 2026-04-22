@@ -7,10 +7,12 @@ const (
 	UserID     int64 = 10
 )
 
+func pInt64(v int64) *int64 { return &v }
+
 func ApprovedCashback() cashdomain.Cashback {
-	return cashdomain.Cashback{ID: 1, UserID: UserID, PurchaseID: PurchaseID, Amount: 5.0, Status: cashdomain.StatusApproved}
+	return cashdomain.Cashback{ID: 1, UserID: UserID, PurchaseID: pInt64(PurchaseID), Amount: 5.0, Status: cashdomain.StatusApproved}
 }
 
 func ExistingCashback() cashdomain.Cashback {
-	return cashdomain.Cashback{ID: 99, PurchaseID: PurchaseID}
+	return cashdomain.Cashback{ID: 99, PurchaseID: pInt64(PurchaseID)}
 }

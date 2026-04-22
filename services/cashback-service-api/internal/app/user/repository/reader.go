@@ -49,3 +49,17 @@ func (r Repository) FindByEmail(ctx context.Context, email string) (domain.User,
 
 	return user.toDomain(), nil
 }
+
+func (r Repository) FindByWalletAddress(ctx context.Context, walletAddress string) (domain.User, error) {
+	user := new(userModel)
+
+	err := r.db.WithContext(ctx).Where("wallet_address = ?", walletAddress).First(user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return domain.User{}, domain.ErrUserNotFound
+		}
+		return domain.User{}, err
+	}
+
+	return user.toDomain(), nil
+}

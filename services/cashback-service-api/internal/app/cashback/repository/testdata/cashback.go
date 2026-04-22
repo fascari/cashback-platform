@@ -23,10 +23,12 @@ const (
 	NewCashbackID     int64 = 10001
 )
 
+func pInt64(v int64) *int64 { return &v }
+
 func NewCashback() cashdomain.Cashback {
 	return cashdomain.Cashback{
 		UserID:          UserID,
-		PurchaseID:      NewPurchaseID,
+		PurchaseID:      pInt64(NewPurchaseID),
 		Amount:          15.0,
 		CashbackPercent: 10.0,
 		Status:          cashdomain.StatusPending,
@@ -37,7 +39,7 @@ func CreatedCashback() cashdomain.Cashback {
 	return cashdomain.Cashback{
 		ID:              NewCashbackID,
 		UserID:          UserID,
-		PurchaseID:      NewPurchaseID,
+		PurchaseID:      pInt64(NewPurchaseID),
 		Amount:          15.0,
 		CashbackPercent: 10.0,
 		Status:          cashdomain.StatusPending,
@@ -50,7 +52,7 @@ func PendingCashback() cashdomain.Cashback {
 	return cashdomain.Cashback{
 		ID:              CashbackID,
 		UserID:          UserID,
-		PurchaseID:      PurchaseID,
+		PurchaseID:      pInt64(PurchaseID),
 		Amount:          15.0,
 		CashbackPercent: 10.0,
 		Status:          cashdomain.StatusPending,
@@ -63,7 +65,7 @@ func MintedCashback() cashdomain.Cashback {
 	return cashdomain.Cashback{
 		ID:              MintedCashbackID,
 		UserID:          UserID,
-		PurchaseID:      AnotherPurchaseID,
+		PurchaseID:      pInt64(AnotherPurchaseID),
 		Amount:          10.0,
 		CashbackPercent: 10.0,
 		Status:          cashdomain.StatusMinted,

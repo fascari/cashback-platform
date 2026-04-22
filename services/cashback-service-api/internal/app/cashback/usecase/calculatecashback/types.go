@@ -1,6 +1,5 @@
 package calculatecashback
 
-// CashbackApprovedEvent is the payload published to NATS when a cashback is approved.
 type CashbackApprovedEvent struct {
 	EventID       string `json:"event_id"`
 	CashbackID    string `json:"cashback_id"`

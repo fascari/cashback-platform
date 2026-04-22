@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	UserID    int64 = 1
-	NewUserID int64 = 10001
+	UserID        int64  = 1
+	NewUserID     int64  = 10001
+	WalletAddress string = "0xABCDEF1234567890ABCD"
 )
 
 var (

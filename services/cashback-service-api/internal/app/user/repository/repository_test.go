@@ -99,3 +99,20 @@ func (s *RepositorySuite) TestFindByEmail_NotFound() {
 
 	s.Require().True(errors.Is(err, domain.ErrUserNotFound))
 }
+
+func (s *RepositorySuite) TestFindByWalletAddress() {
+	ctx := context.Background()
+
+	found, err := s.repo.FindByWalletAddress(ctx, testdata.WalletAddress)
+
+	s.Require().NoError(err)
+	s.Require().Equal(testdata.ExistingUser(), found)
+}
+
+func (s *RepositorySuite) TestFindByWalletAddress_NotFound() {
+	ctx := context.Background()
+
+	_, err := s.repo.FindByWalletAddress(ctx, "0xDEADBEEF00000000DEAD")
+
+	s.Require().True(errors.Is(err, domain.ErrUserNotFound))
+}
