@@ -46,7 +46,6 @@ func NewDepositMonitor(filter TokenFilter, blocks BlockReader, startBlock uint64
 	return m
 }
 
-// WithPollInterval overrides the default poll interval.
 func WithPollInterval(d time.Duration) func(*DepositMonitor) {
 	return func(m *DepositMonitor) { m.interval = d }
 }
@@ -82,7 +81,14 @@ func (m *DepositMonitor) tick(ctx context.Context, current uint64, handler chain
 		current = seedBlock(latest)
 	}
 
-	if latest <= current {
+	// Chain reset: Anvil restarted while the DB still has a higher block number.
+	// A difference of exactly 1 is normal "caught up" state, not a reset.
+	if current > 0 && latest+1 < current {
+		current = seedBlock(latest)
+	}
+
+	// No new blocks since last tick.
+	if latest < current {
 		return current
 	}
 
@@ -118,7 +124,6 @@ func seedBlock(latest uint64) uint64 {
 	return 1
 }
 
-// Stop signals the monitor to stop polling after the current interval.
 func (m *DepositMonitor) Stop() {
 	m.once.Do(func() {
 		close(m.quit)

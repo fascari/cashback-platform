@@ -18,7 +18,6 @@ import (
 	infranats "github.com/cashback-platform/services/blockchain-adapter/internal/infra/nats"
 )
 
-// Deposit wires the deposit monitor, its repository, and lifecycle hooks.
 var Deposit = fx.Module("deposit",
 	fx.Provide(
 		depositrepo.New,
@@ -65,16 +64,20 @@ func newDepositMonitor(p depositMonitorParams) (*ethereuminfra.DepositMonitor, e
 func startDepositMonitor(p depositLifecycleParams) {
 	handler := newDepositHandler(p.Repo, p.NATS)
 
+	// monitorCtx must outlive the FX OnStart context, which expires after startup.
+	monitorCtx, cancel := context.WithCancel(context.Background())
+
 	p.LC.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			go func() {
-				if err := p.Monitor.Watch(ctx, handler); err != nil {
+				if err := p.Monitor.Watch(monitorCtx, handler); err != nil {
 					logger.Error("deposit monitor stopped", "error", err)
 				}
 			}()
 			return nil
 		},
 		OnStop: func(_ context.Context) error {
+			cancel()
 			p.Monitor.Stop()
 			return nil
 		},
