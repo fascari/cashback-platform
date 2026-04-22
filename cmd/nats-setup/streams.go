@@ -10,6 +10,25 @@ import (
 	natsgo "github.com/nats-io/nats.go"
 )
 
+type consumer struct {
+	stream string
+	config *natsgo.ConsumerConfig
+}
+
+var consumers = []consumer{
+	{
+		stream: events.StreamDepositEvents,
+		config: &natsgo.ConsumerConfig{
+			Durable:       "cashback-service-api-deposits",
+			FilterSubject: events.DepositDetected,
+			AckPolicy:     natsgo.AckExplicitPolicy,
+			MaxDeliver:    5,
+			AckWait:       30 * time.Second,
+			DeliverPolicy: natsgo.DeliverAllPolicy,
+		},
+	},
+}
+
 type stream struct {
 	name    string
 	subject string
@@ -40,6 +59,11 @@ func provision(js natsgo.JetStreamContext) error {
 			return fmt.Errorf("setup stream %s: %w", s.name, err)
 		}
 	}
+	for _, c := range consumers {
+		if err := ensureConsumer(js, c); err != nil {
+			return fmt.Errorf("setup consumer %s: %w", c.config.Durable, err)
+		}
+	}
 	return nil
 }
 
@@ -67,5 +91,21 @@ func ensureStream(js natsgo.JetStreamContext, s stream) error {
 	}
 
 	slog.Info("stream created", "stream", s.name)
+	return nil
+}
+
+func ensureConsumer(js natsgo.JetStreamContext, c consumer) error {
+	_, err := js.ConsumerInfo(c.stream, c.config.Durable)
+	if err == nil {
+		slog.Info("consumer already exists", "consumer", c.config.Durable)
+		return nil
+	}
+	if !errors.Is(err, natsgo.ErrConsumerNotFound) {
+		return fmt.Errorf("query consumer info: %w", err)
+	}
+	if _, err := js.AddConsumer(c.stream, c.config); err != nil {
+		return fmt.Errorf("add consumer: %w", err)
+	}
+	slog.Info("consumer created", "consumer", c.config.Durable)
 	return nil
 }
