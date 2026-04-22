@@ -14,7 +14,7 @@ ERC-20 token with restricted mint and burn operations.
 | `burn(address from, uint256 amount)` | Owner only | Destroys tokens from `from` |
 | Standard ERC-20 | Public | `transfer`, `approve`, `allowance`, etc. |
 
-The deployer wallet becomes the owner. Only the owner can mint or burn: any other caller gets the transaction reverted.
+The deployer wallet becomes the owner. Only the owner can mint or burn. Any other caller gets the transaction reverted.
 
 `amount` is always in wei (1 token = `1e18` wei).
 
@@ -98,23 +98,10 @@ CONTRACT_ADDRESS=0x<printed-address>
 
 The Go service calls `mint()` via the generated binding when a cashback event is processed:
 
-```
+```text
 mint-consumer → gRPC MintToken → blockchain-adapter → CashbackToken.mint()
 ```
 
-The binding lives at `services/blockchain-adapter/internal/contracts/cashbacktoken.go`
-and is generated from the compiled ABI. It is not committed — regenerate with
-`mise run contracts:bindings` after any contract change.
-
-## What is committed
-
-| Path | Description |
-|---|---|
-| `contracts/CashbackToken.sol` | Contract source |
-| `hardhat.config.ts` | Network and compiler config |
-| `package.json` / `package-lock.json` | Dependencies |
-| `scripts/deploy.ts` | Deploy script |
-| `tsconfig.json` | TypeScript config |
-
-`node_modules/`, `artifacts/`, `cache/`, and `typechain-types/` are generated
-and excluded from version control.
+The binding at `services/blockchain-adapter/internal/contracts/cashbacktoken.go`
+is generated from the compiled ABI and is not committed to version control.
+Regenerate with `mise run contracts:bindings` after any contract change.
