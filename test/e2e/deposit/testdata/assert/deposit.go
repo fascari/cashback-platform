@@ -2,13 +2,15 @@
 
 package assert
 
-import "database/sql"
+import (
+	"database/sql"
+
+	e2esuite "github.com/cashback-platform/test/e2e/suite"
+)
 
 func IsDetected(db *sql.DB, txHash string) bool {
-	var count int
-	_ = db.QueryRow(
+	return e2esuite.RowExists(db,
 		"SELECT COUNT(*) FROM detected_deposits WHERE transaction_hash = $1",
 		txHash,
-	).Scan(&count)
-	return count > 0
+	)
 }

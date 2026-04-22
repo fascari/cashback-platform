@@ -25,7 +25,7 @@ func TestCashbackSuite(t *testing.T) {
 
 func (s *CashbackSuite) SetupSuite() {
 	s.Suite.SetupSuite()
-	s.Suite.ConfigureFixtures("testdata/fixtures")
+	s.Suite.ConfigureFixtures(s.CashbackDB, "testdata/fixtures")
 }
 
 func (s *CashbackSuite) TestCashbackFlow_ShouldIncrementBalanceAfterMint() {

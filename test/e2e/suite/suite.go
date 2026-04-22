@@ -14,78 +14,66 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-const BaseURL = "http://localhost:18080"
+const (
+	BaseURL = "http://localhost:18080"
 
+	envCashbackDSN    = "POSTGRES_DSN_CASHBACK"
+	envBlockchainDSN  = "POSTGRES_DSN_BLOCKCHAIN"
+	envEthereumRPCURL = "ETHEREUM_RPC_URL"
+
+	defaultEthereumRPCURL = "http://127.0.0.1:8545"
+
+	httpClientTimeout = 10 * time.Second
+)
+
+// Suite is the base for all e2e test suites. Embed it and override SetupSuite,
+// calling s.Suite.SetupSuite() first.
 type Suite struct {
 	suite.Suite
-	E               *httpexpect.Expect
-	BlockchainDB    *sql.DB
-	EthereumRPCURL  string
-	db              *sql.DB
-	loader          *testfixtures.Loader
+	E              *httpexpect.Expect
+	BlockchainDB   *sql.DB
+	CashbackDB     *sql.DB
+	EthereumRPCURL string
+	loaders        []*testfixtures.Loader
 }
 
 func (s *Suite) SetupSuite() {
-	resp, err := http.Get(BaseURL + "/health")
-	if err != nil {
-		s.T().Fatalf("API not reachable at %s — start services with mise run test:e2e", BaseURL)
+	s.requireAPIHealthy()
+	s.CashbackDB = s.openDB(os.Getenv(envCashbackDSN))
+	if dsn := os.Getenv(envBlockchainDSN); dsn != "" {
+		s.BlockchainDB = s.openDB(dsn)
 	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		s.T().Fatalf("API not healthy at %s — status %d", BaseURL, resp.StatusCode)
-	}
-
-	db, err := sql.Open("postgres", os.Getenv("POSTGRES_DSN_CASHBACK"))
-	s.Require().NoError(err)
-	s.Require().NoError(db.Ping())
-	s.db = db
-
-	if dsn := os.Getenv("POSTGRES_DSN_BLOCKCHAIN"); dsn != "" {
-		bdb, err := sql.Open("postgres", dsn)
-		s.Require().NoError(err)
-		s.Require().NoError(bdb.Ping())
-		s.BlockchainDB = bdb
-	}
-
-	rpcURL := os.Getenv("ETHEREUM_RPC_URL")
-	if rpcURL == "" {
-		rpcURL = "http://127.0.0.1:8545"
-	}
-	s.EthereumRPCURL = rpcURL
+	s.EthereumRPCURL = envOr(envEthereumRPCURL, defaultEthereumRPCURL)
 }
 
-// ConfigureFixtures sets up the fixture loader for the given directory.
-// The path is relative to the test package directory (where go test runs).
-// Once configured, fixtures reload automatically before each test via SetupTest.
-func (s *Suite) ConfigureFixtures(dir string) {
+// ConfigureFixtures sets up a fixture loader for the given database and directory.
+// Call once per database in SetupSuite. Fixtures reload before each test via SetupTest.
+// The directory path is relative to the test package directory (where go test runs).
+func (s *Suite) ConfigureFixtures(db *sql.DB, dir string) {
 	loader, err := testfixtures.New(
-		testfixtures.Database(s.db),
+		testfixtures.Database(db),
 		testfixtures.Dialect("postgres"),
 		testfixtures.Directory(dir),
 		testfixtures.DangerousSkipTestDatabaseCheck(),
 	)
 	s.Require().NoError(err)
-	s.loader = loader
+	s.loaders = append(s.loaders, loader)
 }
 
-// SetupTest resets fixtures and reinitialises the HTTP client before each test.
 func (s *Suite) SetupTest() {
-	if s.loader != nil {
-		s.Require().NoError(s.loader.Load())
+	for _, l := range s.loaders {
+		s.Require().NoError(l.Load())
 	}
-
 	s.E = httpexpect.WithConfig(httpexpect.Config{
 		BaseURL:  BaseURL + "/api/v1",
 		Reporter: httpexpect.NewRequireReporter(s.T()),
-		Client:   &http.Client{Timeout: 10 * time.Second},
+		Client:   &http.Client{Timeout: httpClientTimeout},
 	})
 }
 
-// TearDownSuite closes all database connections.
 func (s *Suite) TearDownSuite() {
-	if s.db != nil {
-		_ = s.db.Close()
+	if s.CashbackDB != nil {
+		_ = s.CashbackDB.Close()
 	}
 	if s.BlockchainDB != nil {
 		_ = s.BlockchainDB.Close()
@@ -93,17 +81,43 @@ func (s *Suite) TearDownSuite() {
 }
 
 // BlockchainAvailable reports whether an EVM node is reachable.
-// Falls back to http://127.0.0.1:8545 when ETHEREUM_RPC_URL is unset.
 func BlockchainAvailable() bool {
-	rpcURL := os.Getenv("ETHEREUM_RPC_URL")
-	if rpcURL == "" {
-		rpcURL = "http://127.0.0.1:8545"
-	}
 	c := &http.Client{Timeout: 2 * time.Second}
-	resp, err := c.Post(rpcURL, "application/json", nil)
+	resp, err := c.Post(envOr(envEthereumRPCURL, defaultEthereumRPCURL), "application/json", nil)
 	if err != nil {
 		return false
 	}
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	return true
+}
+
+func (s *Suite) requireAPIHealthy() {
+	resp, err := http.Get(BaseURL + "/health")
+	if err != nil {
+		s.T().Fatalf("API not reachable at %s — start services with mise run test:e2e", BaseURL)
+	}
+	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode != http.StatusOK {
+		s.T().Fatalf("API not healthy at %s — status %d", BaseURL, resp.StatusCode)
+	}
+}
+
+func (s *Suite) openDB(dsn string) *sql.DB {
+	db, err := sql.Open("postgres", dsn)
+	s.Require().NoError(err)
+	s.Require().NoError(db.Ping())
+	return db
+}
+
+// RowExists reports whether the given query returns at least one row.
+func RowExists(db *sql.DB, query string, args ...any) bool {
+	var count int
+	return db.QueryRow(query, args...).Scan(&count) == nil && count > 0
+}
+
+func envOr(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
