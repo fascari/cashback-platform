@@ -90,6 +90,19 @@ mise run run:adapter
 
 ---
 
+## AI Tooling
+
+The shared AI skills live in `.github/` through the `ai-config` submodule. To expose the same skills to Codex without duplicating files, run:
+
+```bash
+mise run bootstrap:codex
+```
+
+This creates a local `.agents/skills` symlink that points at `.github/skills`.
+If `mise` cannot resolve its toolchain offline, run `./scripts/bootstrap-codex.sh` directly.
+
+---
+
 ## Documentation
 
 - [architecture.md](docs/architecture.md) - system components and database schema

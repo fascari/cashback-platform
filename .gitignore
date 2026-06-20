@@ -25,6 +25,7 @@ coverage.out
 Thumbs.db
 
 .github/plans
+.agents/
 
 # Environment secrets
 .env

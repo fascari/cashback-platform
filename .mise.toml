@@ -82,6 +82,10 @@ run = "cd services/blockchain-adapter && go run ./cmd/main.go"
 description = "Create JetStream streams (idempotent). Uses NATS_URL from env (default: nats://localhost:4222)"
 run = "cd cmd/nats-setup && go run ."
 
+[tasks."bootstrap:codex"]
+description = "Create the local .agents/skills symlink for Codex"
+run = "./scripts/bootstrap-codex.sh"
+
 [tasks."nats:up"]
 description = "Wait for NATS and provision JetStream streams. Use this instead of wait:nats + nats:setup."
 depends = ["wait:nats"]
@@ -142,4 +146,3 @@ run = "cd contracts && mise run compile"
 [tasks."contracts:bindings"]
 description = "Generate Go bindings for blockchain-adapter"
 run = "cd contracts && mise run bindings"
-
